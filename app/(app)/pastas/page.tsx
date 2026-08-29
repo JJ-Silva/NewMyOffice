@@ -72,9 +72,12 @@ export default async function PaginaPastas() {
                     : "nenhum"}
                 </span>
                 <div className="flex justify-center">
-                  <span className="text-xs text-texto-secundario">
-                    Atividades (Passo 7)
-                  </span>
+                  <Link
+                    href={`/atividades/nova?pasta=${p.id}`}
+                    className="botao-secundario"
+                  >
+                    + Prazo
+                  </Link>
                 </div>
               </div>
             );

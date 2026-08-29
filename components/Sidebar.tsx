@@ -22,6 +22,7 @@ export function Sidebar({
   // agenda de verdade (Passo 8) entram depois.
   const itens: ItemNav[] = [
     { href: "/agenda", label: "Agenda de atividades" },
+    { href: "/atividades/nova", label: "Novo prazo" },
     { href: "/clientes", label: "Clientes" },
     { href: "/pastas", label: "Pastas" },
   ];
