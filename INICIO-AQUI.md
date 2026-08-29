@@ -3,7 +3,7 @@
 O projeto já está scaffoldado (Next.js 16 + TS + Tailwind + Vitest + Supabase CLI). Este arquivo é o roteiro da **primeira entrega**.
 
 ## Antes de tudo
-Leia inteiros: `docs/MYOFFICE_MVP_PLANO.md`, depois `docs/MYOFFICE_MOTOR_TESTES.md`, depois `docs/referencia/funcao-vba-Contar_Prazos.txt`. As regras estão em `CLAUDE.md` e no §0/§1.1 do plano.
+Leia inteiros: `docs/MYOFFICE_MVP_PLANO.md`, depois `docs/MYOFFICE_MOTOR_TESTES.md`, depois `docs/referencia/funcao-vba-Contar_Prazos.txt`, e **`docs/prototipo/TELAS.md`** (o desenho das telas — paleta, layout, textos). As regras estão em `CLAUDE.md` e no §0/§1.1 do plano.
 
 ## Escopo desta entrega — SÓ a fatia vertical (plano §4)
 

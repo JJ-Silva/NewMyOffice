@@ -6,6 +6,7 @@ Sistema de gestão para escritório de advocacia. Começa pelo **controle de pra
 1. `docs/MYOFFICE_MVP_PLANO.md` — a especificação (stack, modelo de dados §3, Etapa 1 §4, decisões travadas §5)
 2. `docs/MYOFFICE_MOTOR_TESTES.md` — casos de teste do motor de cálculo de prazo
 3. `docs/referencia/funcao-vba-Contar_Prazos.txt` — a função VBA que o motor porta
+4. `docs/prototipo/TELAS.md` — protótipo visual das telas (paleta, layout, vocabulário, divergências a decidir). Canvas editável: `docs/prototipo/MyOffice.dc.html`
 
 `INICIO-AQUI.md` (raiz) tem o passo a passo da primeira entrega.
 

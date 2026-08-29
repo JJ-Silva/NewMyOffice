@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: Inter, system-ui, -apple-system, sans-serif; background: #E6F2F3; color: #483D3F; -webkit-font-smoothing: antialiased; }
+  a { color: #00727E; text-decoration: none; }
+  a:hover { color: #00727E; text-decoration: underline; }
+  input, select, button, textarea { font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #00727E; outline-offset: -1px; }
+  ::placeholder { color: #8A7C7E; }
+</style>
+</helmet>
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+  <div style="min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; background: #E6F2F3">
+    <div style="background: #00727E; padding: 56px 60px; display: flex; flex-direction: column; justify-content: space-between; color: #fff">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div style="width: 34px; height: 34px; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none"><img src="uploads/Logo.ico" alt="MyOffice" style="width: 24px; height: 24px; object-fit: contain" /></div>
+        <span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">MyOffice</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 22px; max-width: 420px">
+        <h2 style="margin: 0; font-size: 30px; line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; text-wrap: pretty">Prazos calculados, conferidos e sempre à vista.</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.72)">O MyOffice apura prazo fatal e prazo interno a partir da data de disponibilização, considerando feriados e suspensões — e registra a memória de cálculo de cada lançamento.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 8px">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.82)">
+            <div style="width: 6px; height: 6px; border-radius: 99px; background: #16A34A"></div>Contagem em dias úteis com base legal citada
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.82)">
+            <div style="width: 6px; height: 6px; border-radius: 99px; background: #16A34A"></div>Ajuste manual sempre com motivo registrado
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.82)">
+            <div style="width: 6px; height: 6px; border-radius: 99px; background: #16A34A"></div>Histórico completo por prazo
+          </div>
+        </div>
+      </div>
+      <span style="font-size: 12px; color: rgba(255,255,255,0.45)">Uso interno do escritório · versão 1.0</span>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; padding: 40px">
+      <div style="width: 100%; max-width: 396px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: 32px">
+        <div style="display: flex; gap: 4px; padding: 4px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px; margin-bottom: 26px">
+          <button onClick="{{ goLoginMode }}" style="flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 500; border: none; border-radius: 7px; cursor: pointer; background: {{ tabLoginBg }}; color: {{ tabLoginFg }}; box-shadow: {{ tabLoginShadow }}">Entrar</button>
+          <button onClick="{{ goSignupMode }}" style="flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 500; border: none; border-radius: 7px; cursor: pointer; background: {{ tabSignupBg }}; color: {{ tabSignupFg }}; box-shadow: {{ tabSignupShadow }}">Criar conta</button>
+        </div>
+
+        <h1 style="margin: 0 0 6px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">{{ authTitle }}</h1>
+        <p style="margin: 0 0 26px; font-size: 14px; line-height: 1.55; color: #736769">{{ authSubtitle }}</p>
+
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Nome do escritório</span>
+              <input type="text" placeholder="Ex.: Silva &amp; Associados" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            </label>
+          </sc-if>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">E-mail</span>
+            <input type="email" placeholder="voce@escritorio.adv.br" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Senha</span>
+            <input type="password" placeholder="••••••••" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+          </label>
+
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: -2px 0 0; font-size: 12px; line-height: 1.5; color: #736769">O escritório é criado automaticamente com sua conta como administradora.</p>
+          </sc-if>
+
+          <button onClick="{{ doAuth }}" style="height: 42px; margin-top: 4px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">{{ authCta }}</button>
+
+          <sc-if value="{{ isLoginMode }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; justify-content: center">
+              <a href="#" style="font-size: 13px">Esqueci minha senha</a>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height: 100vh; display: grid; grid-template-columns: 236px 1fr; background: #E6F2F3">
+    <aside style="background: #00727E; padding: 22px 16px; display: flex; flex-direction: column; gap: 26px; position: sticky; top: 0; height: 100vh">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+        <div style="width: 30px; height: 30px; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none"><img src="uploads/Logo.ico" alt="MyOffice" style="width: 21px; height: 21px; object-fit: contain" /></div>
+        <span style="font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.01em">MyOffice</span>
+      </div>
+
+      <nav style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px 8px">Trabalho</span>
+        <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+          <button onClick="{{ item.go }}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; font-size: 13.5px; font-weight: 500; text-align: left; border: none; border-radius: 8px; cursor: pointer; background: {{ item.bg }}; color: {{ item.fg }}" style-hover="background: rgba(255,255,255,0.09)">
+            <span style="width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid currentColor; opacity: 0.75; flex: none"></span>
+            <span style="flex: 1">{{ item.label }}</span>
+            <sc-if value="{{ item.badge }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: #DC2626; color: #fff">{{ item.badge }}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </nav>
+
+      <div style="margin-top: auto; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 10px">
+        <div style="width: 30px; height: 30px; border-radius: 99px; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff">HM</div>
+        <div style="display: flex; flex-direction: column; min-width: 0">
+          <span style="font-size: 13px; font-weight: 500; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Helena Moraes</span>
+          <span style="font-size: 11px; color: rgba(255,255,255,0.5)">Silva &amp; Associados</span>
+        </div>
+      </div>
+      <button onClick="{{ logout }}" style="padding: 8px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.6); background: transparent; border: 1px solid rgba(255,255,255,0.16); border-radius: 8px; cursor: pointer" style-hover="color: #fff; border-color: rgba(255,255,255,0.4)">Sair</button>
+    </aside>
+
+    <main style="padding: 30px 34px 60px; width: 100%; min-width: 0">
+
+      <sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Agenda de atividades</h1>
+              <p style="margin: 0; font-size: 14px; color: #736769">{{ hojeLongo }} · {{ resumoTexto }}</p>
+            </div>
+            <button onClick="{{ goPrazo }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer; flex: none" style-hover="background: #F5C400">+ Nova atividade</button>
+          </div>
+
+          <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #FFFFFF; border: 1px solid #FCA5A5; border-left: 4px solid #DC2626; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.05)">
+              <div style="display: flex; flex-direction: column; gap: 2px; flex: 1">
+                <span style="font-size: 14px; font-weight: 600; color: #483D3F">{{ bannerTitulo }}</span>
+                <span style="font-size: 13px; color: #736769">{{ bannerSub }}</span>
+              </div>
+              <button onClick="{{ filtrarUrgentes }}" style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; color: #DC2626; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; cursor: pointer">Ver só esses</button>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05)">
+            <div style="display: flex; align-items: center; gap: 6px">
+              <button onClick="{{ diaAnterior }}" title="Dia anterior" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #00727E; background: #FFFFFF; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer" style-hover="background: #E6F2F3">‹</button>
+              <button onClick="{{ irParaHoje }}" style="height: 34px; padding: 0 14px; font-size: 13px; font-weight: 600; color: {{ hojeFg }}; background: {{ hojeBg }}; border: 1px solid {{ hojeBorder }}; border-radius: 8px; cursor: pointer">Hoje</button>
+              <button onClick="{{ diaSeguinte }}" title="Dia seguinte" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #00727E; background: #FFFFFF; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer" style-hover="background: #E6F2F3">›</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 190px">
+              <span style="font-size: 14px; font-weight: 600; color: #483D3F">{{ refLabel }}</span>
+              <span style="font-size: 12px; color: #736769">{{ refContexto }}</span>
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; margin-left: auto">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Ir para</span>
+              <input type="date" value="{{ refData }}" onChange="{{ setRefData }}" style="height: 34px; padding: 0 10px; font-size: 13.5px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+            </label>
+            <div style="display: flex; gap: 4px; padding: 4px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 9px">
+              <sc-for list="{{ janelas }}" as="j" hint-placeholder-count="3">
+                <button onClick="{{ j.go }}" style="padding: 7px 13px; font-size: 12.5px; font-weight: 500; white-space: nowrap; border: none; border-radius: 6px; cursor: pointer; background: {{ j.bg }}; color: {{ j.fg }}; box-shadow: {{ j.shadow }}">{{ j.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 16px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05)">
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 210px; flex: 1">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta</span>
+              <select value="{{ fPasta }}" onChange="{{ setFPasta }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todas as pastas</option>
+                <sc-for list="{{ pastasOpts }}" as="p" hint-placeholder-count="3">
+                  <option value="{{ p }}">{{ p }}</option>
+                </sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 170px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Responsável</span>
+              <select value="{{ fResp }}" onChange="{{ setFResp }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todos</option>
+                <sc-for list="{{ respOpts }}" as="r" hint-placeholder-count="2">
+                  <option value="{{ r }}">{{ r }}</option>
+                </sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 170px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Tipo de atividade</span>
+              <select value="{{ fTipo }}" onChange="{{ setFTipo }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todos os tipos</option>
+                <option value="prazo">Prazo</option>
+                <option value="compromisso">Compromisso</option>
+                <option value="monitoramento">Monitoramento</option>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 170px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Status</span>
+              <select value="{{ fStatus }}" onChange="{{ setFStatus }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todos</option>
+                <option value="atrasado">Atrasado</option>
+                <option value="hoje">Vence hoje</option>
+                <option value="margem">Hora de fazer</option>
+                <option value="futuro">Futuro</option>
+                <option value="adiado">Adiado</option>
+                <option value="cumprido">Cumprido</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 210px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Ordenar por</span>
+              <select value="{{ ordem }}" onChange="{{ setOrdem }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="fatal-asc">Data — mais próxima</option>
+                <option value="fatal-desc">Data — mais distante</option>
+                <option value="interno-asc">Prazo interno — mais próximo</option>
+                <option value="pasta-asc">Pasta (A–Z)</option>
+                <option value="cliente-asc">Cliente (A–Z)</option>
+                <option value="tipo-asc">Tipo de atividade (A–Z)</option>
+                <option value="resp-asc">Responsável (A–Z)</option>
+              </select>
+            </label>
+            <button onClick="{{ toggleSoAtrasados }}" style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; background: {{ soAtrBg }}; color: {{ soAtrFg }}; border: 1px solid {{ soAtrBorder }}">
+              <span style="width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; background: {{ soAtrBox }}"></span>Só atrasados
+            </button>
+            <button onClick="{{ limparFiltros }}" style="height: 38px; padding: 0 12px; font-size: 13px; font-weight: 500; color: #736769; background: transparent; border: none; border-radius: 8px; cursor: pointer; text-decoration: underline">Limpar</button>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding-bottom: 4px">
+            <div style="display: grid; grid-template-columns: {{ colTemplate }}; min-width: {{ colMin }}; gap: 16px; padding: 0 18px 4px">
+              <sc-for list="{{ colunas }}" as="col" hint-placeholder-count="5">
+                <div style="position: relative; display: flex; align-items: center; justify-content: {{ col.align }}; min-width: 0">
+                  <sc-if value="{{ col.alternavel }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ alternarBase }}" title="Alternar entre prazo fatal e prazo interno" style="display: flex; align-items: center; gap: 5px; padding: 0; font-size: 12px; font-weight: 600; color: #00727E; background: transparent; border: none; cursor: pointer; white-space: nowrap">{{ baseLabel }} ⇄</button>
+                  </sc-if>
+                  <sc-if value="{{ col.simples }}" hint-placeholder-val="{{ true }}">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ col.label }}</span>
+                  </sc-if>
+                  <sc-if value="{{ col.info }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ toggleLegenda }}" title="Legenda de cores" style="width: 17px; height: 17px; margin-left: 6px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #00727E; background: #E6F2F3; border: 1px solid #A3C4BC; border-radius: 99px; cursor: pointer">?</button>
+                  </sc-if>
+                  <sc-if value="{{ col.popover }}" hint-placeholder-val="{{ false }}">
+                    <div style="position: absolute; top: 24px; left: 0; z-index: 25; min-width: 230px; padding: 14px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 10px; box-shadow: 0 10px 24px rgba(72,61,63,0.16); display: flex; flex-direction: column; gap: 9px">
+                      <span style="font-size: 12px; font-weight: 600; color: #483D3F">Legenda de status</span>
+                      <sc-for list="{{ legenda }}" as="l" hint-placeholder-count="6">
+                        <div style="display: flex; align-items: center; gap: 8px">
+                          <span style="width: 9px; height: 9px; flex: none; border-radius: 3px; background: {{ l.cor }}"></span>
+                          <span style="font-size: 12.5px; color: #736769">{{ l.label }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ col.redimensionavel }}" hint-placeholder-val="{{ true }}">
+                    <span onMouseDown="{{ col.resize }}" onDoubleClick="{{ col.reset }}" title="Arraste para ajustar a largura" style="position: absolute; top: -2px; right: {{ col.alcaRight }}; width: 14px; height: 22px; cursor: col-resize; display: flex; align-items: center; justify-content: center" style-hover="background: rgba(0,114,126,0.08)">
+                      <span style="width: 2px; height: 14px; border-radius: 2px; background: #A3C4BC"></span>
+                    </span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-for list="{{ lista }}" as="p" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: {{ colTemplate }}; min-width: {{ colMin }}; gap: 16px; align-items: center; background: #FFFFFF; border: 1px solid #D6E7E8; border-left: 4px solid {{ p.accent }}; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); cursor: pointer; padding: {{ rowPad }}; opacity: {{ p.opacity }}" style-hover="border-color: #00727E" onClick="{{ p.open }}">
+                <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                  <span style="font-size: 14px; font-weight: 500; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.identPasta }}</span>
+                  <sc-if value="{{ p.identProcesso }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 12px; color: #736769; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.identProcesso }}</span>
+                  </sc-if>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.cliente }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <div style="display: flex; align-items: center; gap: 7px; min-width: 0">
+                    <span title="{{ p.tipoTitulo }}" style="width: 16px; height: 16px; flex: none; color: #00727E; display: flex; align-items: center; justify-content: center">
+                      <sc-if value="{{ p.isPrazo }}" hint-placeholder-val="{{ true }}">
+                        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.8V8l2.4 1.6"></path></svg>
+                      </sc-if>
+                      <sc-if value="{{ p.isCompromisso }}" hint-placeholder-val="{{ false }}">
+                        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.2" y="3.4" width="11.6" height="10" rx="1.6"></rect><path d="M2.2 6.6h11.6M5.6 2.2v2.2M10.4 2.2v2.2"></path></svg>
+                      </sc-if>
+                      <sc-if value="{{ p.isMonitoramento }}" hint-placeholder-val="{{ false }}">
+                        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.4"></circle><path d="M10.4 10.4l3 3"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="font-size: 13.5px; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.tipo }}</span>
+                  </div>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.responsavel }}</span>
+                </div>
+                <div onClick="{{ alternarBaseCelula }}" title="Clique para alternar entre prazo fatal e interno" style="display: flex; flex-direction: column; gap: 3px; min-width: 0; cursor: pointer; padding: 2px 6px; margin: -2px -6px; border-radius: 7px" style-hover="background: #E6F2F3">
+                  <span style="font-size: 14px; font-weight: 600; color: {{ p.accent }}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.quandoPrincipal }}</span>
+                  <sc-if value="{{ p.quandoSub }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 11.5px; color: #736769; font-variant-numeric: tabular-nums">{{ p.quandoSub }}</span>
+                  </sc-if>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 6px; position: relative; min-width: 0">
+                  <sc-if value="{{ p.aberto }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ p.cumprir }}" title="Marcar como concluída" style="height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600; color: #16A34A; background: #FFFFFF; border: 1px solid #16A34A; border-radius: 7px; cursor: pointer; white-space: nowrap" style-hover="background: #F0FDF4">✓ Concluir</button>
+                  </sc-if>
+                  <sc-if value="{{ p.adiada }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ p.reativar }}" title="Reativar atividade" style="height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600; color: #7C5CBF; background: #FFFFFF; border: 1px solid #7C5CBF; border-radius: 7px; cursor: pointer; white-space: nowrap" style-hover="background: #F3F0FB">Reativar</button>
+                  </sc-if>
+                  <button onClick="{{ p.toggleMenu }}" title="Mais ações" style="width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; color: #736769; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 7px; cursor: pointer" style-hover="background: #E6F2F3; color: #00727E">⋮</button>
+                </div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 48px; text-align: center; background: #fff; border: 1px dashed #B9D4D3; border-radius: 12px">
+                <p style="margin: 0 0 4px; font-size: 14px; font-weight: 500; color: #483D3F">{{ vazioTitulo }}</p>
+                <p style="margin: 0; font-size: 13px; color: #736769">{{ vazioTexto }}</p>
+              </div>
+            </sc-if>
+          </div>
+
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0; max-width: 1100px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Configurações</h1>
+            <p style="margin: 0; font-size: 14px; color: #736769">Tribunais e calendário de feriados do escritório. Só o administrador vê esta tela.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; min-width: 0">
+            <div style="background: #fff; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600">Tribunais</h2>
+                <span style="font-size: 12.5px; color: #736769">{{ tribResumo }}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 110px 96px; gap: 10px; align-items: end">
+                <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Nome</span>
+                  <input type="text" value="{{ cfgTrib.nome }}" onChange="{{ setCfgTrib.nome }}" placeholder="Tribunal de Justiça de São Paulo" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                </label>
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Sigla</span>
+                  <input type="text" value="{{ cfgTrib.sigla }}" onChange="{{ setCfgTrib.sigla }}" placeholder="TJSP" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                </label>
+                <button onClick="{{ addTribunal }}" style="height: 38px; font-size: 13px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">Adicionar</button>
+              </div>
+              <sc-if value="{{ semTribunais }}" hint-placeholder-val="{{ true }}">
+                <div style="padding: 22px; text-align: center; background: #E6F2F3; border: 1px dashed #B9D4D3; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #736769">Nenhum tribunal cadastrado. Cadastre ao menos um para vincular feriados e calcular prazos.</div>
+              </sc-if>
+              <sc-for list="{{ tribunaisLista }}" as="t" hint-placeholder-count="0">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #D6E7E8; border-radius: 9px; min-width: 0">
+                  <span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: #E6F2F3; color: #00727E; flex: none">{{ t.sigla }}</span>
+                  <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1">
+                    <span style="font-size: 13.5px; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ t.nome }}</span>
+                    <span style="font-size: 12px; color: #736769">{{ t.feriadosTexto }}</span>
+                  </div>
+                  <button onClick="{{ t.excluir }}" title="Excluir tribunal" style="height: 30px; padding: 0 10px; flex: none; font-size: 12px; font-weight: 500; color: #DC2626; background: #FFFFFF; border: 1px solid #FCA5A5; border-radius: 7px; cursor: pointer" style-hover="background: #FEF2F2">Excluir</button>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background: #fff; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600">Feriados por tribunal</h2>
+                <span style="font-size: 12.5px; color: #736769">{{ ferResumo }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Tribunal</span>
+                  <select value="{{ cfgFer.tribunalId }}" onChange="{{ setCfgFer.tribunalId }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                    <option value="">Selecione o tribunal…</option>
+                    <sc-for list="{{ tribunalOpts }}" as="o" hint-placeholder-count="0">
+                      <option value="{{ o.id }}">{{ o.label }}</option>
+                    </sc-for>
+                  </select>
+                </label>
+                <div style="display: grid; grid-template-columns: 150px 1fr 96px; gap: 10px; align-items: end">
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Data</span>
+                    <input type="date" value="{{ cfgFer.data }}" onChange="{{ setCfgFer.data }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Descrição</span>
+                    <input type="text" value="{{ cfgFer.desc }}" onChange="{{ setCfgFer.desc }}" placeholder="Ex.: Recesso forense" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                  <button onClick="{{ addFeriado }}" style="height: 38px; font-size: 13px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">Adicionar</button>
+                </div>
+              </div>
+              <sc-if value="{{ semFeriados }}" hint-placeholder-val="{{ true }}">
+                <div style="padding: 22px; text-align: center; background: #E6F2F3; border: 1px dashed #B9D4D3; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #736769">Nenhum feriado cadastrado. Sem feriados, o cálculo considera apenas sábados e domingos.</div>
+              </sc-if>
+              <sc-for list="{{ feriadosLista }}" as="h" hint-placeholder-count="0">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid #D6E7E8; border-radius: 9px; min-width: 0">
+                  <span style="font-size: 13px; font-weight: 600; color: #483D3F; font-variant-numeric: tabular-nums; flex: none">{{ h.dataFmt }}</span>
+                  <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1">
+                    <span style="font-size: 13.5px; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ h.desc }}</span>
+                    <span style="font-size: 12px; color: #736769">{{ h.tribunal }} · {{ h.diaSemana }}</span>
+                  </div>
+                  <button onClick="{{ h.excluir }}" title="Excluir feriado" style="height: 30px; padding: 0 10px; flex: none; font-size: 12px; font-weight: 500; color: #DC2626; background: #FFFFFF; border: 1px solid #FCA5A5; border-radius: 7px; cursor: pointer" style-hover="background: #FEF2F2">Excluir</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isClientes }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Clientes</h1>
+              <p style="margin: 0; font-size: 14px; color: #736769">{{ clientesResumo }}</p>
+            </div>
+            <button onClick="{{ novoCliente }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer; flex: none" style-hover="background: #F5C400">+ Novo cliente</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding-bottom: 4px">
+            <div style="display: grid; grid-template-columns: minmax(200px, 1.5fr) minmax(140px, 1fr) minmax(170px, 1fr) minmax(70px, 0.6fr) 140px; min-width: 870px; gap: 16px; padding: 0 18px 2px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Cliente</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">CPF / CNPJ</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Contato</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Pastas</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769; text-align: center">Ação</span>
+            </div>
+            <sc-if value="{{ clientesVazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 44px; text-align: center; background: #fff; border: 1px dashed #B9D4D3; border-radius: 12px">
+                <p style="margin: 0 0 4px; font-size: 14px; font-weight: 500; color: #483D3F">Nenhum cliente cadastrado</p>
+                <p style="margin: 0; font-size: 13px; color: #736769">Comece por "+ Novo cliente" — o fluxo leva à criação da pasta.</p>
+              </div>
+            </sc-if>
+            <sc-for list="{{ clientesLista }}" as="c" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: minmax(200px, 1.5fr) minmax(140px, 1fr) minmax(170px, 1fr) minmax(70px, 0.6fr) 140px; min-width: 870px; gap: 16px; align-items: center; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: {{ rowPad }}">
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 14px; font-weight: 600; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ c.nome }}</span>
+                  <span style="font-size: 12px; color: #736769">{{ c.tipo }}</span>
+                </div>
+                <span style="font-size: 13.5px; color: #483D3F; font-variant-numeric: tabular-nums">{{ c.documento }}</span>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 13px; color: #483D3F">{{ c.telefone }}</span>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ c.email }}</span>
+                </div>
+                <span style="font-size: 13.5px; color: #483D3F">{{ c.pastasTexto }}</span>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 6px; position: relative; min-width: 0">
+                  <button onClick="{{ c.novaPasta }}" title="Criar pasta para este cliente" style="height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600; color: #00727E; background: #FFFFFF; border: 1px solid #00727E; border-radius: 7px; cursor: pointer; white-space: nowrap" style-hover="background: #E6F2F3">+ Pasta</button>
+                  <button onClick="{{ c.toggleMenu }}" title="Mais ações" style="width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; color: #736769; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 7px; cursor: pointer" style-hover="background: #E6F2F3; color: #00727E">⋮</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPastas }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Pastas</h1>
+              <p style="margin: 0; font-size: 14px; color: #736769">{{ pastasResumo }}</p>
+            </div>
+            <button onClick="{{ novaPasta }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer; flex: none" style-hover="background: #F5C400">+ Nova pasta</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding-bottom: 4px">
+            <div style="display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 1fr) minmax(100px, 0.8fr) minmax(100px, 0.8fr) 170px; min-width: 900px; gap: 16px; padding: 0 18px 2px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta / cliente</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Área</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Processos</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Prazos abertos</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769; text-align: center">Ação</span>
+            </div>
+            <sc-if value="{{ pastasVazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 44px; text-align: center; background: #fff; border: 1px dashed #B9D4D3; border-radius: 12px">
+                <p style="margin: 0 0 4px; font-size: 14px; font-weight: 500; color: #483D3F">Nenhuma pasta cadastrada</p>
+                <p style="margin: 0; font-size: 13px; color: #736769">Cada pasta recebe um código automático no formato AAAA/NNNNNN.</p>
+              </div>
+            </sc-if>
+            <sc-for list="{{ pastasLista }}" as="p" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 1fr) minmax(100px, 0.8fr) minmax(100px, 0.8fr) 170px; min-width: 900px; gap: 16px; align-items: center; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: {{ rowPad }}">
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 14px; font-weight: 600; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.nome }}</span>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ p.codigo }} · {{ p.cliente }}</span>
+                </div>
+                <span style="font-size: 13px; color: #483D3F">{{ p.area }}</span>
+                <span style="font-size: 13.5px; color: #483D3F">{{ p.processosTexto }}</span>
+                <span style="font-size: 13.5px; font-weight: 600; color: {{ p.prazosCor }}">{{ p.prazosTexto }}</span>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 6px; position: relative; min-width: 0">
+                  <button onClick="{{ p.verPrazos }}" title="Ver atividades desta pasta" style="height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600; color: #00727E; background: #FFFFFF; border: 1px solid #00727E; border-radius: 7px; cursor: pointer; white-space: nowrap" style-hover="background: #E6F2F3">Atividades</button>
+                  <button onClick="{{ p.toggleMenu }}" title="Mais ações" style="width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; color: #736769; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 7px; cursor: pointer" style-hover="background: #E6F2F3; color: #00727E">⋮</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isProcessos }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Processos</h1>
+              <p style="margin: 0; font-size: 14px; color: #736769">{{ processosResumo }}</p>
+            </div>
+            <button onClick="{{ novoProcesso }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer; flex: none" style-hover="background: #F5C400">+ Cadastrar processo</button>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 16px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05)">
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 220px; flex: 1">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta</span>
+              <select value="{{ fProcPasta }}" onChange="{{ setFProcPasta }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todas as pastas</option>
+                <sc-for list="{{ pastasOpts }}" as="p" hint-placeholder-count="3">
+                  <option value="{{ p }}">{{ p }}</option>
+                </sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px; min-width: 200px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Fase</span>
+              <select value="{{ fProcFase }}" onChange="{{ setFProcFase }}" style="height: 38px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                <option value="">Todas as fases</option>
+                <sc-for list="{{ fases }}" as="fa" hint-placeholder-count="4">
+                  <option value="{{ fa }}">{{ fa }}</option>
+                </sc-for>
+              </select>
+            </label>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding-bottom: 4px">
+            <div style="display: grid; grid-template-columns: minmax(180px, 200px) minmax(170px, 1.4fr) minmax(130px, 1fr) minmax(110px, auto) 160px; min-width: 950px; gap: 16px; padding: 0 18px 2px">
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Número (CNJ)</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta / cliente</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Juízo</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769">Fase</span>
+              <span style="font-size: 12px; font-weight: 500; color: #736769; text-align: center">Ação</span>
+            </div>
+            <sc-for list="{{ processosLista }}" as="x" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: minmax(180px, 200px) minmax(170px, 1.4fr) minmax(130px, 1fr) minmax(110px, auto) 160px; min-width: 950px; gap: 16px; align-items: center; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: {{ rowPad }}">
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 13.5px; font-weight: 600; color: #483D3F; font-variant-numeric: tabular-nums; white-space: nowrap">{{ x.numero }}</span>
+                  <span style="font-size: 12px; color: #736769">Distribuído em {{ x.distribuicaoFmt }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 13.5px; color: #483D3F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ x.pasta }}</span>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ x.cliente }} · {{ x.valorFmt }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 13px; color: #483D3F">{{ x.tribunal }}</span>
+                  <span style="font-size: 12px; color: #736769; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ x.vara }}</span>
+                </div>
+                <span style="font-size: 11.5px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: #E6F2F3; color: #00727E; justify-self: start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ x.fase }}</span>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 6px; position: relative; min-width: 0">
+                  <button onClick="{{ x.novaAtividade }}" title="Lançar atividade neste processo" style="height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600; color: #00727E; background: #FFFFFF; border: 1px solid #00727E; border-radius: 7px; cursor: pointer; white-space: nowrap" style-hover="background: #E6F2F3">+ Atividade</button>
+                  <button onClick="{{ x.toggleMenu }}" title="Mais ações" style="width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; color: #736769; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 7px; cursor: pointer" style-hover="background: #E6F2F3; color: #00727E">⋮</button>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ processosVazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 44px; text-align: center; background: #fff; border: 1px dashed #B9D4D3; border-radius: 12px">
+                <p style="margin: 0 0 4px; font-size: 14px; font-weight: 500; color: #483D3F">{{ processosVazioTitulo }}</p>
+                <p style="margin: 0; font-size: 13px; color: #736769">{{ processosVazioTexto }}</p>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isNovoPrazo }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <button onClick="{{ goAgenda }}" style="align-self: flex-start; padding: 0; font-size: 13px; color: #00727E; background: none; border: none; cursor: pointer">← Voltar para a agenda</button>
+            <h1 style="margin: 4px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">{{ naTitulo }}</h1>
+            <p style="margin: 0; font-size: 14px; color: #736769">{{ naAjuda }}</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start; max-width: 1180px; min-width: 0">
+            <div style="background: #fff; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); padding: 24px; display: flex; flex-direction: column; gap: 18px">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 600">Dados da atividade</h2>
+              <div style="display: flex; gap: 4px; padding: 4px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+                <sc-for list="{{ naTabs }}" as="t" hint-placeholder-count="3">
+                  <button onClick="{{ t.go }}" style="flex: 1; padding: 9px 8px; font-size: 13px; font-weight: 500; border: none; border-radius: 7px; cursor: pointer; background: {{ t.bg }}; color: {{ t.fg }}; box-shadow: {{ t.shadow }}">{{ t.label }}</button>
+                </sc-for>
+              </div>
+              <label style="display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta vinculada</span>
+                <select value="{{ npPasta }}" onChange="{{ setNpPasta }}" style="height: 40px; padding: 0 10px; font-size: 14px; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                  <option value="">Selecione a pasta…</option>
+                  <sc-for list="{{ pastasOpts }}" as="p" hint-placeholder-count="4">
+                    <option value="{{ p }}">{{ p }}</option>
+                  </sc-for>
+                </select>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12px; font-weight: 500; color: #736769">Nível da atividade</span>
+                <select value="{{ npNivel }}" onChange="{{ setNpNivel }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                  <option value="geral">Geral da pasta (sem processo)</option>
+                  <sc-for list="{{ niveisOpts }}" as="n" hint-placeholder-count="2">
+                    <option value="{{ n.valor }}">{{ n.label }}</option>
+                  </sc-for>
+                </select>
+                <span style="font-size: 12px; line-height: 1.45; color: #736769">{{ nivelAjuda }}</span>
+              </label>
+              <sc-if value="{{ naEhPrazo }}" hint-placeholder-val="{{ true }}">
+              <label style="display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12px; font-weight: 500; color: #736769">Tribunal (calendário de feriados)</span>
+                <select value="{{ npTribunal }}" onChange="{{ setNpTribunal }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                  <option value="">Sem tribunal (só sábados e domingos)</option>
+                  <sc-for list="{{ tribunalOpts }}" as="o" hint-placeholder-count="0">
+                    <option value="{{ o.id }}">{{ o.label }}</option>
+                  </sc-for>
+                </select>
+                <span style="font-size: 12px; line-height: 1.45; color: #736769">{{ tribunalAjuda }}</span>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12px; font-weight: 500; color: #736769">Tipo de prazo</span>
+                <select value="{{ npTipo }}" onChange="{{ setNpTipo }}" style="height: 40px; padding: 0 10px; font-size: 14px; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                  <sc-for list="{{ tiposOpts }}" as="t" hint-placeholder-count="5">
+                    <option value="{{ t.label }}">{{ t.label }}</option>
+                  </sc-for>
+                </select>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px">
+                <span style="font-size: 12px; font-weight: 500; color: #736769">Data da disponibilização</span>
+                <input type="date" value="{{ npData }}" onChange="{{ setNpData }}" style="height: 40px; padding: 0 12px; font-size: 14px; border: 1px solid #B9D4D3; border-radius: 8px" />
+              </label>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 13.5px; font-weight: 500; color: #483D3F">Prazo em dobro</span>
+                  <span style="font-size: 12px; color: #736769">Litisconsortes com procuradores distintos, Defensoria, MP</span>
+                </div>
+                <button onClick="{{ toggleDobro }}" style="width: 44px; height: 24px; flex: none; border-radius: 99px; border: none; cursor: pointer; position: relative; background: {{ dobroBg }}">
+                  <span style="position: absolute; top: 3px; left: {{ dobroLeft }}; width: 18px; height: 18px; border-radius: 99px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span>
+                </button>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ naEhCompromisso }}" hint-placeholder-val="{{ false }}">
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Tipo de compromisso</span>
+                  <select value="{{ c.tipo }}" onChange="{{ setC.tipo }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                    <sc-for list="{{ tiposCompromisso }}" as="t" hint-placeholder-count="4">
+                      <option value="{{ t }}">{{ t }}</option>
+                    </sc-for>
+                  </select>
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 110px 110px; gap: 12px">
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Data</span>
+                    <input type="date" value="{{ c.data }}" onChange="{{ setC.data }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Horário</span>
+                    <input type="time" value="{{ c.hora }}" onChange="{{ setC.hora }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Duração (min)</span>
+                    <input type="number" value="{{ c.duracao }}" onChange="{{ setC.duracao }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                </div>
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Local</span>
+                  <input type="text" value="{{ c.local }}" onChange="{{ setC.local }}" placeholder="Ex.: Fórum de Sorocaba — sala 4" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                </label>
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Recorrência</span>
+                  <select value="{{ c.recorrencia }}" onChange="{{ setC.recorrencia }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                    <sc-for list="{{ recorrencias }}" as="r" hint-placeholder-count="3">
+                      <option value="{{ r }}">{{ r }}</option>
+                    </sc-for>
+                  </select>
+                </label>
+              </sc-if>
+
+              <sc-if value="{{ naEhMonitoramento }}" hint-placeholder-val="{{ false }}">
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Tipo de monitoramento</span>
+                  <select value="{{ m.tipo }}" onChange="{{ setM.tipo }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                    <sc-for list="{{ tiposMonitoramento }}" as="t" hint-placeholder-count="4">
+                      <option value="{{ t }}">{{ t }}</option>
+                    </sc-for>
+                  </select>
+                </label>
+                <label style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Alvo do monitoramento</span>
+                  <input type="text" value="{{ m.alvo }}" onChange="{{ setM.alvo }}" placeholder="URL, número de processo, certidão…" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Data da verificação (opcional)</span>
+                    <input type="date" value="{{ m.data }}" onChange="{{ setM.data }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 6px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Recorrência</span>
+                    <select value="{{ m.recorrencia }}" onChange="{{ setM.recorrencia }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+                      <sc-for list="{{ recorrencias }}" as="r" hint-placeholder-count="3">
+                        <option value="{{ r }}">{{ r }}</option>
+                      </sc-for>
+                    </select>
+                  </label>
+                </div>
+              </sc-if>
+
+              <div style="display: flex; align-items: center; gap: 12px; padding-top: 4px">
+                <sc-if value="{{ naEhPrazo }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ salvarPrazo }}" style="height: 42px; padding: 0 18px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">Salvar prazo</button>
+                </sc-if>
+                <sc-if value="{{ naNaoEhPrazo }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ salvarAtividade }}" style="height: 42px; padding: 0 18px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">{{ naCta }}</button>
+                </sc-if>
+                <button onClick="{{ goAgenda }}" style="height: 42px; padding: 0 16px; font-size: 14px; font-weight: 500; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer">Cancelar</button>
+              </div>
+            </div>
+
+            <sc-if value="{{ naEhPrazo }}" hint-placeholder-val="{{ true }}">
+            <div style="background: #fff; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); overflow: hidden">
+              <div style="padding: 16px 20px; background: #00727E; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #fff">Memória de cálculo</h2>
+                <span style="font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.65)">{{ calcSelo }}</span>
+              </div>
+              <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+                  <div style="padding: 14px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; display: flex; flex-direction: column; gap: 4px">
+                    <span style="font-size: 12px; font-weight: 500; color: #991B1B">Prazo fatal</span>
+                    <span style="font-size: 20px; font-weight: 600; color: #DC2626; font-variant-numeric: tabular-nums">{{ calcFatal }}</span>
+                    <span style="font-size: 11.5px; color: #B91C1C">{{ calcFatalDia }}</span>
+                  </div>
+                  <div style="padding: 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; display: flex; flex-direction: column; gap: 4px">
+                    <span style="font-size: 12px; font-weight: 500; color: #92400E">Prazo interno</span>
+                    <span style="font-size: 20px; font-weight: 600; color: #D97706; font-variant-numeric: tabular-nums">{{ calcInterno }}</span>
+                    <span style="font-size: 11.5px; color: #B45309">{{ calcInternoDia }}</span>
+                  </div>
+                </div>
+
+                <sc-if value="{{ avisoFeriados }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; gap: 10px; padding: 12px 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px">
+                    <span style="font-size: 13px; flex: none; color: #B45309; font-weight: 700">!</span>
+                    <span style="font-size: 12.5px; line-height: 1.5; color: #92400E">{{ avisoFeriados }}</span>
+                  </div>
+                </sc-if>
+                <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Como chegamos nessas datas</span>
+                  <sc-for list="{{ passos }}" as="s" hint-placeholder-count="5">
+                    <div style="display: flex; gap: 10px; align-items: flex-start">
+                      <span style="width: 18px; height: 18px; flex: none; margin-top: 1px; border-radius: 99px; background: #CFE3DF; color: #00727E; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{ s.n }}</span>
+                      <span style="font-size: 13px; line-height: 1.5; color: #483D3F">{{ s.texto }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 12px; font-weight: 500; color: #736769">Base legal</span>
+                  <span style="font-size: 13px; line-height: 1.5; color: #483D3F">{{ calcBase }}</span>
+                </div>
+
+                <div style="height: 1px; background: #D6E7E8"></div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                    <span style="font-size: 13.5px; font-weight: 500; color: #483D3F">Ajustar manualmente</span>
+                    <button onClick="{{ toggleAjuste }}" style="font-size: 12.5px; font-weight: 500; color: #00727E; background: none; border: none; cursor: pointer; padding: 0">{{ ajusteCta }}</button>
+                  </div>
+                  <sc-if value="{{ ajusteAberto }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; flex-direction: column; gap: 14px; padding: 14px; border: 1px dashed #B9D4D3; border-radius: 10px">
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+                        <label style="display: flex; flex-direction: column; gap: 6px">
+                          <span style="font-size: 12px; font-weight: 500; color: #736769">Prazo fatal</span>
+                          <input type="date" value="{{ ajFatal }}" onChange="{{ setAjFatal }}" style="height: 38px; padding: 0 10px; font-size: 14px; border: 1px solid #B9D4D3; border-radius: 8px" />
+                        </label>
+                        <label style="display: flex; flex-direction: column; gap: 6px">
+                          <span style="font-size: 12px; font-weight: 500; color: #736769">Prazo interno</span>
+                          <input type="date" value="{{ ajInterno }}" onChange="{{ setAjInterno }}" style="height: 38px; padding: 0 10px; font-size: 14px; border: 1px solid #B9D4D3; border-radius: 8px" />
+                        </label>
+                      </div>
+                      <sc-if value="{{ precisaMotivo }}" hint-placeholder-val="{{ false }}">
+                        <label style="display: flex; flex-direction: column; gap: 6px">
+                          <span style="font-size: 12px; font-weight: 500; color: #B45309">Motivo do ajuste (obrigatório)</span>
+                          <input type="text" value="{{ ajMotivo }}" onChange="{{ setAjMotivo }}" placeholder="Ex.: suspensão de prazos por decisão nos autos" style="height: 38px; padding: 0 10px; font-size: 14px; border: 1px solid #FDE68A; background: #FFFBEB; border-radius: 8px" />
+                        </label>
+                      </sc-if>
+                      <span style="font-size: 12px; line-height: 1.5; color: #736769">O ajuste fica registrado no histórico do prazo com autor, data e motivo.</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{ naNaoEhPrazo }}" hint-placeholder-val="{{ false }}">
+              <div style="background: #fff; border: 1px solid #D6E7E8; border-radius: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.05); overflow: hidden">
+                <div style="padding: 16px 20px; background: #00727E">
+                  <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #fff">{{ previaTitulo }}</h2>
+                </div>
+                <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px">
+                  <div style="padding: 14px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px; display: flex; flex-direction: column; gap: 4px">
+                    <span style="font-size: 12px; font-weight: 500; color: #736769">Entrada na agenda</span>
+                    <span style="font-size: 15px; font-weight: 600; color: #00727E; line-height: 1.4">{{ previaAgenda }}</span>
+                  </div>
+                  <span style="font-size: 14px; line-height: 1.55; color: #483D3F">{{ previaLinha2 }}</span>
+                  <span style="font-size: 13px; color: #736769">{{ previaLinha3 }}</span>
+                  <span style="font-size: 12px; line-height: 1.5; color: #736769; padding-top: 10px; border-top: 1px solid #D6E7E8">Compromissos e monitoramentos não têm memória de cálculo: a data é definida por você, não apurada em dias úteis.</span>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+</sc-if>
+
+<sc-if value="{{ detalhe }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharDetalhe }}" style="position: fixed; inset: 0; background: rgba(16,24,40,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 48px 24px; overflow: auto; z-index: 50">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 640px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(16,24,40,0.2); overflow: hidden">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #D6E7E8; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">{{ detalhe.codigo }} · {{ detalhe.cliente }} · {{ detalhe.nivelLabel }}</span>
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600">{{ detalhe.tipo }} — {{ detalhe.pasta }}</h2>
+        </div>
+        <button onClick="{{ fecharDetalhe }}" style="width: 30px; height: 30px; flex: none; font-size: 16px; color: #736769; background: #EDF5F5; border: none; border-radius: 8px; cursor: pointer">×</button>
+      </div>
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px">
+          <div style="padding: 12px 14px; border: 1px solid #D6E7E8; border-radius: 10px; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">{{ detalhe.rotuloData }}</span>
+            <span style="font-size: 17px; font-weight: 600; color: {{ detalhe.accent }}; font-variant-numeric: tabular-nums">{{ detalhe.fatalFmt }}</span>
+          </div>
+          <div style="padding: 12px 14px; border: 1px solid #D6E7E8; border-radius: 10px; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">{{ detalhe.rotuloSecundario }}</span>
+            <span style="font-size: 17px; font-weight: 600; color: {{ detalhe.corSecundaria }}; font-variant-numeric: tabular-nums">{{ detalhe.valorSecundario }}</span>
+          </div>
+          <div style="padding: 12px 14px; border: 1px solid #D6E7E8; border-radius: 10px; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Situação</span>
+            <span style="font-size: 14px; font-weight: 600; color: {{ detalhe.accent }}">{{ detalhe.statusLabel }}</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ detalhe.isPrazo }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Memória de cálculo</span>
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: #CFE3DF; color: #00727E">{{ detalhe.seloCalculo }}</span>
+          </div>
+          <sc-for list="{{ detalhe.passos }}" as="s" hint-placeholder-count="4">
+            <div style="display: flex; gap: 10px; align-items: flex-start">
+              <span style="width: 18px; height: 18px; flex: none; margin-top: 1px; border-radius: 99px; background: #CFE3DF; color: #00727E; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{ s.n }}</span>
+              <span style="font-size: 13px; line-height: 1.5; color: #483D3F">{{ s.texto }}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top: 4px; padding-top: 10px; border-top: 1px solid #D6E7E8; font-size: 13px; line-height: 1.5; color: #483D3F">{{ detalhe.base }}</div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ detalhe.detalhesExtra }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">{{ detalhe.tipoTitulo }}</span>
+            <span style="font-size: 14px; line-height: 1.5; color: #483D3F">{{ detalhe.detalhesExtra }}</span>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #FFFFFF; border: 1px solid #A3C4BC; border-radius: 10px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600; color: #483D3F">Anotações</span>
+            <span style="font-size: 12px; line-height: 1.45; color: #736769">Acompanhamento livre da equipe. Não altera datas nem o cálculo.</span>
+          </div>
+          <sc-for list="{{ detalhe.anotacoes }}" as="a" hint-placeholder-count="2">
+            <div style="display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid #EDF5F5">
+              <span style="width: 26px; height: 26px; flex: none; border-radius: 99px; background: #E6F2F3; color: #00727E; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{ a.iniciais }}</span>
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <span style="font-size: 12px; color: #736769">{{ a.autor }} · {{ a.quando }}</span>
+                <span style="font-size: 14px; line-height: 1.5; color: #483D3F; text-wrap: pretty">{{ a.texto }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ detalhe.semAnotacoes }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 13px; color: #736769; padding-top: 8px; border-top: 1px solid #EDF5F5">Nenhuma anotação nesta atividade ainda.</span>
+          </sc-if>
+          <div style="display: flex; gap: 8px; align-items: flex-start; padding-top: 4px">
+            <input type="text" value="{{ novaAnotacao }}" onChange="{{ setNovaAnotacao }}" placeholder="Ex.: cliente enviou os extratos por e-mail" style="flex: 1; min-width: 0; height: 38px; padding: 0 12px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px" />
+            <button onClick="{{ addAnotacao }}" style="height: 38px; padding: 0 14px; flex: none; font-size: 13.5px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">Adicionar anotação</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Histórico de ajustes</span>
+          <sc-for list="{{ detalhe.historico }}" as="h" hint-placeholder-count="2">
+            <div style="display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid #EDF5F5">
+              <span style="width: 8px; height: 8px; margin-top: 6px; flex: none; border-radius: 99px; background: #A3C4BC"></span>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13.5px; color: #483D3F">{{ h.acao }}</span>
+                <span style="font-size: 12px; color: #736769">{{ h.quando }} · {{ h.quem }}</span>
+                <sc-if value="{{ h.motivo }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size: 12.5px; line-height: 1.5; color: #736769; font-style: italic">“{{ h.motivo }}”</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; gap: 12px; padding-top: 4px">
+          <sc-if value="{{ detalhe.aberto }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ cumprirDoDetalhe }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #fff; background: #16A34A; border: none; border-radius: 8px; cursor: pointer">Marcar como cumprido</button>
+          </sc-if>
+          <button onClick="{{ fecharDetalhe }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 500; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ confirmar }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ cancelarConfirm }}" style="position: fixed; inset: 0; background: rgba(16,24,40,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 60">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 400px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(16,24,40,0.2); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Marcar como cumprido?</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #736769">{{ confirmar.tipo }} da pasta {{ confirmar.pasta }}, com prazo fatal em {{ confirmar.fatalFmt }}, sairá da lista de pendências.</p>
+      <div style="display: flex; gap: 10px; padding-top: 4px">
+        <button onClick="{{ confirmarCumprir }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 600; color: #fff; background: #16A34A; border: none; border-radius: 8px; cursor: pointer">Sim, cumprido</button>
+        <button onClick="{{ cancelarConfirm }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 500; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer">Voltar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modalCliente }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharModal }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 55">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 460px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); overflow: hidden">
+      <div style="padding: 18px 22px; border-bottom: 1px solid #D6E7E8; display: flex; align-items: center; justify-content: space-between; gap: 14px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">{{ modalTitulo }}</h2>
+        <button onClick="{{ fecharModal }}" style="width: 30px; height: 30px; flex: none; font-size: 16px; color: #736769; background: #EDF5F5; border: none; border-radius: 8px; cursor: pointer">×</button>
+      </div>
+      <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Nome completo / razão social</span>
+          <input type="text" value="{{ form.nome }}" onChange="{{ setF.nome }}" placeholder="Ex.: João Batista Silva" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">CPF / CNPJ</span>
+            <input type="text" inputMode="numeric" maxLength="{{ 18 }}" value="{{ form.documento }}" onChange="{{ setF.documento }}" placeholder="CPF ou CNPJ" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Telefone</span>
+            <input type="text" inputMode="numeric" maxLength="{{ 15 }}" value="{{ form.telefone }}" onChange="{{ setF.telefone }}" placeholder="(15) 90000-0000" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">E-mail</span>
+          <input type="email" value="{{ form.email }}" onChange="{{ setF.email }}" placeholder="cliente@email.com" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+        </label>
+      </div>
+      <div style="padding: 16px 22px; border-top: 1px solid #D6E7E8; background: #E6F2F3; display: flex; align-items: center; gap: 10px">
+        <button onClick="{{ salvarModal }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">{{ modalCta }}</button>
+        <sc-if value="{{ modalNovoCliente }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ salvarEAbrirPasta }}" style="height: 40px; padding: 0 14px; font-size: 13.5px; font-weight: 500; color: #00727E; background: #fff; border: 1px solid #00727E; border-radius: 8px; cursor: pointer">Salvar e criar pasta</button>
+        </sc-if>
+        <button onClick="{{ fecharModal }}" style="height: 40px; padding: 0 14px; margin-left: auto; font-size: 13.5px; font-weight: 500; color: #736769; background: transparent; border: none; border-radius: 8px; cursor: pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modalPasta }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharModal }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 55">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 500px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); overflow: hidden">
+      <div style="padding: 18px 22px; border-bottom: 1px solid #D6E7E8; display: flex; align-items: center; justify-content: space-between; gap: 14px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">{{ modalTitulo }}</h2>
+        <button onClick="{{ fecharModal }}" style="width: 30px; height: 30px; flex: none; font-size: 16px; color: #736769; background: #EDF5F5; border: none; border-radius: 8px; cursor: pointer">×</button>
+      </div>
+      <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: grid; grid-template-columns: 1fr 170px; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Cliente vinculado</span>
+            <select value="{{ form.cliente }}" onChange="{{ setF.cliente }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+              <option value="">Selecione o cliente…</option>
+              <sc-for list="{{ clientesOpts }}" as="c" hint-placeholder-count="4">
+                <option value="{{ c }}">{{ c }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Código</span>
+            <input type="text" readOnly="{{ true }}" value="{{ form.codigo }}" style="height: 40px; padding: 0 12px; font-size: 14px; font-variant-numeric: tabular-nums; color: #736769; background: #EDF5F5; border: 1px solid #D6E7E8; border-radius: 8px; cursor: not-allowed" />
+          </label>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Nome da pasta (opcional)</span>
+          <input type="text" value="{{ form.nome }}" onChange="{{ setF.nome }}" placeholder="Ex.: Silva x Banco Cruzeiro" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Área</span>
+          <select value="{{ form.area }}" onChange="{{ setF.area }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <sc-for list="{{ areas }}" as="a" hint-placeholder-count="6">
+              <option value="{{ a }}">{{ a }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Objetivo</span>
+          <input type="text" value="{{ form.objetivo }}" onChange="{{ setF.objetivo }}" placeholder="Ex.: revisão de juros e devolução de valores" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+        </label>
+      </div>
+      <div style="padding: 16px 22px; border-top: 1px solid #D6E7E8; background: #E6F2F3; display: flex; align-items: center; gap: 10px">
+        <button onClick="{{ salvarModal }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">{{ modalCta }}</button>
+        <sc-if value="{{ modalNovaPasta }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ salvarEAbrirProcesso }}" style="height: 40px; padding: 0 14px; font-size: 13.5px; font-weight: 500; color: #00727E; background: #fff; border: 1px solid #00727E; border-radius: 8px; cursor: pointer">Salvar e cadastrar processo</button>
+        </sc-if>
+        <button onClick="{{ fecharModal }}" style="height: 40px; padding: 0 14px; margin-left: auto; font-size: 13.5px; font-weight: 500; color: #736769; background: transparent; border: none; border-radius: 8px; cursor: pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modalProcesso }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharModal }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px; overflow: auto; z-index: 55">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 580px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); overflow: hidden">
+      <div style="padding: 18px 22px; border-bottom: 1px solid #D6E7E8; display: flex; align-items: center; justify-content: space-between; gap: 14px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">{{ modalTitulo }}</h2>
+        <button onClick="{{ fecharModal }}" style="width: 30px; height: 30px; flex: none; font-size: 16px; color: #736769; background: #EDF5F5; border: none; border-radius: 8px; cursor: pointer">×</button>
+      </div>
+      <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Número do processo (CNJ)</span>
+          <input type="text" inputMode="numeric" maxLength="{{ 25 }}" value="{{ form.numero }}" onChange="{{ setF.numero }}" placeholder="0000000-00.0000.0.00.0000" style="height: 40px; padding: 0 12px; font-size: 14px; font-variant-numeric: tabular-nums; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta vinculada</span>
+          <select value="{{ form.pasta }}" onChange="{{ setF.pasta }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <option value="">Selecione a pasta…</option>
+            <sc-for list="{{ pastasOpts }}" as="p" hint-placeholder-count="4">
+              <option value="{{ p }}">{{ p }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <div style="display: grid; grid-template-columns: 150px 1fr; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Tribunal</span>
+            <select value="{{ form.tribunal }}" onChange="{{ setF.tribunal }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+              <option value="">{{ tribunalPlaceholder }}</option>
+              <sc-for list="{{ tribunalOpts }}" as="o" hint-placeholder-count="0">
+                <option value="{{ o.id }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Vara / comarca</span>
+            <input type="text" value="{{ form.vara }}" onChange="{{ setF.vara }}" placeholder="Ex.: 3ª Vara Cível de Sorocaba" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Fase atual</span>
+            <select value="{{ form.fase }}" onChange="{{ setF.fase }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+              <sc-for list="{{ fases }}" as="fa" hint-placeholder-count="4">
+                <option value="{{ fa }}">{{ fa }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Nosso polo</span>
+            <select value="{{ form.polo }}" onChange="{{ setF.polo }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+              <option value="Autor / requerente">Autor / requerente</option>
+              <option value="Réu / requerido">Réu / requerido</option>
+              <option value="Terceiro interessado">Terceiro interessado</option>
+            </select>
+          </label>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Valor da causa</span>
+            <input type="text" inputMode="numeric" value="{{ form.valor }}" onChange="{{ setF.valor }}" placeholder="R$ 0,00" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Data de distribuição</span>
+            <input type="date" value="{{ form.distribuicao }}" onChange="{{ setF.distribuicao }}" style="height: 40px; padding: 0 12px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+        </div>
+      </div>
+      <div style="padding: 16px 22px; border-top: 1px solid #D6E7E8; background: #E6F2F3; display: flex; align-items: center; gap: 10px">
+        <button onClick="{{ salvarModal }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">{{ modalCta }}</button>
+        <button onClick="{{ fecharModal }}" style="height: 40px; padding: 0 14px; margin-left: auto; font-size: 13.5px; font-weight: 500; color: #736769; background: transparent; border: none; border-radius: 8px; cursor: pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modalPrazo }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharModal }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px; overflow: auto; z-index: 58">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 520px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); overflow: hidden">
+      <div style="padding: 18px 22px; border-bottom: 1px solid #D6E7E8; display: flex; align-items: center; justify-content: space-between; gap: 14px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">Editar prazo</h2>
+        <button onClick="{{ fecharModal }}" style="width: 30px; height: 30px; flex: none; font-size: 16px; color: #736769; background: #EDF5F5; border: none; border-radius: 8px; cursor: pointer">×</button>
+      </div>
+      <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Pasta vinculada</span>
+          <select value="{{ form.pasta }}" onChange="{{ setF.pasta }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <option value="">Selecione a pasta…</option>
+            <sc-for list="{{ pastasOpts }}" as="p" hint-placeholder-count="4">
+              <option value="{{ p }}">{{ p }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Nível da atividade</span>
+          <select value="{{ form.nivel }}" onChange="{{ setF.nivel }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <option value="geral">Geral da pasta (sem processo)</option>
+            <sc-for list="{{ niveisFormOpts }}" as="n" hint-placeholder-count="2">
+              <option value="{{ n.valor }}">{{ n.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Tribunal (calendário de feriados)</span>
+          <select value="{{ form.tribunal }}" onChange="{{ setF.tribunal }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <option value="">Sem tribunal (só sábados e domingos)</option>
+            <sc-for list="{{ tribunalOpts }}" as="o" hint-placeholder-count="0">
+              <option value="{{ o.id }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 160px; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Tipo de prazo</span>
+            <select value="{{ form.tipo }}" onChange="{{ setF.tipo }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+              <sc-for list="{{ tiposOpts }}" as="t" hint-placeholder-count="5">
+                <option value="{{ t.label }}">{{ t.label }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: #736769">Disponibilização</span>
+            <input type="date" value="{{ form.disponibilizacao }}" onChange="{{ setF.disponibilizacao }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; border: 1px solid #B9D4D3; border-radius: 8px" />
+          </label>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Responsável</span>
+          <select value="{{ form.responsavel }}" onChange="{{ setF.responsavel }}" style="height: 40px; padding: 0 10px; font-size: 14px; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px">
+            <sc-for list="{{ respOpts }}" as="r" hint-placeholder-count="2">
+              <option value="{{ r }}">{{ r }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; background: #E6F2F3; border: 1px solid #D6E7E8; border-radius: 10px">
+          <span style="font-size: 13.5px; font-weight: 500; color: #483D3F">Prazo em dobro</span>
+          <button onClick="{{ toggleFormDobro }}" style="width: 44px; height: 24px; flex: none; border-radius: 99px; border: none; cursor: pointer; position: relative; background: {{ formDobroBg }}">
+            <span style="position: absolute; top: 3px; left: {{ formDobroLeft }}; width: 18px; height: 18px; border-radius: 99px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span>
+          </button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px dashed #B9D4D3; border-radius: 10px">
+          <span style="font-size: 12px; font-weight: 500; color: #736769">Recálculo com esses dados</span>
+          <span style="font-size: 14px; font-weight: 600; color: #483D3F">Fatal {{ formFatal }} · interno {{ formInterno }}</span>
+          <span style="font-size: 12px; line-height: 1.45; color: #736769">{{ formNota }}</span>
+        </div>
+      </div>
+      <div style="padding: 16px 22px; border-top: 1px solid #D6E7E8; background: #E6F2F3; display: flex; align-items: center; gap: 10px">
+        <button onClick="{{ salvarModal }}" style="height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #483D3F; background: #FFCC00; border: none; border-radius: 8px; cursor: pointer" style-hover="background: #F5C400">Salvar alterações</button>
+        <button onClick="{{ fecharModal }}" style="height: 40px; padding: 0 14px; margin-left: auto; font-size: 13.5px; font-weight: 500; color: #736769; background: transparent; border: none; border-radius: 8px; cursor: pointer">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ excluir }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ cancelarExcluir }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 62">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 400px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">Excluir este prazo?</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #736769">{{ excluir.tipo }} da pasta {{ excluir.pasta }}, fatal em {{ excluir.fatalFmt }}. A exclusão apaga a memória de cálculo e as anotações — para prazos que não serão mais cumpridos, prefira cancelar.</p>
+      <div style="display: flex; gap: 10px; padding-top: 4px">
+        <button onClick="{{ confirmarExcluir }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 600; color: #fff; background: #DC2626; border: none; border-radius: 8px; cursor: pointer">Excluir</button>
+        <button onClick="{{ cancelarExcluir }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 500; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer">Voltar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ apagar }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ cancelarApagar }}" style="position: fixed; inset: 0; background: rgba(72,61,63,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 64">
+    <div onClick="{{ stop }}" style="width: 100%; max-width: 420px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(72,61,63,0.25); padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #483D3F">{{ apagar.titulo }}</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #736769">{{ apagar.texto }}</p>
+      <sc-if value="{{ apagar.bloqueado }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 12px 14px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #991B1B">{{ apagar.aviso }}</div>
+      </sc-if>
+      <div style="display: flex; gap: 10px; padding-top: 4px">
+        <sc-if value="{{ apagar.liberado }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ confirmarApagar }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 600; color: #fff; background: #DC2626; border: none; border-radius: 8px; cursor: pointer">Excluir</button>
+        </sc-if>
+        <button onClick="{{ cancelarApagar }}" style="flex: 1; height: 40px; font-size: 14px; font-weight: 500; color: #483D3F; background: #fff; border: 1px solid #B9D4D3; border-radius: 8px; cursor: pointer">{{ apagar.ctaVoltar }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ menuFlutuante }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ fecharMenu }}" style="position: fixed; inset: 0; z-index: 45">
+    <div onClick="{{ stop }}" style="position: fixed; left: {{ menuFlutuante.left }}px; top: {{ menuFlutuante.top }}px; transform: {{ menuTransform }}; min-width: 150px; padding: 6px; background: #FFFFFF; border: 1px solid #D6E7E8; border-radius: 10px; box-shadow: 0 10px 24px rgba(72,61,63,0.18); display: flex; flex-direction: column; gap: 2px">
+      <button onClick="{{ menuEditar }}" style="padding: 9px 10px; font-size: 13px; font-weight: 500; text-align: left; color: #483D3F; background: transparent; border: none; border-radius: 7px; cursor: pointer" style-hover="background: #E6F2F3">Editar</button>
+      <button onClick="{{ menuExcluir }}" style="padding: 9px 10px; font-size: 13px; font-weight: 500; text-align: left; color: #DC2626; background: transparent; border: none; border-radius: 7px; cursor: pointer" style-hover="background: #FEF2F2">Excluir</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 18px; background: #483D3F; color: #fff; border-radius: 10px; font-size: 13.5px; font-weight: 500; box-shadow: 0 8px 20px rgba(16,24,40,0.25); z-index: 70">{{ toast }}</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;densidade&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;compacta&quot;,&quot;média&quot;,&quot;confortável&quot;],&quot;default&quot;:&quot;média&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Agenda&quot;},&quot;margemDias&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5,&quot;min&quot;:1,&quot;max&quot;:10,&quot;unit&quot;:&quot;dias úteis&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Cálculo&quot;},&quot;bannerAlertas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Agenda&quot;}}">
+function isoHoje() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); }
+function agoraTexto() { const n = new Date(); return String(n.getDate()).padStart(2, '0') + '/' + String(n.getMonth() + 1).padStart(2, '0') + '/' + n.getFullYear() + ' ' + String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); }
+const HOJE = isoHoje();
+const TIPOS = [
+  { label: 'Contestação', dias: 15, base: 'Art. 335, I, do CPC — 15 dias úteis contados da audiência de conciliação ou da juntada do AR.' },
+  { label: 'Apelação', dias: 15, base: 'Art. 1.003, § 5º, do CPC — 15 dias úteis da publicação da sentença.' },
+  { label: 'Embargos de declaração', dias: 5, base: 'Art. 1.023 do CPC — 5 dias úteis da publicação da decisão embargada.' },
+  { label: 'Contrarrazões de apelação', dias: 15, base: 'Art. 1.010, § 1º, do CPC — 15 dias úteis da intimação.' },
+  { label: 'Manifestação sobre laudo pericial', dias: 15, base: 'Art. 477, § 1º, do CPC — 15 dias úteis da intimação do laudo.' },
+  { label: 'Impugnação ao cumprimento de sentença', dias: 15, base: 'Art. 525 do CPC — 15 dias úteis após o prazo de pagamento.' },
+  { label: 'Recurso especial', dias: 15, base: 'Art. 1.029 do CPC — 15 dias úteis da publicação do acórdão.' }
+];
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const SEMANA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+
+function d(iso) { const [y, m, dd] = iso.split('-').map(Number); return new Date(y, m - 1, dd); }
+function iso(dt) { return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'); }
+function util(dt, fer) { const w = dt.getDay(); return w !== 0 && w !== 6 && (fer || []).indexOf(iso(dt)) === -1; }
+function proxUtil(dt, fer) { const c = new Date(dt); while (!util(c, fer)) c.setDate(c.getDate() + 1); return c; }
+function addUteis(dt, n, fer) { const c = new Date(dt); let i = 0; while (i < n) { c.setDate(c.getDate() + 1); if (util(c, fer)) i++; } return c; }
+function subUteis(dt, n, fer) { const c = new Date(dt); let i = 0; while (i < n) { c.setDate(c.getDate() - 1); if (util(c, fer)) i++; } return c; }
+function fmt(isoStr) { if (!isoStr) return '—'; const dt = d(isoStr); return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0') + '/' + dt.getFullYear(); }
+function diaSemana(isoStr) { if (!isoStr) return ''; return SEMANA[d(isoStr).getDay()]; }
+function digitos(v) { return String(v || '').replace(/\D/g, ''); }
+function mascaraDoc(v) {
+  const n = digitos(v).slice(0, 14);
+  if (n.length <= 11) return n.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+  return n.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4').replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+}
+function mascaraTel(v) {
+  const n = digitos(v).slice(0, 11);
+  if (n.length <= 10) return n.replace(/^(\d{2})(\d)/, '($1) $2').replace(/^\((\d{2})\)\s(\d{4})(\d)/, '($1) $2-$3');
+  return n.replace(/^(\d{2})(\d)/, '($1) $2').replace(/^\((\d{2})\)\s(\d{5})(\d)/, '($1) $2-$3');
+}
+function mascaraCNJ(v) {
+  const n = digitos(v).slice(0, 20);
+  let out = n.slice(0, 7);
+  if (n.length > 7) out += '-' + n.slice(7, 9);
+  if (n.length > 9) out += '.' + n.slice(9, 13);
+  if (n.length > 13) out += '.' + n.slice(13, 14);
+  if (n.length > 14) out += '.' + n.slice(14, 16);
+  if (n.length > 16) out += '.' + n.slice(16, 20);
+  return out;
+}
+function mascaraMoeda(v) {
+  const n = digitos(v);
+  if (!n) return '';
+  const num = (parseInt(n, 10) / 100).toFixed(2).split('.');
+  return 'R$ ' + num[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + num[1];
+}
+function curto(isoStr) { if (!isoStr) return '—'; const dt = d(isoStr); return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'); }
+function minusculo(t) { return t ? t.charAt(0).toLowerCase() + t.slice(1) : ''; }
+function difDias(isoStr, base) { return Math.round((d(isoStr) - d(base || HOJE)) / 86400000); }
+function somaDias(isoStr, n) { return iso(new Date(d(isoStr).getTime() + n * 86400000)); }
+
+const PRAZOS = [
+  { id: 1, pasta: 'Silva x Banco Cruzeiro', codigo: '2026/000418', cliente: 'João Batista Silva', tipo: 'Contestação', responsavel: 'Dra. Helena Moraes', disponibilizacao: '2026-08-04', dobro: false, estado: 'aberto', antecipaInterno: 2, motivoAjuste: 'Advogada em audiência fora da comarca na semana do prazo',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '05/08/2026 09:14', quem: 'Dra. Helena Moraes' }, { acao: 'Prazo interno antecipado em 2 dias úteis', quando: '12/08/2026 16:02', quem: 'Secretaria — Marina', motivo: 'Advogada em audiência fora da comarca na semana do prazo' } ],
+    anotacoes: [ { texto: 'Cliente enviou os extratos de 2023 e 2024; falta o contrato assinado.', autor: 'Secretaria — Marina', quando: '11/08/2026 14:30' }, { texto: 'Minuta da contestação em revisão, tese de juros abusivos com dois precedentes do TJSP.', autor: 'Dra. Helena Moraes', quando: '19/08/2026 09:05' } ] },
+  { id: 2, pasta: 'Construtora Aurora — execução', codigo: '2026/000402', cliente: 'Construtora Aurora Ltda', tipo: 'Embargos de declaração', responsavel: 'Dr. Rafael Antunes', disponibilizacao: '2026-08-20', dobro: false, estado: 'aberto',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '21/08/2026 08:40', quem: 'Secretaria — Marina' } ] },
+  { id: 3, pasta: 'Mendes x Plano Vitalis', codigo: '2026/000397', cliente: 'Cláudia Mendes', tipo: 'Manifestação sobre laudo pericial', responsavel: 'Dra. Helena Moraes', disponibilizacao: '2026-08-10', dobro: false, estado: 'aberto',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '11/08/2026 11:25', quem: 'Dra. Helena Moraes' } ],
+    anotacoes: [ { texto: 'Perito marcou vistoria para 02/09; avisar a cliente por telefone.', autor: 'Dra. Helena Moraes', quando: '21/08/2026 17:12' } ] },
+  { id: 4, pasta: 'Ferreira x Transportes Bela Vista', codigo: '2026/000389', cliente: 'Antônio Ferreira', tipo: 'Apelação', responsavel: 'Dr. Rafael Antunes', disponibilizacao: '2026-08-13', dobro: false, estado: 'aberto',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '14/08/2026 15:10', quem: 'Dr. Rafael Antunes' } ] },
+  { id: 5, pasta: 'Padaria São Bento — trabalhista', codigo: '2026/000371', cliente: 'Padaria São Bento ME', tipo: 'Contrarrazões de apelação', responsavel: 'Dra. Helena Moraes', disponibilizacao: '2026-08-17', dobro: true, estado: 'aberto',
+    historico: [ { acao: 'Prazo lançado com prazo em dobro', quando: '18/08/2026 10:03', quem: 'Secretaria — Marina' } ] },
+  { id: 6, pasta: 'Nogueira x Seguradora Atlas', codigo: '2026/000355', cliente: 'Beatriz Nogueira', tipo: 'Impugnação ao cumprimento de sentença', responsavel: 'Dr. Rafael Antunes', disponibilizacao: '2026-07-29', dobro: false, estado: 'cumprido',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '30/07/2026 09:00', quem: 'Dr. Rafael Antunes' }, { acao: 'Marcado como cumprido — petição protocolada', quando: '18/08/2026 17:44', quem: 'Dr. Rafael Antunes' } ] },
+  { id: 7, pasta: 'Lima x Município de Sorocaba', codigo: '2026/000340', cliente: 'Sérgio Lima', tipo: 'Recurso especial', responsavel: 'Dra. Helena Moraes', disponibilizacao: '2026-08-07', dobro: false, estado: 'cancelado',
+    historico: [ { acao: 'Prazo lançado com cálculo automático', quando: '10/08/2026 14:20', quem: 'Dra. Helena Moraes' }, { acao: 'Prazo cancelado', quando: '20/08/2026 09:12', quem: 'Dra. Helena Moraes', motivo: 'Acordo homologado — recurso perdeu objeto' } ] }
+];
+
+const CLIENTES = [
+  { id: 1, nome: 'João Batista Silva', tipo: 'Pessoa física', documento: '312.884.907-22', telefone: '(15) 99814-2207', email: 'joao.silva@email.com' },
+  { id: 2, nome: 'Construtora Aurora Ltda', tipo: 'Pessoa jurídica', documento: '18.442.310/0001-56', telefone: '(15) 3231-8890', email: 'juridico@aurora.com.br' },
+  { id: 3, nome: 'Cláudia Mendes', tipo: 'Pessoa física', documento: '208.117.554-08', telefone: '(15) 99120-4471', email: 'claudia.mendes@email.com' },
+  { id: 4, nome: 'Antônio Ferreira', tipo: 'Pessoa física', documento: '145.900.238-71', telefone: '(15) 99733-1180', email: 'a.ferreira@email.com' },
+  { id: 5, nome: 'Padaria São Bento ME', tipo: 'Pessoa jurídica', documento: '29.005.774/0001-03', telefone: '(15) 3218-4402', email: 'contato@saobento.com.br' },
+  { id: 6, nome: 'Beatriz Nogueira', tipo: 'Pessoa física', documento: '377.412.665-19', telefone: '(15) 99408-7712', email: 'bia.nogueira@email.com' },
+  { id: 7, nome: 'Sérgio Lima', tipo: 'Pessoa física', documento: '092.556.318-40', telefone: '(15) 99201-5563', email: 'sergio.lima@email.com' }
+];
+const PASTAS = [
+  { id: 1, codigo: '2026/000418', nome: 'Silva x Banco Cruzeiro', cliente: 'João Batista Silva', area: 'Consumidor', objetivo: 'Revisão de juros e devolução de valores' },
+  { id: 2, codigo: '2026/000402', nome: 'Construtora Aurora — execução', cliente: 'Construtora Aurora Ltda', area: 'Cível — contratos', objetivo: 'Execução de duplicatas não pagas' },
+  { id: 3, codigo: '2026/000397', nome: 'Mendes x Plano Vitalis', cliente: 'Cláudia Mendes', area: 'Consumidor', objetivo: 'Custeio de cirurgia negada pelo plano' },
+  { id: 4, codigo: '2026/000389', nome: 'Ferreira x Transportes Bela Vista', cliente: 'Antônio Ferreira', area: 'Cível — responsabilidade civil', objetivo: 'Indenização por acidente de trânsito' },
+  { id: 5, codigo: '2026/000371', nome: 'Padaria São Bento — trabalhista', cliente: 'Padaria São Bento ME', area: 'Trabalhista', objetivo: 'Defesa em reclamatória de verbas rescisórias' },
+  { id: 6, codigo: '2026/000355', nome: 'Nogueira x Seguradora Atlas', cliente: 'Beatriz Nogueira', area: 'Cível — contratos', objetivo: 'Pagamento de indenização de seguro' },
+  { id: 7, codigo: '2026/000340', nome: 'Lima x Município de Sorocaba', cliente: 'Sérgio Lima', area: 'Cível — responsabilidade civil', objetivo: 'Reparação por queda em via pública' }
+];
+const PROCESSOS = [
+  { id: 1, numero: '1004532-18.2026.8.26.0602', pasta: 'Silva x Banco Cruzeiro', tribunal: 'TJSP', vara: '3ª Vara Cível de Sorocaba', fase: 'Contestação', polo: 'Autor / requerente', valor: 'R$ 84.500,00', distribuicao: '2026-06-12' },
+  { id: 2, numero: '5001287-44.2026.8.26.0602', pasta: 'Construtora Aurora — execução', tribunal: 'TJSP', vara: '1ª Vara Cível de Sorocaba', fase: 'Execução / cumprimento', polo: 'Autor / requerente', valor: 'R$ 312.000,00', distribuicao: '2026-03-04' },
+  { id: 3, numero: '1003117-90.2026.8.26.0602', pasta: 'Mendes x Plano Vitalis', tribunal: 'TJSP', vara: '5ª Vara Cível de Sorocaba', fase: 'Instrução / perícia', polo: 'Autor / requerente', valor: 'R$ 46.200,00', distribuicao: '2026-04-22' },
+  { id: 4, numero: '1002884-05.2026.8.26.0602', pasta: 'Ferreira x Transportes Bela Vista', tribunal: 'TJSP', vara: '2ª Vara Cível de Sorocaba', fase: 'Sentença publicada', polo: 'Autor / requerente', valor: 'R$ 128.700,00', distribuicao: '2026-02-18' },
+  { id: 5, numero: '0010455-77.2026.5.15.0110', pasta: 'Padaria São Bento — trabalhista', tribunal: 'TRT-15', vara: '2ª Vara do Trabalho de Sorocaba', fase: 'Recurso', polo: 'Réu / requerido', valor: 'R$ 38.900,00', distribuicao: '2026-05-07' },
+  { id: 6, numero: '1002011-63.2026.8.26.0602', pasta: 'Nogueira x Seguradora Atlas', tribunal: 'TJSP', vara: '4ª Vara Cível de Sorocaba', fase: 'Execução / cumprimento', polo: 'Autor / requerente', valor: 'R$ 71.300,00', distribuicao: '2026-01-29' }
+];
+const TIPOS_COMPROMISSO = ['Audiência de instrução', 'Audiência de conciliação', 'Reunião com cliente', 'Perícia', 'Diligência externa', 'Sustentação oral'];
+const TIPOS_MONITORAMENTO = ['Verificar certidão', 'Acompanhar processo', 'Verificar publicação', 'Conferir pagamento / alvará'];
+const RECORRENCIAS = ['Não repete', 'Semanal', 'Quinzenal', 'Mensal', 'Trimestral'];
+const EXTRAS = [
+  { id: 101, atividade: 'compromisso', pasta: 'Mendes x Plano Vitalis', codigo: '2026/000397', cliente: 'Cláudia Mendes', tipo: 'Audiência de instrução', responsavel: 'Dra. Helena Moraes', nivel: '1003117-90.2026.8.26.0602', data: '2026-09-02', hora: '14:30', local: 'Fórum de Sorocaba — sala 4', duracao: 60, recorrencia: 'Não repete', estado: 'aberto',
+    historico: [ { acao: 'Compromisso lançado', quando: '12/08/2026 10:20', quem: 'Secretaria — Marina' } ],
+    anotacoes: [ { texto: 'Levar as três testemunhas confirmadas e o laudo impresso.', autor: 'Dra. Helena Moraes', quando: '25/08/2026 08:40' } ] },
+  { id: 102, atividade: 'compromisso', pasta: 'Construtora Aurora — execução', codigo: '2026/000402', cliente: 'Construtora Aurora Ltda', tipo: 'Reunião com cliente', responsavel: 'Dr. Rafael Antunes', nivel: 'geral', data: '2026-08-31', hora: '10:00', local: 'Escritório — sala de reuniões', duracao: 45, recorrencia: 'Mensal', estado: 'aberto',
+    historico: [ { acao: 'Compromisso lançado com recorrência mensal', quando: '03/08/2026 16:05', quem: 'Dr. Rafael Antunes' } ], anotacoes: [] },
+  { id: 103, atividade: 'monitoramento', pasta: 'Ferreira x Transportes Bela Vista', codigo: '2026/000389', cliente: 'Antônio Ferreira', tipo: 'Verificar certidão', responsavel: 'Secretaria — Marina', nivel: '1002884-05.2026.8.26.0602', alvo: 'Certidão de objeto e pé — TJSP', data: '2026-08-29', recorrencia: 'Semanal', estado: 'aberto',
+    historico: [ { acao: 'Monitoramento criado com verificação semanal', quando: '01/08/2026 09:00', quem: 'Secretaria — Marina' } ], anotacoes: [] },
+  { id: 104, atividade: 'compromisso', pasta: 'Padaria São Bento — trabalhista', codigo: '2026/000371', cliente: 'Padaria São Bento ME', tipo: 'Perícia', responsavel: 'Dra. Helena Moraes', nivel: '0010455-77.2026.5.15.0110', data: '2026-09-01', hora: '09:00', local: 'IMESC — Sorocaba', duracao: 90, recorrencia: 'Não repete', estado: 'adiado',
+    historico: [ { acao: 'Compromisso lançado', quando: '05/08/2026 11:00', quem: 'Secretaria — Marina' }, { acao: 'Adiado pelo juízo', quando: '24/08/2026 15:30', quem: 'Dra. Helena Moraes', motivo: 'Perito solicitou nova data — aguardando redesignação' } ], anotacoes: [] }
+];
+const EXTRA_MON = { id: 105, atividade: 'monitoramento', pasta: 'Silva x Banco Cruzeiro', codigo: '2026/000418', cliente: 'João Batista Silva', tipo: 'Acompanhar processo', responsavel: 'Secretaria — Marina', nivel: '1004532-18.2026.8.26.0602', alvo: 'Publicações do TJSP — diário eletrônico', data: '2026-09-08', recorrencia: 'Quinzenal', estado: 'aberto', historico: [ { acao: 'Monitoramento criado com verificação quinzenal', quando: '15/08/2026 08:15', quem: 'Secretaria — Marina' } ], anotacoes: [] };
+const FASES = ['Petição inicial', 'Citação', 'Contestação', 'Instrução / perícia', 'Sentença publicada', 'Recurso', 'Execução / cumprimento'];
+const AREAS = ['Cível — contratos', 'Cível — responsabilidade civil', 'Consumidor', 'Trabalhista', 'Previdenciário', 'Família e sucessões', 'Tributário'];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'login', authMode: 'login',
+    prazos: PRAZOS.concat(EXTRAS).concat([EXTRA_MON]),
+    fPasta: '', fResp: '', fStatus: '', soAtrasados: false,
+    detalheId: null, confirmId: null, toast: '',
+    clientes: CLIENTES, pastas: PASTAS, processos: PROCESSOS,
+    modal: null, editId: null, form: {}, fProcPasta: '', fProcFase: '', ordem: 'fatal-asc', apagarAlvo: null, menu: null,
+    colW: [300, 230, 210, 180], excluirId: null, legendaAberta: false,
+    refData: HOJE, janela: 'semana', fTipo: '', baseData: 'fatal',
+    admin: true, tribunais: [], feriados: [], npTribunal: '',
+    cfgTrib: { nome: '', sigla: '' }, cfgFer: { data: '', desc: '', tribunalId: '' },
+    npPasta: '', npTipo: 'Contestação', npData: '', npDobro: false, npNivel: 'geral',
+    naTipo: 'prazo',
+    naC: { tipo: TIPOS_COMPROMISSO[0], data: '', hora: '09:00', local: '', duracao: 60, recorrencia: 'Não repete' },
+    naM: { tipo: TIPOS_MONITORAMENTO[0], alvo: '', data: '', recorrencia: 'Semanal' },
+    novaAnotacao: '',
+    ajusteAberto: false, ajFatal: '', ajInterno: '', ajMotivo: ''
+  };
+
+  set(patch) { this.setState(patch); }
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2600); }
+
+  margem() { const m = parseInt(this.props.margemDias, 10); return isNaN(m) ? 5 : m; }
+
+  feriadosDe(tribunalId) { return (this.state.feriados || []).filter(h => h.tribunalId === tribunalId).map(h => h.data); }
+
+  siglaTribunal(id) { const t = (this.state.tribunais || []).find(x => x.id === id); return t ? t.sigla : ''; }
+
+  statusDe(p, base) {
+    if (p.estado === 'cumprido') return { key: 'cumprido', label: 'Cumprido', accent: '#16A34A', opacity: 0.55 };
+    if (p.estado === 'cancelado') return { key: 'cancelado', label: 'Cancelado', accent: '#6E6062', opacity: 0.5 };
+    if (p.estado === 'adiado') return { key: 'adiado', label: 'Adiado', accent: '#7C5CBF', opacity: 0.85 };
+    if (!p.fatal) return { key: 'futuro', label: 'Sem data', accent: '#6E6062', opacity: 0.7 };
+    const ref = base || HOJE;
+    const dif = difDias(p.fatal, ref);
+    if (dif < 0) return { key: 'atrasado', label: 'Atrasado há ' + Math.abs(dif) + (Math.abs(dif) === 1 ? ' dia' : ' dias'), accent: '#DC2626', opacity: 1 };
+    if (dif === 0) return { key: 'hoje', label: 'Vence hoje', accent: '#DC2626', opacity: 1 };
+    if (p.interno && difDias(p.interno, ref) <= 0) return { key: 'margem', label: 'Hora de fazer', accent: '#D97706', opacity: 1 };
+    return { key: 'futuro', label: 'Em ' + dif + (dif === 1 ? ' dia' : ' dias'), accent: '#00727E', opacity: 1 };
+  }
+
+  calcular(dataDisp, tipoLabel, dobro, tribunalId) {
+    const tipo = TIPOS.find(t => t.label === tipoLabel) || TIPOS[0];
+    const dias = dobro ? tipo.dias * 2 : tipo.dias;
+    if (!dataDisp) return null;
+    const fer = this.feriadosDe(tribunalId);
+    const pub = proxUtil(new Date(d(dataDisp).getTime() + 86400000), fer);
+    const fatal = addUteis(pub, dias - 1, fer);
+    const interno = subUteis(fatal, this.margem(), fer);
+    const noIntervalo = fer.filter(h => d(h) >= pub && d(h) <= fatal).length;
+    return {
+      tipo, dias, fer, tribunalId, semFeriadosNoIntervalo: noIntervalo === 0,
+      pub: iso(pub), fatal: iso(fatal), interno: iso(interno),
+      passos: [
+        { n: 1, texto: 'Disponibilização em ' + fmt(dataDisp) + '; publicação no dia útil seguinte, ' + fmt(iso(pub)) + '.' },
+        { n: 2, texto: 'A contagem inicia no próprio dia da publicação — 1 dia útil de margem de segurança em relação ao CPC estrito.' },
+        { n: 3, texto: dias + ' dias úteis (a publicação é o dia 1)' + (dobro ? ' (15 dobrados, art. 229 do CPC)' : '') + ', excluídos sábados, domingos e feriados cadastrados.' },
+        { n: 4, texto: 'Prazo fatal em ' + fmt(iso(fatal)) + ' (' + diaSemana(iso(fatal)) + ').' },
+        { n: 5, texto: 'Prazo interno = ' + this.margem() + ' dias úteis antes do fatal, em ' + fmt(iso(interno)) + ' (sempre em dia útil, sem prorrogação).' }
+      ]
+    };
+  }
+
+  hidratar(p) {
+    const kind = p.atividade || 'prazo';
+    if (kind !== 'prazo') return Object.assign({}, p, { kind, fatal: p.data || '', interno: '', dias: 0, ajustado: false, passos: [], base: '' });
+    const c = this.calcular(p.disponibilizacao, p.tipo, p.dobro, p.tribunal);
+    if (!c) return Object.assign({}, p, { kind, fatal: p.fatalAjustado || '', interno: p.internoAjustado || '', dias: 0, ajustado: false, passos: [], base: '—' });
+    const internoAuto = p.antecipaInterno ? iso(subUteis(d(c.interno), p.antecipaInterno, c.fer)) : c.interno;
+    const fatal = p.fatalAjustado || c.fatal;
+    const interno = p.internoAjustado || internoAuto;
+    const ajustado = !!(p.fatalAjustado || p.internoAjustado || p.antecipaInterno);
+    const passos = c.passos.slice();
+    if (ajustado) passos.push({ n: passos.length + 1, texto: 'Ajuste manual: fatal em ' + fmt(fatal) + ' e interno em ' + fmt(interno) + '. Motivo registrado: ' + (p.motivoAjuste || 'ver histórico') + '.' });
+    return Object.assign({}, p, { kind, fatal, interno, dias: c.dias, ajustado, calcFatal: c.fatal, calcInterno: c.interno, passos, base: c.tipo.base + (p.dobro ? ' Prazo em dobro: art. 229 do CPC.' : '') });
+  }
+
+  iniciarResize(idx) {
+    return (e) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const base = this.state.colW.slice();
+      const move = (ev) => {
+        const larguras = base.slice();
+        larguras[idx] = Math.max(96, Math.round(base[idx] + (ev.clientX - startX)));
+        this.setState({ colW: larguras });
+      };
+      const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    };
+  }
+
+  resetColunas() { this.setState({ colW: [300, 230, 210, 180] }); }
+
+  setNa(grupo, campo) {
+    return (e) => this.setState(st => ({ [grupo]: Object.assign({}, st[grupo], { [campo]: e.target.value }) }));
+  }
+
+  salvarAtividade(kind) {
+    const s = this.state;
+    const pastaRef = s.pastas.find(p => p.nome === s.npPasta) || {};
+    if (!s.npPasta) { this.flash('Selecione a pasta da atividade.'); return; }
+    const base = { id: Date.now(), atividade: kind, pasta: s.npPasta, nivel: s.npNivel, codigo: pastaRef.codigo || '—', cliente: pastaRef.cliente || '—', responsavel: 'Dra. Helena Moraes', estado: 'aberto', anotacoes: [] };
+    if (kind === 'compromisso') {
+      const c = s.naC;
+      if (!c.data) { this.flash('Informe a data do compromisso.'); return; }
+      const novo = Object.assign(base, { tipo: c.tipo, data: c.data, hora: c.hora, local: c.local, duracao: c.duracao, recorrencia: c.recorrencia,
+        historico: [{ acao: 'Compromisso lançado' + (c.recorrencia && c.recorrencia !== 'Não repete' ? ' com recorrência ' + c.recorrencia.toLowerCase() : ''), quando: agoraTexto(), quem: 'Dra. Helena Moraes' }] });
+      this.setState({ prazos: [novo].concat(s.prazos), screen: 'agenda' });
+      this.flash('Compromisso salvo para ' + fmt(c.data) + (c.hora ? ' às ' + c.hora : '') + '.');
+      return;
+    }
+    const m = s.naM;
+    if (!(m.alvo || '').trim()) { this.flash('Informe o alvo do monitoramento.'); return; }
+    const novo = Object.assign(base, { tipo: m.tipo, alvo: m.alvo, data: m.data, recorrencia: m.recorrencia,
+      historico: [{ acao: 'Monitoramento criado' + (m.recorrencia && m.recorrencia !== 'Não repete' ? ' com verificação ' + m.recorrencia.toLowerCase() : ''), quando: agoraTexto(), quem: 'Dra. Helena Moraes' }] });
+    this.setState({ prazos: [novo].concat(s.prazos), screen: 'agenda' });
+    this.flash('Monitoramento criado.');
+  }
+
+  abrirMenu(e, kind, id) {
+    if (e) e.stopPropagation();
+    const st = this.state;
+    if (st.menu && st.menu.kind === kind && st.menu.id === id) { this.setState({ menu: null }); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    const abreAcima = window.innerHeight - r.bottom < 110;
+    this.setState({ menu: { kind, id, left: Math.round(r.right - 150), top: abreAcima ? Math.round(r.top - 8) : Math.round(r.bottom + 6), acima: abreAcima } });
+  }
+
+  acaoMenu(qual) {
+    const m = this.state.menu;
+    if (!m) return;
+    this.setState({ menu: null });
+    if (m.kind === 'atividade') {
+      const p = this.state.prazos.find(q => q.id === m.id);
+      if (!p) return;
+      if (qual === 'editar') this.abrirModal('prazo', this.hidratar(p));
+      else this.setState({ excluirId: m.id });
+      return;
+    }
+    const colecao = m.kind === 'cliente' ? this.state.clientes : m.kind === 'pasta' ? this.state.pastas : this.state.processos;
+    const reg = colecao.find(r => r.id === m.id);
+    if (!reg) return;
+    if (qual === 'editar') { this.abrirModal(m.kind, reg); return; }
+    let vinculos = 0, nome = '';
+    const ativos = this.state.prazos.map(p => this.hidratar(p));
+    if (m.kind === 'cliente') { vinculos = this.state.pastas.filter(p => p.cliente === reg.nome).length; nome = reg.nome; }
+    if (m.kind === 'pasta') { vinculos = this.state.processos.filter(x => x.pasta === reg.nome).length + ativos.filter(q => q.pasta === reg.nome).length; nome = reg.codigo + ' · ' + reg.nome; }
+    if (m.kind === 'processo') { vinculos = ativos.filter(q => q.nivel === reg.numero).length; nome = reg.numero; }
+    this.setState({ apagarAlvo: { tipo: m.kind, id: reg.id, nome, vinculos } });
+  }
+
+  addTribunal() {
+    const t = this.state.cfgTrib;
+    const nome = (t.nome || '').trim(), sigla = (t.sigla || '').trim().toUpperCase();
+    if (!nome || !sigla) { this.flash('Informe nome e sigla do tribunal.'); return; }
+    if (this.state.tribunais.some(x => x.sigla === sigla)) { this.flash('Já existe um tribunal com essa sigla.'); return; }
+    this.setState(st => ({ tribunais: st.tribunais.concat([{ id: 't' + Date.now(), nome, sigla }]), cfgTrib: { nome: '', sigla: '' } }));
+    this.flash('Tribunal ' + sigla + ' cadastrado.');
+  }
+
+  addFeriado() {
+    const h = this.state.cfgFer;
+    if (!h.tribunalId) { this.flash('Selecione o tribunal do feriado.'); return; }
+    if (!h.data) { this.flash('Informe a data do feriado.'); return; }
+    if (this.state.feriados.some(x => x.tribunalId === h.tribunalId && x.data === h.data)) { this.flash('Esse feriado já está cadastrado neste tribunal.'); return; }
+    this.setState(st => ({ feriados: st.feriados.concat([{ id: 'h' + Date.now(), tribunalId: h.tribunalId, data: h.data, desc: (h.desc || '').trim() || 'Feriado' }]), cfgFer: { data: '', desc: '', tribunalId: h.tribunalId } }));
+    this.flash('Feriado cadastrado.');
+  }
+
+  nextCodigo() { return new Date().getFullYear() + '/' + String(this.state.pastas.length + 1).padStart(6, '0'); }
+
+  abrirModal(tipo, registro) {
+    const s = this.state;
+    let form = {};
+    if (tipo === 'cliente') form = registro ? Object.assign({}, registro) : { nome: '', documento: '', telefone: '', email: '' };
+    if (tipo === 'pasta') form = registro ? Object.assign({}, registro) : { codigo: this.nextCodigo(), cliente: '', nome: '', area: AREAS[0], objetivo: '' };
+    if (tipo === 'prazo') form = Object.assign({ dobro: false, nivel: 'geral' }, registro);
+    if (tipo === 'processo') form = registro ? Object.assign({}, registro) : { numero: '', pasta: '', tribunal: '', vara: '', fase: FASES[0], polo: 'Autor / requerente', valor: '', distribuicao: '' };
+    this.setState({ modal: tipo, editId: registro ? registro.id : null, form });
+  }
+
+  tituloModal() {
+    const s = this.state;
+    const editando = !!s.editId;
+    if (s.modal === 'cliente') return editando ? 'Editar cliente' : 'Novo cliente';
+    if (s.modal === 'pasta') return editando ? 'Editar pasta' : 'Nova pasta';
+    if (s.modal === 'processo') return editando ? 'Editar processo' : 'Cadastrar processo';
+    return '';
+  }
+
+  setters() {
+    const campos = ['nome', 'documento', 'telefone', 'email', 'cliente', 'codigo', 'area', 'objetivo', 'numero', 'pasta', 'tribunal', 'vara', 'fase', 'polo', 'valor', 'distribuicao', 'nivel', 'tipo', 'disponibilizacao', 'responsavel'];
+    const out = {};
+    const mascaras = { documento: mascaraDoc, telefone: mascaraTel, numero: mascaraCNJ, valor: mascaraMoeda };
+    campos.forEach(c => {
+      out[c] = e => {
+        const bruto = e.target.value;
+        const valor = mascaras[c] ? mascaras[c](bruto) : bruto;
+        this.setState(st => ({ form: Object.assign({}, st.form, { [c]: valor }) }));
+      };
+    });
+    return out;
+  }
+
+  persistir(depois) {
+    const s = this.state;
+    const form = s.form;
+    if (s.modal === 'cliente') {
+      if (!(form.nome || '').trim()) { this.flash('Informe o nome do cliente.'); return; }
+      const tipo = (form.documento || '').replace(/\D/g, '').length > 11 ? 'Pessoa jurídica' : 'Pessoa física';
+      const clientes = s.editId
+        ? s.clientes.map(c => c.id === s.editId ? Object.assign({}, c, form, { tipo }) : c)
+        : s.clientes.concat([Object.assign({ id: Date.now(), tipo }, form)]);
+      this.setState({ clientes, modal: null, editId: null, form: {} });
+      this.flash(s.editId ? 'Cliente atualizado.' : 'Cliente salvo.');
+      if (depois === 'pasta') this.setState({ modal: 'pasta', editId: null, screen: 'pastas', form: { codigo: this.nextCodigo(), cliente: form.nome, nome: '', area: AREAS[0], objetivo: '' } });
+      return;
+    }
+    if (s.modal === 'pasta') {
+      if (!(form.cliente || '').trim()) { this.flash('Selecione o cliente da pasta.'); return; }
+      const nome = (form.nome || '').trim() || form.cliente + ' — ' + form.area;
+      const pastas = s.editId
+        ? s.pastas.map(p => p.id === s.editId ? Object.assign({}, p, form, { nome }) : p)
+        : s.pastas.concat([Object.assign({ id: Date.now() }, form, { nome })]);
+      this.setState({ pastas, modal: null, editId: null, form: {} });
+      this.flash(s.editId ? 'Pasta atualizada.' : 'Pasta ' + form.codigo + ' criada.');
+      if (depois === 'processo') this.setState({ modal: 'processo', editId: null, screen: 'processos', form: { numero: '', pasta: nome, tribunal: '', vara: '', fase: FASES[0], polo: 'Autor / requerente', valor: '', distribuicao: '' } });
+      return;
+    }
+    if (s.modal === 'prazo') {
+      if (!form.disponibilizacao) { this.flash('Informe a data de disponibilização.'); return; }
+      const pastaRef = s.pastas.find(p => p.nome === form.pasta) || {};
+      this.setState({
+        prazos: s.prazos.map(p => p.id === s.editId ? Object.assign({}, p, {
+          pasta: form.pasta, nivel: form.nivel, tipo: form.tipo, tribunal: form.tribunal, disponibilizacao: form.disponibilizacao,
+          responsavel: form.responsavel, dobro: !!form.dobro,
+          codigo: pastaRef.codigo || p.codigo, cliente: pastaRef.cliente || p.cliente,
+          historico: (p.historico || []).concat([{ acao: 'Prazo editado (pasta, tipo ou data)', quando: agoraTexto(), quem: 'Dra. Helena Moraes' }])
+        }) : p),
+        modal: null, editId: null, form: {}
+      });
+      this.flash('Prazo atualizado — datas recalculadas.');
+      return;
+    }
+    if (s.modal === 'processo') {
+      if (!(form.numero || '').trim()) { this.flash('Informe o número do processo.'); return; }
+      const processos = s.editId
+        ? s.processos.map(x => x.id === s.editId ? Object.assign({}, x, form) : x)
+        : s.processos.concat([Object.assign({ id: Date.now() }, form)]);
+      this.setState({ processos, modal: null, editId: null, form: {}, screen: 'processos' });
+      this.flash(s.editId ? 'Processo atualizado.' : 'Processo cadastrado.');
+    }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const prazos = s.prazos.map(p => this.hidratar(p));
+    const app = s.screen !== 'login';
+    const dens = this.props.densidade || 'média';
+
+    const nav = [
+      { key: 'agenda', label: 'Agenda de atividades' },
+      { key: 'novo-prazo', label: 'Nova atividade' },
+      { key: 'clientes', label: 'Clientes' },
+      { key: 'pastas', label: 'Pastas' },
+      { key: 'processos', label: 'Processos' }
+    ].concat(s.admin ? [{ key: 'config', label: 'Configurações' }] : []).map(n => {
+      const atv = s.screen === n.key;
+      const atrasados = prazos.filter(p => { const k = this.statusDe(p, HOJE).key; return k === 'atrasado' || k === 'hoje'; }).length;
+      return { label: n.label, go: () => this.set({ screen: n.key }), bg: atv ? 'rgba(255,255,255,0.13)' : 'transparent', fg: atv ? '#fff' : 'rgba(255,255,255,0.72)', badge: n.key === 'agenda' && atrasados ? String(atrasados) : null };
+    });
+
+    const ref = s.refData || HOJE;
+    const baseInterno = (s.baseData || 'fatal') === 'interno';
+    let lista = prazos.map(p => {
+      const st = this.statusDe(p, ref);
+      const dif = difDias(p.fatal, ref);
+      const visivel = p.kind === 'prazo' ? true : p.kind === 'compromisso' ? dif <= 5 : dif <= 0;
+      return Object.assign({}, p, {
+        st: st.key, statusLabel: st.label, accent: st.accent, opacity: st.opacity,
+        fatalFmt: fmt(p.fatal), internoFmt: p.interno ? fmt(p.interno) : '—',
+        identPasta: p.codigo + (p.pasta ? ' · ' + p.pasta : ''),
+        identProcesso: p.nivel && p.nivel !== 'geral' ? p.nivel : '',
+        quandoPrincipal: p.kind === 'prazo'
+          ? (baseInterno
+              ? (p.interno ? curto(p.interno) + ' · interno' : 'sem prazo interno')
+              : (p.fatal ? curto(p.fatal) + ' · ' + minusculo(st.label) : 'sem data'))
+          : p.kind === 'compromisso'
+            ? (p.fatal ? curto(p.fatal) + (p.hora ? ' · ' + p.hora : '') : 'sem data')
+            : (p.fatal ? curto(p.fatal) : 'sem data'),
+        quandoSub: p.kind === 'prazo'
+          ? (baseInterno ? (p.fatal ? 'fatal ' + curto(p.fatal) + ' · ' + minusculo(st.label) : '') : (p.interno ? 'interno ' + curto(p.interno) : ''))
+          : p.kind === 'compromisso' && p.duracao ? p.duracao + ' min'
+          : p.kind === 'monitoramento' && p.recorrencia && p.recorrencia !== 'Não repete' ? minusculo(p.recorrencia) : '',
+        
+        toggleMenu: (e) => this.abrirMenu(e, 'atividade', p.id),
+        internoRotulo: p.kind === 'prazo' ? 'interno' : p.kind === 'compromisso' ? 'sem prazo interno' : 'verificação',
+        isPrazo: p.kind === 'prazo', isCompromisso: p.kind === 'compromisso', isMonitoramento: p.kind === 'monitoramento',
+        horaFmt: p.hora ? p.hora + (p.duracao ? ' · ' + p.duracao + ' min' : '') : '',
+        visivel, tipoTitulo: p.kind === 'prazo' ? 'Prazo' : p.kind === 'compromisso' ? 'Compromisso' : 'Monitoramento',
+
+        aberto: p.estado === 'aberto', encerrado: p.estado !== 'aberto' && p.estado !== 'adiado',
+        adiada: p.estado === 'adiado',
+        reativar: (e) => { if (e) e.stopPropagation(); this.setState(st => ({ prazos: st.prazos.map(q => q.id === p.id ? Object.assign({}, q, { estado: 'aberto', historico: (q.historico || []).concat([{ acao: 'Atividade reativada', quando: agoraTexto(), quem: 'Dra. Helena Moraes' }]) }) : q) })); this.flash('Atividade reativada.'); },
+        open: () => this.set({ detalheId: p.id }),
+        editar: (e) => { if (e) e.stopPropagation(); this.setState({ menuId: null }); this.abrirModal('prazo', p); },
+        excluir: (e) => { if (e) e.stopPropagation(); this.set({ excluirId: p.id }); },
+        cumprir: (e) => { if (e) e.stopPropagation(); this.set({ confirmId: p.id }); }
+      });
+    });
+
+    const txt = (v) => (v || '').toLocaleString ? String(v || '') : '';
+    const porNome = (campo) => (a, b) => txt(a[campo]).localeCompare(txt(b[campo]), 'pt-BR');
+    const val = (o, campo) => o[campo] || o.fatal || o.data;
+    const porData = (campo, dir) => (a, b) => { const va = val(a, campo), vb = val(b, campo); if (!va && !vb) return 0; if (!va) return 1; if (!vb) return -1; return dir * (d(va) - d(vb)); };
+    const abertosPrimeiro = (a, b) => (a.estado === 'aberto' ? 0 : 1) - (b.estado === 'aberto' ? 0 : 1);
+    const ordenadores = {
+      'fatal-asc': (a, b) => abertosPrimeiro(a, b) || porData('fatal', 1)(a, b),
+      'fatal-desc': (a, b) => abertosPrimeiro(a, b) || porData('fatal', -1)(a, b),
+      'interno-asc': (a, b) => abertosPrimeiro(a, b) || porData('interno', 1)(a, b),
+      'pasta-asc': porNome('pasta'),
+      'cliente-asc': porNome('cliente'),
+      'tipo-asc': porNome('tipo'),
+      'resp-asc': porNome('responsavel')
+    };
+    const ordemEfetiva = s.ordem === 'fatal-asc' && baseInterno ? 'interno-asc' : s.ordem;
+    lista = lista.sort(ordenadores[ordemEfetiva] || ordenadores['fatal-asc']);
+
+    const ocultas = lista.filter(p => !p.visivel && p.estado === 'aberto').length;
+    lista = lista.filter(p => p.visivel);
+    const emAberto = (p) => p.estado === 'aberto' || p.estado === 'adiado';
+    // prazo aparece do cadastro até ser concluído; compromisso/monitoramento seguem a janela, mas pendência vencida nunca sai
+    const pendente = (p) => emAberto(p) && (p.kind === 'prazo' || !p.fatal || difDias(p.fatal, ref) < 0);
+    const dentroDaSemana = (p) => p.fatal && difDias(p.fatal, ref) >= 0 && difDias(p.fatal, ref) <= 6;
+    if (s.janela === 'dia') lista = lista.filter(p => p.fatal === ref || pendente(p));
+    if (s.janela === 'semana') lista = lista.filter(p => !p.fatal || dentroDaSemana(p) || pendente(p));
+    if (s.fTipo) lista = lista.filter(p => p.kind === s.fTipo);
+    if (s.fPasta) lista = lista.filter(p => p.pasta === s.fPasta);
+    if (s.fResp) lista = lista.filter(p => p.responsavel === s.fResp);
+    if (s.fStatus) lista = lista.filter(p => p.st === s.fStatus);
+    if (s.soAtrasados) lista = lista.filter(p => p.st === 'atrasado');
+
+    const urgentes = prazos.filter(p => { const k = this.statusDe(p, HOJE).key; return k === 'atrasado' || k === 'hoje'; }).length;
+    const abertos = prazos.filter(p => p.estado === 'aberto').length;
+
+    const detalheP = s.detalheId ? prazos.find(p => p.id === s.detalheId) : null;
+    let detalhe = null;
+    if (detalheP) {
+      const st = this.statusDe(detalheP, HOJE);
+      detalhe = Object.assign({}, detalheP, {
+        statusLabel: st.label, accent: st.accent, fatalFmt: fmt(detalheP.fatal), internoFmt: fmt(detalheP.interno),
+        aberto: detalheP.estado === 'aberto',
+        isPrazo: detalheP.kind === 'prazo',
+        rotuloData: detalheP.kind === 'prazo' ? 'Prazo fatal' : detalheP.kind === 'compromisso' ? 'Data' : 'Verificação',
+        rotuloSecundario: detalheP.kind === 'prazo' ? 'Prazo interno' : detalheP.kind === 'compromisso' ? 'Horário' : 'Recorrência',
+        valorSecundario: detalheP.kind === 'prazo' ? (detalheP.interno ? fmt(detalheP.interno) : '—') : detalheP.kind === 'compromisso' ? (detalheP.hora || '—') : (detalheP.recorrencia || 'Não repete'),
+        corSecundaria: detalheP.kind === 'prazo' ? '#D97706' : '#00727E',
+        tipoTitulo: detalheP.kind === 'prazo' ? 'Prazo' : detalheP.kind === 'compromisso' ? 'Compromisso' : 'Monitoramento',
+        detalhesExtra: detalheP.kind === 'compromisso' ? (detalheP.hora || '') + (detalheP.local ? ' · ' + detalheP.local : '') + (detalheP.duracao ? ' · ' + detalheP.duracao + ' min' : '') : detalheP.kind === 'monitoramento' ? 'Alvo: ' + (detalheP.alvo || '—') + ' · ' + (detalheP.recorrencia || 'Não repete') : '',
+        seloCalculo: detalheP.ajustado ? 'ajustado manualmente' : 'cálculo automático',
+        nivelLabel: !detalheP.nivel || detalheP.nivel === 'geral' ? 'Geral da pasta' : 'Processo ' + detalheP.nivel,
+        anotacoes: (detalheP.anotacoes || []).map(a => Object.assign({}, a, { iniciais: a.autor.replace(/^(Dra?\.|Secretaria —)\s*/, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() })),
+        semAnotacoes: (detalheP.anotacoes || []).length === 0
+      });
+    }
+    const confirmP = s.confirmId ? prazos.find(p => p.id === s.confirmId) : null;
+    const excluirP = s.excluirId ? prazos.find(p => p.id === s.excluirId) : null;
+    let alvoApagar = null;
+    if (s.apagarAlvo) {
+      const a = s.apagarAlvo;
+      const bloqueado = a.vinculos > 0;
+      const rotulo = a.tipo === 'cliente' ? 'cliente' : a.tipo === 'pasta' ? 'pasta' : 'processo';
+      alvoApagar = {
+        titulo: 'Excluir ' + rotulo + '?',
+        texto: a.nome + (bloqueado ? '' : ' não tem registros vinculados e pode ser excluído.'),
+        bloqueado, liberado: !bloqueado,
+        ctaVoltar: bloqueado ? 'Entendi' : 'Voltar',
+        aviso: a.tipo === 'cliente'
+          ? 'Há ' + a.vinculos + (a.vinculos === 1 ? ' pasta vinculada' : ' pastas vinculadas') + ' a este cliente. Exclua ou transfira as pastas antes.'
+          : a.tipo === 'pasta'
+            ? 'Há ' + a.vinculos + (a.vinculos === 1 ? ' registro vinculado' : ' registros vinculados') + ' (processos e atividades) a esta pasta. Exclua-os antes.'
+            : 'Há ' + a.vinculos + (a.vinculos === 1 ? ' atividade vinculada' : ' atividades vinculadas') + ' a este processo. Exclua ou mova as atividades antes.'
+      };
+    }
+    let formPrevia = s.modal === 'prazo' && s.form.disponibilizacao ? this.calcular(s.form.disponibilizacao, s.form.tipo, s.form.dobro, s.form.tribunal) : null;
+    if (formPrevia && s.form.antecipaInterno) formPrevia = Object.assign({}, formPrevia, { interno: iso(subUteis(d(formPrevia.interno), s.form.antecipaInterno, formPrevia.fer)) });
+
+    const clientesLista = s.clientes.map(c => {
+      const n = s.pastas.filter(p => p.cliente === c.nome).length;
+      return Object.assign({}, c, { pastasTexto: n === 1 ? '1 pasta' : n + ' pastas', 
+        toggleMenu: (e) => this.abrirMenu(e, 'cliente', c.id),
+        editar: () => { this.abrirModal('cliente', c); },
+        excluir: () => this.set({ apagarAlvo: { tipo: 'cliente', id: c.id, nome: c.nome, vinculos: n } }),
+        novaPasta: () => this.setState({ modal: 'pasta', editId: null, screen: 'pastas', form: { codigo: this.nextCodigo(), cliente: c.nome, nome: '', area: AREAS[0], objetivo: '' } }) });
+    });
+
+    const pastasLista = s.pastas.map(p => {
+      const nProc = s.processos.filter(x => x.pasta === p.nome).length;
+      const nPrazos = prazos.filter(q => q.pasta === p.nome && q.estado === 'aberto').length;
+      return Object.assign({}, p, {
+        processosTexto: nProc === 1 ? '1 processo' : nProc + ' processos',
+        prazosTexto: nPrazos === 0 ? 'nenhum' : nPrazos === 1 ? '1 prazo' : nPrazos + ' prazos',
+        prazosCor: nPrazos === 0 ? '#736769' : '#00727E',
+        verPrazos: () => this.set({ screen: 'agenda', fPasta: p.nome, fStatus: '', fResp: '', soAtrasados: false }),
+        
+        toggleMenu: (e) => this.abrirMenu(e, 'pasta', p.id),
+        editar: () => { this.abrirModal('pasta', p); },
+        excluir: () => this.set({ apagarAlvo: { tipo: 'pasta', id: p.id, nome: p.codigo + ' · ' + p.nome, vinculos: nProc + prazos.filter(q => q.pasta === p.nome).length } })
+      });
+    });
+
+    let processosLista = s.processos.map(x => {
+      const pasta = s.pastas.find(p => p.nome === x.pasta);
+      return Object.assign({}, x, {
+        cliente: pasta ? pasta.cliente : '—',
+        valorFmt: x.valor || 'valor não informado',
+        tribunal: this.siglaTribunal(x.tribunal) || x.tribunal || '—',
+        distribuicaoFmt: x.distribuicao ? fmt(x.distribuicao) : '—',
+        
+        toggleMenu: (e) => this.abrirMenu(e, 'processo', x.id),
+        editar: () => { this.abrirModal('processo', x); },
+        excluir: () => this.set({ apagarAlvo: { tipo: 'processo', id: x.id, nome: x.numero, vinculos: prazos.filter(q => q.nivel === x.numero).length } }),
+        novaAtividade: () => this.setState({ screen: 'novo-prazo', naTipo: 'prazo', npPasta: x.pasta, npNivel: x.numero })
+      });
+    });
+    if (s.fProcPasta) processosLista = processosLista.filter(x => x.pasta === s.fProcPasta);
+    if (s.fProcFase) processosLista = processosLista.filter(x => x.fase === s.fProcFase);
+
+
+    const calc = this.calcular(s.npData, s.npTipo, s.npDobro, s.npTribunal);
+    const fatalMostrado = s.ajFatal || (calc ? calc.fatal : '');
+    const internoMostrado = s.ajInterno || (calc ? calc.interno : '');
+    const editado = (s.ajFatal && calc && s.ajFatal !== calc.fatal) || (s.ajInterno && calc && s.ajInterno !== calc.interno);
+
+    const dt = d(HOJE);
+
+    return {
+      isLogin: !app, isApp: app,
+      isConfig: s.screen === 'config',
+      isAgenda: s.screen === 'agenda', isClientes: s.screen === 'clientes', isPastas: s.screen === 'pastas', isProcessos: s.screen === 'processos', isNovoPrazo: s.screen === 'novo-prazo',
+      isSignup: s.authMode === 'signup', isLoginMode: s.authMode === 'login',
+      authTitle: s.authMode === 'login' ? 'Bem-vinda de volta' : 'Criar seu escritório',
+      authSubtitle: s.authMode === 'login' ? 'Acesse a agenda de atividades do escritório.' : 'Uma conta, um escritório. Você poderá convidar a equipe depois.',
+      authCta: s.authMode === 'login' ? 'Entrar' : 'Criar conta e entrar',
+      tabLoginBg: s.authMode === 'login' ? '#fff' : 'transparent',
+      tabLoginFg: s.authMode === 'login' ? '#483D3F' : '#736769',
+      tabLoginShadow: s.authMode === 'login' ? '0 1px 2px rgba(16,24,40,0.08)' : 'none',
+      tabSignupBg: s.authMode === 'signup' ? '#fff' : 'transparent',
+      tabSignupFg: s.authMode === 'signup' ? '#483D3F' : '#736769',
+      tabSignupShadow: s.authMode === 'signup' ? '0 1px 2px rgba(16,24,40,0.08)' : 'none',
+      goLoginMode: () => this.set({ authMode: 'login' }),
+      goSignupMode: () => this.set({ authMode: 'signup' }),
+      doAuth: () => { if (s.authMode === 'signup') { this.setState({ screen: 'clientes', modal: 'cliente', editId: null, form: { nome: '', documento: '', telefone: '', email: '' } }); } else { this.set({ screen: 'agenda' }); } },
+      logout: () => this.set({ screen: 'login', authMode: 'login', detalheId: null, confirmId: null }),
+
+      nav,
+      goAgenda: () => this.set({ screen: 'agenda' }),
+      goPrazo: () => this.set({ screen: 'novo-prazo' }),
+
+      hojeLongo: SEMANA[dt.getDay()].charAt(0).toUpperCase() + SEMANA[dt.getDay()].slice(1) + ', ' + dt.getDate() + ' de ' + MESES[dt.getMonth()] + ' de ' + dt.getFullYear(),
+      resumoTexto: (abertos === 1 ? '1 atividade em aberto' : abertos + ' atividades em aberto') + ' · ' + (urgentes === 1 ? '1 exige atenção hoje' : urgentes + ' exigem atenção hoje') + (ocultas ? ' · ' + ocultas + (ocultas === 1 ? ' entra' : ' entram') + ' na agenda mais perto da data' : ''),
+      showBanner: this.props.bannerAlertas !== false && urgentes > 0,
+      bannerSub: ref === HOJE ? 'Confira antes de qualquer outra tarefa do dia.' : 'Contagem sempre relativa a hoje — você está vendo a agenda de ' + fmt(ref) + '.',
+      bannerTitulo: urgentes === 1 ? '1 atividade vencida ou vencendo hoje' : urgentes + ' atividades vencidas ou vencendo hoje',
+      filtrarUrgentes: () => this.set({ refData: HOJE, janela: 'tudo', fStatus: '', fTipo: '', soAtrasados: true, fPasta: '', fResp: '' }),
+
+      refData: ref,
+      refLabel: (SEMANA[d(ref).getDay()].charAt(0).toUpperCase() + SEMANA[d(ref).getDay()].slice(1)) + ', ' + d(ref).getDate() + ' de ' + MESES[d(ref).getMonth()],
+      refContexto: ref === HOJE ? 'Hoje' : difDias(ref, HOJE) > 0 ? 'Em ' + difDias(ref, HOJE) + (difDias(ref, HOJE) === 1 ? ' dia' : ' dias') : Math.abs(difDias(ref, HOJE)) + (Math.abs(difDias(ref, HOJE)) === 1 ? ' dia atrás' : ' dias atrás'),
+      setRefData: e => this.set({ refData: e.target.value || HOJE }),
+      diaAnterior: () => this.setState(st => ({ refData: somaDias(st.refData || HOJE, -1) })),
+      diaSeguinte: () => this.setState(st => ({ refData: somaDias(st.refData || HOJE, 1) })),
+      irParaHoje: () => this.set({ refData: HOJE }),
+      hojeBg: ref === HOJE ? '#00727E' : '#FFFFFF',
+      hojeFg: ref === HOJE ? '#FFFFFF' : '#00727E',
+      hojeBorder: ref === HOJE ? '#00727E' : '#B9D4D3',
+      janelas: [
+        { key: 'dia', label: 'Este dia + prazos abertos' },
+        { key: 'semana', label: '7 dias' },
+        { key: 'tudo', label: 'Tudo' }
+      ].map(j => ({
+        label: j.label, go: () => this.set({ janela: j.key }),
+        bg: s.janela === j.key ? '#FFFFFF' : 'transparent',
+        fg: s.janela === j.key ? '#483D3F' : '#736769',
+        shadow: s.janela === j.key ? '0 1px 2px rgba(72,61,63,0.12)' : 'none'
+      })),
+      fTipo: s.fTipo,
+      setFTipo: e => this.set({ fTipo: e.target.value }),
+      lista, vazio: lista.length === 0,
+      vazioTitulo: s.prazos.length === 0 ? 'Agenda vazia' : 'Nenhuma atividade com esses filtros',
+      vazioTexto: s.prazos.length === 0 ? 'Cadastre cliente e pasta e depois use "+ Nova atividade" para lançar o primeiro prazo, compromisso ou monitoramento.' : s.janela === 'dia' ? 'Nenhuma atividade nesta data e nenhum prazo em aberto.' : 'Ajuste os filtros ou a janela de datas acima.',
+      colTemplate: s.colW[0] + 'px ' + s.colW[1] + 'px minmax(' + s.colW[2] + 'px, 1fr) ' + s.colW[3] + 'px',
+      colMin: s.colW.reduce((a, b) => a + b, 0) + 36 + 16 * (s.colW.length - 1) + 'px',
+      toggleLegenda: () => this.setState(st => ({ legendaAberta: !st.legendaAberta })),
+      baseLabel: (s.baseData || 'fatal') === 'interno' ? 'Prazo interno' : 'Prazo fatal',
+      alternarBase: () => this.setState(st => ({ baseData: (st.baseData || 'fatal') === 'fatal' ? 'interno' : 'fatal' })),
+      alternarBaseCelula: (e) => { if (e) e.stopPropagation(); this.setState(st => ({ baseData: (st.baseData || 'fatal') === 'fatal' ? 'interno' : 'fatal' })); },
+      colunas: ['Pasta / cliente', 'Tipo de atividade', 'Prazo', 'Ação'].map((label, idx) => ({
+        label, align: idx === 3 ? 'center' : 'flex-start',
+        redimensionavel: true,
+        alternavel: idx === 2, simples: idx !== 2,
+        info: idx === 2, popover: idx === 2 && s.legendaAberta,
+        alcaRight: idx === 3 ? '-4px' : '-12px',
+        resize: this.iniciarResize(idx),
+        reset: () => this.resetColunas()
+      })),
+      ordem: s.ordem,
+      setOrdem: e => this.set({ ordem: e.target.value }),
+      rowPad: dens === 'compacta' ? '11px 18px' : dens === 'confortável' ? '20px 18px' : '15px 18px',
+      pastasOpts: s.pastas.map(p => p.nome),
+      respOpts: s.prazos.map(p => p.responsavel).filter((v, i, a) => a.indexOf(v) === i),
+      clientesOpts: s.clientes.map(c => c.nome),
+      areas: AREAS,
+      tiposOpts: TIPOS,
+      fPasta: s.fPasta, fResp: s.fResp, fStatus: s.fStatus,
+      setFPasta: e => this.set({ fPasta: e.target.value }),
+      setFResp: e => this.set({ fResp: e.target.value }),
+      setFStatus: e => this.set({ fStatus: e.target.value }),
+      toggleSoAtrasados: () => this.set({ soAtrasados: !s.soAtrasados }),
+      soAtrBg: s.soAtrasados ? '#FEF2F2' : '#fff',
+      soAtrFg: s.soAtrasados ? '#DC2626' : '#483D3F',
+      soAtrBorder: s.soAtrasados ? '#FCA5A5' : '#B9D4D3',
+      soAtrBox: s.soAtrasados ? '#DC2626' : 'transparent',
+      limparFiltros: () => this.set({ fPasta: '', fResp: '', fStatus: '', fTipo: '', soAtrasados: false, ordem: 'fatal-asc', janela: 'semana', refData: HOJE }),
+      legenda: [
+        { cor: '#DC2626', label: 'Atrasado ou vence hoje' },
+        { cor: '#D97706', label: 'Hora de fazer (dentro da margem)' },
+        { cor: '#00727E', label: 'Futuro' },
+        { cor: '#7C5CBF', label: 'Adiado' },
+        { cor: '#16A34A', label: 'Cumprido' },
+        { cor: '#6E6062', label: 'Cancelado' }
+      ],
+
+      clientesLista, pastasLista, processosLista, processosVazio: processosLista.length === 0,
+      clientesVazio: clientesLista.length === 0, pastasVazio: pastasLista.length === 0,
+      processosVazioTitulo: s.processos.length === 0 ? 'Nenhum processo cadastrado' : 'Nenhum processo com esses filtros',
+      processosVazioTexto: s.processos.length === 0 ? 'Use "+ Cadastrar processo" para vincular um número CNJ ou administrativo a uma pasta.' : 'Ajuste a pasta ou a fase acima.',
+      clientesResumo: s.clientes.length === 0 ? 'Nenhum cliente cadastrado ainda' : s.clientes.length === 1 ? '1 cliente cadastrado' : s.clientes.length + ' clientes cadastrados',
+      pastasResumo: s.pastas.length === 0 ? 'Nenhuma pasta cadastrada ainda' : (s.pastas.length === 1 ? '1 pasta' : s.pastas.length + ' pastas') + ' · ' + (abertos === 1 ? '1 atividade em aberto' : abertos + ' atividades em aberto'),
+      processosResumo: s.processos.length === 0 ? 'Nenhum processo cadastrado ainda' : (s.processos.length === 1 ? '1 processo ativo' : s.processos.length + ' processos ativos'),
+      fases: FASES,
+      fProcPasta: s.fProcPasta, fProcFase: s.fProcFase,
+      setFProcPasta: e => this.set({ fProcPasta: e.target.value }),
+      setFProcFase: e => this.set({ fProcFase: e.target.value }),
+      menuFlutuante: s.menu,
+      menuTransform: s.menu && s.menu.acima ? 'translateY(-100%)' : 'none',
+      menuEditar: () => this.acaoMenu('editar'),
+      menuExcluir: () => this.acaoMenu('excluir'),
+      fecharMenu: () => this.set({ menu: null }),
+      apagar: alvoApagar,
+      cancelarApagar: () => this.set({ apagarAlvo: null }),
+      confirmarApagar: () => {
+        const alvo = s.apagarAlvo;
+        if (!alvo) return;
+        if (alvo.tipo === 'cliente') this.setState({ clientes: s.clientes.filter(c => c.id !== alvo.id), apagarAlvo: null });
+        if (alvo.tipo === 'pasta') this.setState({ pastas: s.pastas.filter(p => p.id !== alvo.id), apagarAlvo: null });
+        if (alvo.tipo === 'processo') this.setState({ processos: s.processos.filter(x => x.id !== alvo.id), apagarAlvo: null });
+        this.flash(alvo.tipo === 'cliente' ? 'Cliente excluído.' : alvo.tipo === 'pasta' ? 'Pasta excluída.' : 'Processo excluído.');
+      },
+      novoCliente: () => this.abrirModal('cliente'),
+      novaPasta: () => this.abrirModal('pasta'),
+      novoProcesso: () => this.abrirModal('processo'),
+      modalPrazo: s.modal === 'prazo',
+      niveisFormOpts: s.processos.filter(x => x.pasta === (s.form.pasta || '')).map(x => ({ valor: x.numero, label: x.numero + ' — ' + x.vara })),
+      toggleFormDobro: () => this.setState(st => ({ form: Object.assign({}, st.form, { dobro: !st.form.dobro }) })),
+      formDobroBg: s.form.dobro ? '#00727E' : '#B9D4D3',
+      formDobroLeft: s.form.dobro ? '23px' : '3px',
+      formFatal: formPrevia ? fmt(formPrevia.fatal) : '—',
+      formInterno: formPrevia ? fmt(formPrevia.interno) : '—',
+      formNota: formPrevia && s.form.antecipaInterno ? 'Inclui a antecipação manual de ' + s.form.antecipaInterno + ' dias úteis já registrada neste prazo.' : 'Cálculo automático a partir da disponibilização.',
+      excluir: excluirP ? Object.assign({}, excluirP, { fatalFmt: fmt(excluirP.fatal) }) : null,
+      cancelarExcluir: () => this.set({ excluirId: null }),
+      confirmarExcluir: () => {
+        this.setState({ prazos: s.prazos.filter(p => p.id !== s.excluirId), excluirId: null, detalheId: null });
+        this.flash('Prazo excluído.');
+      },
+      modalCliente: s.modal === 'cliente', modalPasta: s.modal === 'pasta', modalProcesso: s.modal === 'processo',
+      modalNovoCliente: s.modal === 'cliente' && !s.editId,
+      modalNovaPasta: s.modal === 'pasta' && !s.editId,
+      modalTitulo: this.tituloModal(),
+      modalCta: s.editId ? 'Salvar alterações' : 'Salvar',
+      form: s.form, setF: this.setters(),
+      fecharModal: () => this.set({ modal: null, editId: null, form: {} }),
+      salvarModal: () => this.persistir(),
+      salvarEAbrirPasta: () => this.persistir('pasta'),
+      salvarEAbrirProcesso: () => this.persistir('processo'),
+
+      naTipo: s.naTipo,
+      naEhPrazo: s.naTipo === 'prazo', naNaoEhPrazo: s.naTipo !== 'prazo', naEhCompromisso: s.naTipo === 'compromisso', naEhMonitoramento: s.naTipo === 'monitoramento',
+      naTabs: [
+        { key: 'prazo', label: 'Prazo' },
+        { key: 'compromisso', label: 'Compromisso' },
+        { key: 'monitoramento', label: 'Monitoramento' }
+      ].map(t => ({
+        label: t.label, ativo: s.naTipo === t.key,
+        go: () => this.set({ naTipo: t.key }),
+        bg: s.naTipo === t.key ? '#FFFFFF' : 'transparent',
+        fg: s.naTipo === t.key ? '#483D3F' : '#736769',
+        shadow: s.naTipo === t.key ? '0 1px 2px rgba(72,61,63,0.12)' : 'none'
+      })),
+      naTitulo: s.naTipo === 'prazo' ? 'Nova atividade — prazo processual' : s.naTipo === 'compromisso' ? 'Nova atividade — compromisso' : 'Nova atividade — monitoramento',
+      naAjuda: s.naTipo === 'prazo' ? 'O cálculo de prazo fatal e interno aparece ao lado e pode ser ajustado.' : s.naTipo === 'compromisso' ? 'Compromissos entram na agenda 5 dias antes da data marcada.' : 'Monitoramentos aparecem na agenda apenas no dia da verificação.',
+      naCta: s.naTipo === 'prazo' ? 'Salvar prazo' : s.naTipo === 'compromisso' ? 'Salvar compromisso' : 'Salvar monitoramento',
+      tiposCompromisso: TIPOS_COMPROMISSO, tiposMonitoramento: TIPOS_MONITORAMENTO, recorrencias: RECORRENCIAS,
+      c: s.naC, m: s.naM,
+      setC: { tipo: this.setNa('naC', 'tipo'), data: this.setNa('naC', 'data'), hora: this.setNa('naC', 'hora'), local: this.setNa('naC', 'local'), duracao: this.setNa('naC', 'duracao'), recorrencia: this.setNa('naC', 'recorrencia') },
+      setM: { tipo: this.setNa('naM', 'tipo'), alvo: this.setNa('naM', 'alvo'), data: this.setNa('naM', 'data'), recorrencia: this.setNa('naM', 'recorrencia') },
+      previaTitulo: s.naTipo === 'compromisso' ? 'Prévia do compromisso' : 'Prévia do monitoramento',
+      previaAgenda: s.naTipo === 'compromisso'
+        ? (s.naC.data ? 'Aparecerá na agenda a partir de ' + fmt(iso(new Date(d(s.naC.data).getTime() - 5 * 86400000))) : 'Informe a data para ver a prévia.')
+        : (s.naM.data ? 'Aparecerá na agenda em ' + fmt(s.naM.data) + ' (dia da verificação).' : 'Sem data: aparecerá quando você definir a verificação.'),
+      previaLinha2: s.naTipo === 'compromisso'
+        ? (s.naC.data ? fmt(s.naC.data) + (s.naC.hora ? ' às ' + s.naC.hora : '') + (s.naC.duracao ? ' · ' + s.naC.duracao + ' min' : '') + (s.naC.local ? ' · ' + s.naC.local : '') : '')
+        : (s.naM.alvo ? 'Alvo: ' + s.naM.alvo : 'Defina o alvo do monitoramento (URL, processo, certidão).'),
+      previaLinha3: s.naTipo === 'compromisso'
+        ? (s.naC.recorrencia === 'Não repete' ? 'Sem recorrência.' : 'Repete: ' + s.naC.recorrencia.toLowerCase() + '.')
+        : (s.naM.recorrencia === 'Não repete' ? 'Verificação única.' : 'Verificação ' + s.naM.recorrencia.toLowerCase() + '.'),
+      salvarAtividade: () => this.salvarAtividade(s.naTipo),
+      tribunalOpts: s.tribunais.map(t => ({ id: t.id, label: t.sigla + ' — ' + t.nome })),
+      semTribunais: s.tribunais.length === 0, semFeriados: s.feriados.length === 0,
+      tribunalPlaceholder: s.tribunais.length === 0 ? 'Nenhum tribunal cadastrado — cadastre em Configurações' : 'Selecione o tribunal…',
+      tribResumo: s.tribunais.length === 0 ? 'Nenhum tribunal cadastrado' : s.tribunais.length === 1 ? '1 tribunal' : s.tribunais.length + ' tribunais',
+      ferResumo: s.feriados.length === 0 ? 'Nenhum feriado cadastrado' : s.feriados.length === 1 ? '1 feriado' : s.feriados.length + ' feriados',
+      cfgTrib: s.cfgTrib, cfgFer: s.cfgFer,
+      setCfgTrib: {
+        nome: e => this.setState(st => ({ cfgTrib: Object.assign({}, st.cfgTrib, { nome: e.target.value }) })),
+        sigla: e => this.setState(st => ({ cfgTrib: Object.assign({}, st.cfgTrib, { sigla: e.target.value }) }))
+      },
+      setCfgFer: {
+        data: e => this.setState(st => ({ cfgFer: Object.assign({}, st.cfgFer, { data: e.target.value }) })),
+        desc: e => this.setState(st => ({ cfgFer: Object.assign({}, st.cfgFer, { desc: e.target.value }) })),
+        tribunalId: e => this.setState(st => ({ cfgFer: Object.assign({}, st.cfgFer, { tribunalId: e.target.value }) }))
+      },
+      addTribunal: () => this.addTribunal(),
+      addFeriado: () => this.addFeriado(),
+      tribunaisLista: s.tribunais.map(t => {
+        const n = s.feriados.filter(h => h.tribunalId === t.id).length;
+        return Object.assign({}, t, {
+          feriadosTexto: n === 0 ? 'nenhum feriado cadastrado' : n === 1 ? '1 feriado cadastrado' : n + ' feriados cadastrados',
+          excluir: () => { this.setState(st => ({ tribunais: st.tribunais.filter(x => x.id !== t.id), feriados: st.feriados.filter(h => h.tribunalId !== t.id) })); this.flash('Tribunal e feriados vinculados excluídos.'); }
+        });
+      }),
+      feriadosLista: s.feriados.slice().sort((a, b) => d(a.data) - d(b.data)).map(h => ({
+        desc: h.desc, dataFmt: fmt(h.data), diaSemana: diaSemana(h.data),
+        tribunal: this.siglaTribunal(h.tribunalId) || 'tribunal removido',
+        excluir: () => { this.setState(st => ({ feriados: st.feriados.filter(x => x.id !== h.id) })); this.flash('Feriado excluído.'); }
+      })),
+      npTribunal: s.npTribunal,
+      setNpTribunal: e => this.set({ npTribunal: e.target.value, ajFatal: '', ajInterno: '', ajMotivo: '' }),
+      tribunalAjuda: s.tribunais.length === 0
+        ? 'Nenhum tribunal cadastrado — cadastre em Configurações para usar o calendário de feriados.'
+        : s.npTribunal ? 'Feriados do ' + (this.siglaTribunal(s.npTribunal) || '—') + ' aplicados na contagem.' : 'Sem tribunal, a contagem exclui apenas sábados e domingos.',
+      avisoFeriados: calc && calc.semFeriadosNoIntervalo
+        ? (s.npTribunal
+            ? 'Nenhum feriado do ' + (this.siglaTribunal(s.npTribunal) || '—') + ' está cadastrado entre ' + fmt(calc.pub) + ' e ' + fmt(calc.fatal) + '. Confira o calendário do tribunal antes de confiar nestas datas.'
+            : 'Sem tribunal selecionado: a contagem exclui apenas sábados e domingos. Selecione o tribunal para aplicar os feriados cadastrados.')
+        : '',
+      npPasta: s.npPasta, npTipo: s.npTipo, npData: s.npData,
+      npNivel: s.npNivel,
+      niveisOpts: s.processos.filter(x => x.pasta === s.npPasta).map(x => ({ valor: x.numero, label: x.numero + ' — ' + x.vara })),
+      nivelAjuda: s.npNivel === 'geral' ? 'Trabalho interno da pasta, sem número de processo.' : 'Prazo vinculado ao processo judicial selecionado.',
+      setNpNivel: e => this.set({ npNivel: e.target.value }),
+      setNpPasta: e => this.set({ npPasta: e.target.value, npNivel: 'geral' }),
+      setNpTipo: e => this.set({ npTipo: e.target.value, ajFatal: '', ajInterno: '', ajMotivo: '' }),
+      setNpTribunalReset: e => this.set({ npTribunal: e.target.value, ajFatal: '', ajInterno: '', ajMotivo: '' }),
+      setNpData: e => this.set({ npData: e.target.value, ajFatal: '', ajInterno: '', ajMotivo: '' }),
+      toggleDobro: () => this.set({ npDobro: !s.npDobro, ajFatal: '', ajInterno: '', ajMotivo: '' }),
+      dobroBg: s.npDobro ? '#00727E' : '#B9D4D3',
+      dobroLeft: s.npDobro ? '23px' : '3px',
+      calcSelo: editado ? 'ajustado manualmente' : 'cálculo automático',
+      calcFatal: fmt(fatalMostrado), calcInterno: fmt(internoMostrado),
+      calcFatalDia: diaSemana(fatalMostrado), calcInternoDia: diaSemana(internoMostrado),
+      calcBase: calc ? calc.tipo.base + (s.npDobro ? ' Prazo em dobro: art. 229 do CPC.' : '') : '—',
+      passos: calc ? calc.passos : [],
+      ajusteAberto: s.ajusteAberto,
+      ajusteCta: s.ajusteAberto ? 'Fechar' : 'Editar datas',
+      toggleAjuste: () => this.set({ ajusteAberto: !s.ajusteAberto, ajFatal: s.ajFatal || (calc ? calc.fatal : ''), ajInterno: s.ajInterno || (calc ? calc.interno : '') }),
+      ajFatal: fatalMostrado, ajInterno: internoMostrado, ajMotivo: s.ajMotivo,
+      setAjFatal: e => this.set({ ajFatal: e.target.value }),
+      setAjInterno: e => this.set({ ajInterno: e.target.value }),
+      setAjMotivo: e => this.set({ ajMotivo: e.target.value }),
+      precisaMotivo: !!editado,
+      salvarPrazo: () => {
+        if (!s.npPasta) { this.flash('Selecione a pasta da atividade.'); return; }
+        if (!s.npData || !calc) { this.flash('Informe a data de disponibilização.'); return; }
+        if (editado && !s.ajMotivo.trim()) { this.flash('Informe o motivo do ajuste manual.'); return; }
+        const pastaRef = s.pastas.find(p => p.nome === s.npPasta) || {};
+        const novo = {
+          id: Date.now(), pasta: s.npPasta, nivel: s.npNivel, tribunal: s.npTribunal, anotacoes: [], codigo: pastaRef.codigo || '—',
+          cliente: pastaRef.cliente || '—',
+          tipo: s.npTipo, responsavel: 'Dra. Helena Moraes', disponibilizacao: s.npData,
+          dobro: s.npDobro,
+          fatalAjustado: editado && fatalMostrado !== calc.fatal ? fatalMostrado : null,
+          internoAjustado: editado && internoMostrado !== calc.interno ? internoMostrado : null,
+          motivoAjuste: editado ? s.ajMotivo : null, estado: 'aberto',
+          historico: [{ acao: editado ? 'Prazo lançado com ajuste manual de datas' : 'Prazo lançado com cálculo automático', quando: agoraTexto(), quem: 'Dra. Helena Moraes', motivo: editado ? s.ajMotivo : null }]
+        };
+        this.setState({ prazos: [novo].concat(s.prazos), screen: 'agenda', ajusteAberto: false, ajFatal: '', ajInterno: '', ajMotivo: '' });
+        this.flash('Prazo salvo — fatal em ' + fmt(fatalMostrado) + '.');
+      },
+
+      detalhe,
+      novaAnotacao: s.novaAnotacao,
+      setNovaAnotacao: e => this.set({ novaAnotacao: e.target.value }),
+      addAnotacao: () => {
+        const texto = (s.novaAnotacao || '').trim();
+        if (!texto) { this.flash('Escreva a anotação antes de adicionar.'); return; }
+        const quando = agoraTexto();
+        this.setState({
+          prazos: s.prazos.map(p => p.id === s.detalheId ? Object.assign({}, p, { anotacoes: (p.anotacoes || []).concat([{ texto, autor: 'Dra. Helena Moraes', quando }]) }) : p),
+          novaAnotacao: ''
+        });
+        this.flash('Anotação adicionada.');
+      },
+      fecharDetalhe: () => this.set({ detalheId: null }),
+      stop: e => e.stopPropagation(),
+      cumprirDoDetalhe: () => this.set({ confirmId: s.detalheId }),
+      confirmar: confirmP ? Object.assign({}, confirmP, { fatalFmt: fmt(confirmP.fatal) }) : null,
+      cancelarConfirm: () => this.set({ confirmId: null }),
+      confirmarCumprir: () => {
+        this.setState({
+          prazos: s.prazos.map(p => p.id === s.confirmId ? Object.assign({}, p, { estado: 'cumprido', historico: p.historico.concat([{ acao: 'Marcado como cumprido', quando: agoraTexto(), quem: 'Dra. Helena Moraes' }]) }) : p),
+          confirmId: null, detalheId: null
+        });
+        this.flash('Prazo marcado como cumprido.');
+      },
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
