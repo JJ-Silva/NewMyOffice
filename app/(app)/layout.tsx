@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { exigirSessao } from "@/lib/supabase/sessao";
+import { podeFazer } from "@/lib/domain/autorizacao";
 import { sair } from "./acoes";
 
 export default async function LayoutApp({
@@ -13,6 +14,10 @@ export default async function LayoutApp({
   children: React.ReactNode;
 }) {
   const sessao = await exigirSessao();
+  const mostrarConfiguracoes = podeFazer(
+    sessao.membro,
+    "acessar_configuracoes",
+  );
 
   return (
     <div className="flex min-h-full flex-col">
@@ -28,7 +33,14 @@ export default async function LayoutApp({
             <Link href="/agenda" className="text-texto-secundario hover:text-texto">
               Agenda
             </Link>
-            {/* Configurações (só dono) entra no Passo 4 do INICIO-AQUI.md */}
+            {mostrarConfiguracoes && (
+              <Link
+                href="/configuracoes"
+                className="text-texto-secundario hover:text-texto"
+              >
+                Configurações
+              </Link>
+            )}
           </nav>
         </div>
 

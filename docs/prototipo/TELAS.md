@@ -100,5 +100,6 @@ Props globais do protótipo: `densidade` (compacta/média/confortável), `margem
 | Status "Adiado" | existe | não existe no enum — decidir |
 | Telefone/e-mail do cliente | no cadastro rápido | Etapa 2 — protótipo antecipa (ok, é barato) |
 | Processo: campo | **"Fase"** | "situacao" — renomear para `fase` |
-| Polo do cliente | **"Nosso polo"** (autor/réu/terceiro) | `polo_cliente` ativo/passivo — alinhar rótulo e incluir "terceiro" |
+| Polo do cliente | **"Nosso polo"** (autor/réu/terceiro) | migration usa `autor/reu/terceiro` (decidido 2026-08-29) |
+| Feriado → tribunais | select único | **checkboxes (N:N)** na implementação — fiel ao modelo; permite "Natal → todos os tribunais" de uma vez (Passo 4) |
 | Fluxo guiado | cliente → "salvar e criar pasta" → "salvar e cadastrar processo" | não especificado — adotar |

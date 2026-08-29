@@ -9,4 +9,5 @@ A RLS do Postgres já isola por `escritorio_id` — mas passe o `escritorioId` e
 As funções recebem o client Supabase como 1º argumento (testável, e serve tanto ao server quanto às Server Actions).
 
 Criados no Passo 3: `membros.ts` (vínculo usuário↔escritório), `escritorios.ts` (onboarding via RPC).
+Criados no Passo 4: `tribunais.ts`, `feriados.ts`, `periodos-nao-uteis.ts` (Configurações; soft-delete via `update deletado_em`).
 
