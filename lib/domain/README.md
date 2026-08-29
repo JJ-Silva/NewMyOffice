@@ -3,8 +3,9 @@
 **TypeScript puro.** Nada de Supabase, nada de React, nada de I/O. São funções que recebem dados e devolvem dados — 100% testáveis com Vitest.
 
 O que mora aqui:
-- `prazo.ts` — cálculo de prazo (porte da função VBA `Contar_Prazos` — ver `docs/referencia/funcao-vba-Contar_Prazos.txt` e `docs/MYOFFICE_MOTOR_TESTES.md`).
-- `atividade.ts` — `REGRAS_TIPO`, `atividadeVisivelEm()`, `prioridadeEfetiva()` (ver `docs/MYOFFICE_MVP_PLANO.md` §3.6).
+- `datas.ts` — datas como texto `'AAAA-MM-DD'`, cálculo dia-a-dia via UTC. Sem lib externa.
+- `prazo.ts` — `calcularPrazo()` (porte da função VBA `Contar_Prazos` — ver `docs/referencia/funcao-vba-Contar_Prazos.txt` e `docs/MYOFFICE_MOTOR_TESTES.md`). Testes T1–T13 em `prazo.test.ts`.
+- `atividade.ts` — `REGRAS_TIPO`, `atividadeVisivelEm()`, `prioridadeEfetiva()`, `estadoNaAgenda()` (ver `docs/MYOFFICE_MVP_PLANO.md` §3.6 e §4 Bloco C).
 - `cnj.ts` — parsing/validação do número CNJ (Etapa 2).
 - `autorizacao.ts` — `podeFazer(membro, acao)` (ver plano §5, decisão P6). Etapa 1: só `dono` acessa Configurações.
 

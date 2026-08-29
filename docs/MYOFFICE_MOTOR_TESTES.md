@@ -118,3 +118,18 @@ Decisão 29/08: o motor não calcula prazo **material** (prescrição/decadênci
 ## Próximo passo — só falta o P1
 
 Você confere **T1–T13** (marca ✅/❌ + a data certa onde eu errei — **atenção especial ao T9**, recesso). Com isso o motor está 100% especificado → codar `lib/domain/prazo.ts` + os testes.
+
+---
+
+## Status da implementação (Passo 5 — 2026-08-29)
+
+`lib/domain/prazo.ts` (+ `datas.ts`) implementado. **P1 confirmado pelo Jefferson.**
+Todos os T1–T13 viraram testes em `lib/domain/prazo.test.ts` e passam com as datas
+acima. `lib/domain/atividade.ts` (REGRAS_TIPO, `atividadeVisivelEm`,
+`prioridadeEfetiva`, `estadoNaAgenda`) também implementado + testado.
+
+**Decisão tomada no aviso de calendário incompleto (item 7 do §4.B — a spec era ambígua):**
+o aviso dispara quando (a) é `processual` e o tribunal não tem **nenhum** feriado/recesso
+cadastrado, ou (b) o intervalo `[dataInicial, prazoFatal]` cruza ≥ 2 meses **e** não há
+nenhum feriado/recesso nesse trecho. Assim: T1/T2/T9 **não** avisam (T2 tem a Paixão no
+intervalo; T9 tem Natal + recesso); T12 avisa. Confirmar se é o comportamento desejado.

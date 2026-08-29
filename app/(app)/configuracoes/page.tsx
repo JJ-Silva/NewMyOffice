@@ -5,6 +5,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { listarFeriados } from "@/lib/db/feriados";
 import { listarPeriodosNaoUteis } from "@/lib/db/periodos-nao-uteis";
+import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
 import {
   adicionarTribunal,
   removerTribunal,
@@ -14,12 +15,9 @@ import {
   removerPeriodoNaoUtil,
 } from "./acoes";
 
-// 'AAAA-MM-DD' → "25/12/2026 · sexta-feira" (sem passar por UTC).
+// 'AAAA-MM-DD' → "25/12/2026 · sexta-feira"
 function formatarData(iso: string): string {
-  const [ano, mes, dia] = iso.split("-").map(Number);
-  const d = new Date(ano, mes - 1, dia);
-  const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
-  return `${String(dia).padStart(2, "0")}/${String(mes).padStart(2, "0")}/${ano} · ${diaSemana}`;
+  return `${formatarDataBR(iso)} · ${nomeDoDiaDaSemana(iso)}`;
 }
 
 export default async function PaginaConfiguracoes() {
