@@ -21,6 +21,8 @@
 
 Fonte: **Inter**. Foco: `outline: 2px solid #00727E`.
 
+> **Botão primário = amarelo `#FFCC00`** (texto `#483D3F`, hover `#F5C400`) — é o que o markup do protótipo usa em todos os CTAs. O `#00727E` é o **acento** (links, foco, botão secundário/contorno, sidebar). O design system está portado em `app/globals.css` (classes `.botao-primario`, `.botao-secundario`, `.botao-perigo`, `.campo`, `.rotulo`, `.card`, `.painel-vazio`, `.app-shell`, `.sidebar`, `.login-grid`…).
+
 Props globais do protótipo: `densidade` (compacta/média/confortável), `margemDias` (default 5, 1–10 dias úteis), `bannerAlertas` (on/off).
 
 ## Vocabulário de status (agenda)

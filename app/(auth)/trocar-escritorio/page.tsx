@@ -21,7 +21,12 @@ export default async function PaginaTrocarEscritorio() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold">Trocar de escritório</h1>
+      <h1 className="mb-1.5 text-2xl font-semibold tracking-[-0.02em]">
+        Trocar de escritório
+      </h1>
+      <p className="mb-[26px] text-sm leading-[1.55] text-texto-secundario">
+        Escolha o escritório com o qual quer trabalhar agora.
+      </p>
 
       <ul className="flex flex-col gap-2">
         {membros.map((m) => {
@@ -37,7 +42,7 @@ export default async function PaginaTrocarEscritorio() {
                 <button
                   type="submit"
                   disabled={ehAtivo}
-                  className="flex w-full items-center justify-between rounded-md border border-tint-2 bg-white px-3 py-2 text-left text-sm hover:border-acento disabled:opacity-60"
+                  className="flex w-full items-center justify-between rounded-lg border border-tint-2 bg-white px-3 py-2.5 text-left text-sm hover:border-teal disabled:opacity-60"
                 >
                   <span>
                     {m.escritorio_nome}
@@ -45,9 +50,7 @@ export default async function PaginaTrocarEscritorio() {
                       {m.papel}
                     </span>
                   </span>
-                  {ehAtivo && (
-                    <span className="text-xs text-acento">ativo</span>
-                  )}
+                  {ehAtivo && <span className="text-xs text-teal">ativo</span>}
                 </button>
               </form>
             </li>
@@ -55,10 +58,8 @@ export default async function PaginaTrocarEscritorio() {
         })}
       </ul>
 
-      <p className="mt-4 text-sm">
-        <Link href="/agenda" className="font-medium text-acento">
-          Voltar para a agenda
-        </Link>
+      <p className="mt-4 text-[13px]">
+        <Link href="/agenda">Voltar para a agenda</Link>
       </p>
     </div>
   );

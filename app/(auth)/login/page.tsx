@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AbasAuth } from "../abas";
 import { entrar } from "./acoes";
 
 export default async function PaginaLogin({
@@ -9,50 +10,53 @@ export default async function PaginaLogin({
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold">Entrar</h1>
+      <AbasAuth ativa="login" />
+
+      <h1 className="mb-1.5 text-2xl font-semibold tracking-[-0.02em]">
+        Bem-vindo de volta
+      </h1>
+      <p className="mb-[26px] text-sm leading-[1.55] text-texto-secundario">
+        Acesse a agenda de atividades do escritório.
+      </p>
 
       {erro && (
-        <p className="mb-4 rounded-md border border-atrasado bg-[var(--cor-atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
+        <p className="mb-4 rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
           {erro}
         </p>
       )}
 
-      <form action={entrar} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          E-mail
+      <form action={entrar} className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">E-mail</span>
           <input
             type="email"
             name="email"
             required
             autoComplete="email"
-            className="rounded-md border border-tint-2 bg-white px-3 py-2 text-texto"
+            placeholder="voce@escritorio.adv.br"
+            className="campo h-10"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Senha
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Senha</span>
           <input
             type="password"
             name="senha"
             required
             autoComplete="current-password"
-            className="rounded-md border border-tint-2 bg-white px-3 py-2 text-texto"
+            placeholder="••••••••"
+            className="campo h-10"
           />
         </label>
 
-        <button
-          type="submit"
-          className="mt-2 rounded-md bg-acento px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-        >
+        <button type="submit" className="botao-primario mt-1 h-[42px]">
           Entrar
         </button>
       </form>
 
-      <p className="mt-4 text-sm text-texto-secundario">
-        Não tem conta?{" "}
-        <Link href="/cadastro" className="font-medium text-acento">
-          Criar escritório
-        </Link>
+      <p className="mt-4 text-center text-[13px]">
+        <Link href="/cadastro">Criar escritório</Link>
       </p>
     </div>
   );

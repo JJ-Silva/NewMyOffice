@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AbasAuth } from "../abas";
 import { criarConta } from "./acoes";
 
 export default async function PaginaCadastro({
@@ -9,65 +9,67 @@ export default async function PaginaCadastro({
 
   return (
     <div>
-      <h1 className="mb-1 text-lg font-semibold">Criar escritório</h1>
-      <p className="mb-4 text-sm text-texto-secundario">
-        O escritório é criado com sua conta como administradora.
+      <AbasAuth ativa="cadastro" />
+
+      <h1 className="mb-1.5 text-2xl font-semibold tracking-[-0.02em]">
+        Criar conta
+      </h1>
+      <p className="mb-[26px] text-sm leading-[1.55] text-texto-secundario">
+        Comece a controlar os prazos do escritório.
       </p>
 
       {erro && (
-        <p className="mb-4 rounded-md border border-atrasado bg-[var(--cor-atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
+        <p className="mb-4 rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
           {erro}
         </p>
       )}
 
-      <form action={criarConta} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Nome do escritório
+      <form action={criarConta} className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Nome do escritório</span>
           <input
             type="text"
             name="nome_escritorio"
             required
-            className="rounded-md border border-tint-2 bg-white px-3 py-2 text-texto"
+            placeholder="Ex.: Silva & Associados"
+            className="campo h-10"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          E-mail
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">E-mail</span>
           <input
             type="email"
             name="email"
             required
             autoComplete="email"
-            className="rounded-md border border-tint-2 bg-white px-3 py-2 text-texto"
+            placeholder="voce@escritorio.adv.br"
+            className="campo h-10"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Senha
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Senha</span>
           <input
             type="password"
             name="senha"
             required
             minLength={6}
             autoComplete="new-password"
-            className="rounded-md border border-tint-2 bg-white px-3 py-2 text-texto"
+            placeholder="••••••••"
+            className="campo h-10"
           />
         </label>
 
-        <button
-          type="submit"
-          className="mt-2 rounded-md bg-acento px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-        >
+        <p className="-mt-0.5 text-xs leading-[1.5] text-texto-secundario">
+          O escritório é criado automaticamente com sua conta como
+          administradora.
+        </p>
+
+        <button type="submit" className="botao-primario mt-1 h-[42px]">
           Criar escritório
         </button>
       </form>
-
-      <p className="mt-4 text-sm text-texto-secundario">
-        Já tem conta?{" "}
-        <Link href="/login" className="font-medium text-acento">
-          Entrar
-        </Link>
-      </p>
     </div>
   );
 }

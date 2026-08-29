@@ -6,16 +6,19 @@ export default async function PaginaAgenda() {
   const sessao = await exigirSessao();
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold">Agenda</h1>
-      <p className="mt-2 text-sm text-texto-secundario">
-        Você está no escritório <strong>{sessao.escritorioNome}</strong> como{" "}
-        <strong>{sessao.membro.papel}</strong>.
-      </p>
-      <p className="mt-4 text-sm text-texto-secundario">
-        A agenda de atividades entra no Passo 8. Próximo: Configurações
-        (tribunais e feriados) e o motor de cálculo de prazo.
-      </p>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="titulo-pagina">Agenda de atividades</h1>
+        <p className="subtitulo-pagina">
+          Escritório <strong>{sessao.escritorioNome}</strong> · você é{" "}
+          <strong>{sessao.membro.papel}</strong>.
+        </p>
+      </div>
+
+      <div className="painel-vazio">
+        A agenda entra no Passo 8. Próximo: o motor de cálculo de prazo, depois
+        clientes, pastas e o lançamento de prazos.
+      </div>
     </div>
   );
 }
