@@ -1,0 +1,2 @@
+-- Seed local (supabase db reset roda isto).
+-- Catálogos base do escritório de demonstração. Ver docs/MYOFFICE_MVP_PLANO.md §3.2 e §4.A.4.

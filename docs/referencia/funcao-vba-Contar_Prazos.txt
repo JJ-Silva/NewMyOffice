@@ -1,0 +1,69 @@
+FUNÇÃO VBA "Contar_Prazos" — usada em produção pelo autor por anos na planilha CONPJ/MyOffice VBA.
+É a IMPLEMENTAÇÃO DE REFERÊNCIA do motor de cálculo de prazo. O `lib/domain/prazo.ts` do
+projeto novo deve ser um porte fiel dela (ver MYOFFICE_MVP_PLANO.md §4.B e MYOFFICE_MOTOR_TESTES.md).
+
+Notas de tradução:
+- No projeto novo, `DataInicial` = data da DISPONIBILIZAÇÃO no DJEN, contada como DIA 1 (Opção A).
+- v1 calcula só `processual` e `interna`, ambos em DIAS ÚTEIS. `material` não é calculado.
+- O parâmetro `PrazoMenosCincoDias` corresponde ao "prazo interno" (margem de 5 dias úteis).
+- A verificação de feriado (`Feriado(...)`) no projeto novo consulta a tabela `feriado` filtrada
+  pelo `tribunal` do prazo (feriado + feriado_tribunal + periodo_nao_util).
+
+────────────────────────────────────────────────────────────────────────
+
+Function Contar_Prazos(DataInicial As Date, PrazoEmDias As Integer, ContagemEm As String, ContFeriados As String, PrazoEmDobro As String, PrazoMenosCincoDias As Boolean)
+
+Dim D As Date
+Dim Cont_Feriados As Boolean
+Dim Prazo_EmDobro As Boolean
+
+If ContFeriados = "SIM" Then
+    Cont_Feriados = False
+ElseIf ContFeriados = "NÃO" Then
+    Cont_Feriados = True
+End If
+
+If PrazoEmDobro = "Em Dobro" Then
+    Prazo_EmDobro = True
+ElseIf PrazoEmDobro = "Simples" Then
+    Prazo_EmDobro = False
+End If
+
+If Prazo_EmDobro = True Then PrazoEmDias = PrazoEmDias * 2
+If PrazoMenosCincoDias = True Then PrazoEmDias = (PrazoEmDias - 5)
+
+If PrazoEmDias > 0 Then
+    D = DataInicial - 1
+Else
+    D = DataInicial
+End If
+
+If PrazoEmDias < 0 Then PrazoEmDias = 0
+
+If ContagemEm = "Dias Uteis" Then
+    Do Until n = PrazoEmDias
+        D = D + 1
+        If Weekday(D) <> 1 And Weekday(D) <> 7 Then 'verifica se a data é diferente de sabado ou doimingo
+            If Cont_Feriados = False Then
+                IsFeriado = Feriado(BD_Processos.Range("P2:P" & BD_Processos.Range("O1").CurrentRegion.Rows.Count), D)
+                If IsFeriado = False Then n = n + 1
+            ElseIf Cont_Feriados = True Then
+                n = n + 1
+            End If
+        End If
+    Loop
+ElseIf ContagemEm = "Dias Corridos" Then
+    Do Until n = PrazoEmDias
+        D = D + 1
+            If Cont_Feriados = False Then
+                IsFeriado = Feriado(BD_Processos.Range("P2:P" & BD_Processos.Range("O1").CurrentRegion.Rows.Count), D)
+                If IsFeriado = False Then n = n + 1
+            ElseIf Cont_Feriados = True Then
+                n = n + 1
+            End If
+    Loop
+End If
+
+Contar_Prazos = D
+
+End Function
