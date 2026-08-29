@@ -1,4 +1,23 @@
 # migrations
 
-Geradas com `supabase migration new <nome>`. Numeradas por timestamp. SQL legível e comentado (plano §1.1).
-Todo o esquema está em `docs/MYOFFICE_MVP_PLANO.md` §3.
+SQL versionado do esquema. Roda em ordem de nome (timestamp). Aplicar: `npm run db:reset`.
+
+## Estado atual — esquema da Etapa 1 já criado
+
+| Arquivo | O que cria |
+|---|---|
+| `..._base.sql` | extensão pgcrypto, função `set_atualizado_em()` |
+| `..._multitenant.sql` | `escritorio`, `usuario`, `membro`, `configuracao_escritorio` · trigger `handle_new_user` · helper `escritorios_do_usuario()` · RLS |
+| `..._catalogos.sql` | `area`, `tipo_atividade` · RLS |
+| `..._calendario.sql` | `tribunal`, `feriado`, `feriado_tribunal`, `periodo_nao_util`, `periodo_nao_util_tribunal` · RLS |
+| `..._cliente_pasta_processo.sql` | `cliente`, `pasta` (+ trigger de código `AAAA/NNNNNN`), `pasta_cliente`, `processo` (base) (+ trigger que cria o processo `geral`) · RLS |
+| `..._atividade.sql` | `configuracao_contagem`, `atividade`, `atividade_prazo` (+ trigger que sincroniza `atividade.data`), `atividade_compromisso`, `atividade_monitoramento`, `observacao`, `prazo_historico` · RLS |
+| `..._onboarding.sql` | função `onboarding_criar_escritorio(nome)` — cria escritório + membro dono + config + copia catálogos padrão |
+
+**Falta para a Etapa 2:** `processo_judicial`, `processo_administrativo`, `parte`.
+
+## Regras
+- Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.
+- Gerar novas com `supabase migration new <nome>`.
+- SQL legível e comentado (o autor precisa entender o schema lendo o `.sql`).
+- Toda tabela de domínio: `escritorio_id` + RLS + soft-delete (`deletado_em`).

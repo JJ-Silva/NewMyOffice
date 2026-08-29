@@ -15,19 +15,10 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 
 1. **Verificar o scaffold** — `npm test` (o teste de fumaça passa), `npm run build` compila. Ajustar o que estiver quebrado. Apagar `lib/domain/exemplo.test.ts` quando o primeiro teste real existir.
 
-2. **Migrations** (`supabase/migrations/`, via `supabase migration new`) — todo o §3 do plano **exceto** `processo_judicial`, `processo_administrativo` e `parte` (Etapa 2). Ou seja:
-   - `escritorio`, `usuario`, `membro`, `configuracao_escritorio` + trigger `handle_new_user` + função `escritorios_do_usuario()`
-   - catálogos: `area`, `tipo_atividade`
-   - calendário: `tribunal`, `feriado`, `feriado_tribunal`, `periodo_nao_util`, `periodo_nao_util_tribunal`
-   - `cliente`
-   - `pasta`, `pasta_cliente` + trigger que cria o `processo` `geral`
-   - `processo` (base)
-   - `atividade` + `atividade_prazo` + `atividade_compromisso` + `atividade_monitoramento` + `configuracao_contagem`
-   - `observacao`, `prazo_historico`
-   - **RLS por tenant em todas** (policy `escritorio_id in (select escritorios_do_usuario())`)
-   - índices (agenda, FKs, `feriado_tribunal`)
-   - `supabase/seed.sql`: catálogos `area` e `tipo_atividade` (§4.A.4)
-   - `npm run db:reset` roda limpo.
+2. **Migrations** — **já criadas** em `supabase/migrations/` (todo o §3 exceto `processo_judicial`/`administrativo`/`parte` = Etapa 2). Ver `supabase/migrations/README.md`.
+   - **Revisar** o SQL (não regerar). Rodar `npm run db:start` (precisa de Docker) e `npm run db:reset` — deve aplicar limpo.
+   - Se algo não aplicar, corrigir na própria migration (ainda não foi para produção) e commitar.
+   - A função `onboarding_criar_escritorio(nome)` (migration 07) já copia os catálogos padrão por escritório.
 
 3. **Auth + onboarding** — Supabase Auth (e-mail/senha). `lib/supabase/{server,browser,sessao}.ts`. Fluxo criar escritório → `membro` (dono) → copiar seeds. Sessão guarda o `escritorio_id` ativo. `podeFazer(membro, acao)` — hoje: só `dono` acessa Configurações, resto liberado a membro ativo.
 

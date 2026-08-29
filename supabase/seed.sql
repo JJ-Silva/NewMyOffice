@@ -1,2 +1,13 @@
--- Seed local (supabase db reset roda isto).
--- Catálogos base do escritório de demonstração. Ver docs/MYOFFICE_MVP_PLANO.md §3.2 e §4.A.4.
+-- Seed local — roda no `npm run db:reset` (sem usuário autenticado).
+--
+-- Os catálogos (area, tipo_atividade) NÃO são globais: são criados por escritório
+-- pela função onboarding_criar_escritorio() (migration 07), chamada pela app
+-- logo após o cadastro.
+--
+-- Para testar localmente:
+--   1. npm run db:start   (precisa de Docker)
+--   2. npm run db:reset    (aplica as migrations)
+--   3. npm run dev  →  cadastre-se em /  →  o onboarding cria o escritório + catálogos
+--
+-- (Se quiser dados de demonstração — clientes, pastas, prazos — criar aqui uma
+--  função seed_demo(escritorio_id) e chamá-la manualmente após o cadastro.)
