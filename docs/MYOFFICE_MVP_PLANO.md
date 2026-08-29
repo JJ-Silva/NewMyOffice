@@ -137,7 +137,7 @@ configuracao_escritorio       -- 1:1 com escritorio; onde vive a config global
     ));
   ```
   (função `escritorios_do_usuario()` encapsula o subselect.)
-- **LGPD:** verificar região do projeto Supabase (dados de cliente de advocacia). Registrar a região escolhida aqui quando decidido.
+- **LGPD:** região do projeto Supabase = **South America (São Paulo) / `sa-east-1`** (decidido 2026-08-29). Projeto real criado; ref `udlxhzhcmluwfnntmsyf`. Migrations da Etapa 1 aplicadas.
 
 ### 3.2 Catálogos (por escritório — copiados no onboarding)
 
@@ -227,7 +227,7 @@ processo                      -- base — toda consulta de agenda/lista passa po
   tipo (text check in: 'geral' | 'judicial' | 'administrativo'),   -- extensível: 'arbitral', ...
   numero (text null),                                  -- nulo no 'geral'
   status (text check in: 'ativo' | 'suspenso' | 'arquivado' | 'encerrado' default 'ativo'),
-  polo_cliente (text null check in: 'ativo' | 'passivo'),          -- nulo no 'geral'
+  polo_cliente (text null check in: 'autor' | 'reu' | 'terceiro'),  -- nulo no 'geral' (migration usa estes valores — decisão 2026-08-29)
   data_inicio (date null), data_fim (date null),
   observacoes (text null),
   criado_em, atualizado_em, deletado_em
@@ -571,7 +571,7 @@ prazo_historico               -- auditoria SÓ do prazo (parte legalmente sensí
 | # | Pendência aberta | Quem decide |
 |---|---|---|
 | **P1** | **Validação do motor** — conferir T1–T13 do `MYOFFICE_MOTOR_TESTES.md` (as datas) + a Opção A. **É o único bloqueio para codar o motor.** | Jefferson (advogado) |
-| P4 | **Região de hospedagem do Supabase** (LGPD) — antes do 1º deploy real, não antes de codar | Jefferson |
+| ~~P4~~ | ~~**Região de hospedagem do Supabase** (LGPD)~~ — ✅ **fechada 2026-08-29:** São Paulo / `sa-east-1` | — |
 | P13 | **Câmaras** — feriado/suspensão por câmara (não só tribunal)? Fora do v1 — um `tribunal` pode representar uma câmara se preciso | Etapa 2+ |
 
 ---

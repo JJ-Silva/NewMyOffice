@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
+/* Paleta do protótipo (docs/prototipo/TELAS.md). Uma fonte de verdade para as cores. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cor-fundo: #e6f2f3;
+  --cor-superficie: #ffffff;
+  --cor-tint-1: #edf5f5;
+  --cor-tint-2: #d6e7e8;
+  --cor-tint-3: #b9d4d3;
+  --cor-texto: #483d3f;
+  --cor-texto-secundario: #736769;
+  --cor-placeholder: #8a7c7e;
+  --cor-acento: #00727e;
+  --cor-atrasado: #dc2626;
+  --cor-atrasado-fundo: #fef2f2;
+  --cor-atrasado-borda: #fca5a5;
+  --cor-hoje: #f5c400;
+  --cor-cumprido: #16a34a;
+  --cor-aviso: #d97706;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-fundo: var(--cor-fundo);
+  --color-superficie: var(--cor-superficie);
+  --color-tint-1: var(--cor-tint-1);
+  --color-tint-2: var(--cor-tint-2);
+  --color-tint-3: var(--cor-tint-3);
+  --color-texto: var(--cor-texto);
+  --color-texto-secundario: var(--cor-texto-secundario);
+  --color-acento: var(--cor-acento);
+  --color-atrasado: var(--cor-atrasado);
+  --color-hoje: var(--cor-hoje);
+  --color-cumprido: var(--cor-cumprido);
+  --color-aviso: var(--cor-aviso);
+  --font-sans: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Foco visível — acessibilidade (TELAS.md). */
+:focus-visible {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
 }

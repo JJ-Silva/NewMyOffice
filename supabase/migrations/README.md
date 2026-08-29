@@ -2,7 +2,12 @@
 
 SQL versionado do esquema. Roda em ordem de nome (timestamp). Aplicar: `npm run db:reset`.
 
-## Estado atual — esquema da Etapa 1 já criado
+## Estado atual — esquema da Etapa 1 criado e **aplicado no Supabase real**
+
+Projeto `udlxhzhcmluwfnntmsyf` (região `sa-east-1`). As 7 migrations abaixo foram aplicadas via
+`supabase db push` em 2026-08-29 (sem Docker local — não há Docker nesta máquina).
+Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string do Session pooler>"`.
+
 
 | Arquivo | O que cria |
 |---|---|
