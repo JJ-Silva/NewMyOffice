@@ -18,9 +18,13 @@ export function Sidebar({
 }) {
   const caminho = usePathname();
 
-  // Só as rotas que já existem na Etapa 1. Clientes/Pastas/Nova atividade
-  // entram nos passos seguintes do INICIO-AQUI.md.
-  const itens: ItemNav[] = [{ href: "/agenda", label: "Agenda de atividades" }];
+  // Só as rotas que já existem na Etapa 1. "Nova atividade" (Passo 7) e a
+  // agenda de verdade (Passo 8) entram depois.
+  const itens: ItemNav[] = [
+    { href: "/agenda", label: "Agenda de atividades" },
+    { href: "/clientes", label: "Clientes" },
+    { href: "/pastas", label: "Pastas" },
+  ];
   if (mostrarConfiguracoes) {
     itens.push({ href: "/configuracoes", label: "Configurações" });
   }

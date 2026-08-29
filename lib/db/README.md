@@ -10,4 +10,5 @@ As funções recebem o client Supabase como 1º argumento (testável, e serve ta
 
 Criados no Passo 3: `membros.ts` (vínculo usuário↔escritório), `escritorios.ts` (onboarding via RPC).
 Criados no Passo 4: `tribunais.ts`, `feriados.ts`, `periodos-nao-uteis.ts` (Configurações; soft-delete via `update deletado_em`).
+Criados no Passo 6: `clientes.ts`, `pastas.ts` (o código e o processo geral vêm dos triggers), `areas.ts`.
 
