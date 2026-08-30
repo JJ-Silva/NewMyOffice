@@ -451,7 +451,7 @@ async function encerrarSeSerieCompletaNoPassado(
   }
 }
 
-function colunasDaRegra(regra: RegraRecorrencia): Record<string, unknown> {
+export function colunasDaRegra(regra: RegraRecorrencia): Record<string, unknown> {
   const p = regra.periodicidade;
   return {
     data_base: regra.dataBase,
