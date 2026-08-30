@@ -3,7 +3,7 @@
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
 Última atualização: 2026-08-30.
 
-> **Estado (2026-08-30):** Etapas 1, 2 e **3a** feitas e **deployadas** — https://new-my-office.vercel.app
+> **Estado (2026-08-30):** Etapas 1, 2, **3a** e **3c** feitas e **deployadas** — https://new-my-office.vercel.app
 > (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
 > Repo: github.com/JJ-Silva/NewMyOffice.
 > **Etapa 1**: 3 tipos de atividade + motor de prazo (T1–T13) + agenda + auth + multi-tenant.
@@ -12,7 +12,10 @@
 > **Etapa 3a**: `atividade_recorrencia` + `lib/domain/recorrencia.ts` (intervalo/semanal/mensal,
 > fim por data/nº/indefinido); materialização em janela rolante (90d) na agenda + "gera a
 > próxima ao concluir"; bloco "Repetir" nos formulários; tela `/recorrencias`.
-> Próximo: roadmap §2 — 3b alertas por e-mail, 3c visão calendário…
+> **Etapa 3c**: visão calendário (`/agenda/calendario`) — grade mês/semana, navegação
+> ‹ Hoje ›, filtros pasta/tipo, toggle Lista⇄Calendário. `lib/domain/grade-calendario.ts`.
+> Sincronização com Google Calendar: descartada (decisão 2026-08-30).
+> Próximo: roadmap §2 — 3b alertas por e-mail…
 
 ---
 
@@ -85,7 +88,7 @@ Cada etapa termina com algo **usável e deployado**.
 | 2 | CRUD completo de Pastas e Processos; partes; **parsing + validação do nº CNJ** | 1 |
 | ~~3a~~ | ✅ **Recorrência** (compromissos e monitoramentos) — `atividade_recorrencia` + `lib/domain/recorrencia.ts` + materialização (janela rolante 90d + próxima ao concluir) + tela `/recorrencias` | 1 |
 | 3b | **Alertas/notificações** (e-mail) — o que torna a agenda útil de verdade | 1 |
-| 3c | **Visão calendário** (mês/semana) além da lista | 1 |
+| ~~3c~~ | ✅ **Visão calendário** (`/agenda/calendario`) — grade mês/semana, nav ‹ Hoje ›, filtros, toggle Lista⇄Calendário. Sync com calendário externo: descartado | 1 |
 | 4 | Documentos: modelos, geração, Storage (Word → pasta de modelos / PDF → pasta do cliente; API Google Drive) | 2 |
 | 5 | Import de publicações do **DJEN** → gera prazos automaticamente (skill `publicacoes-djen` / OAB 515.392-SP) | 2, 3b |
 | 6 | Papéis e permissões refinados (dono / advogado / secretaria — o que cada um vê e faz); convites de membro | 1 |

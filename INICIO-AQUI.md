@@ -37,7 +37,7 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30): Etapas 1, 2 e 3a feitas e DEPLOYADAS.**
+**Estado (2026-08-30): Etapas 1, 2, 3a e 3c feitas e DEPLOYADAS.**
 - App no ar: https://new-my-office.vercel.app · repo github.com/JJ-Silva/NewMyOffice
   (auto-deploy no push da `master`).
 - **Etapa 1**: 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo
@@ -51,5 +51,8 @@ Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a b
   em janela rolante de 90 dias ao abrir a agenda + "gera a próxima ao concluir"; bloco
   "Repetir esta atividade" nos formulários de compromisso e monitoramento; tela
   `/recorrencias` (lista, encerrar, excluir).
+- **Etapa 3c**: visão calendário em `/agenda/calendario` — grade mês/semana (domingo→sábado),
+  navegação ‹ Hoje ›, filtros pasta/tipo + "mostrar concluídas", toggle Lista⇄Calendário no
+  cabeçalho da agenda. `lib/domain/grade-calendario.ts` (puro, testado).
 - **Próximo (roadmap §2 do plano)**: 3b alertas por e-mail ·
-  3c visão calendário · 4 documentos · 5 import DJEN · 6 papéis/convites · 7 relatórios.
+  4 documentos · 5 import DJEN · 6 papéis/convites · 7 relatórios.

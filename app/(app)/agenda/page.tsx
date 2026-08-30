@@ -157,9 +157,23 @@ export default async function PaginaAgenda({
               : ""}
           </p>
         </div>
-        <Link href="/atividades/nova" className="botao-primario flex-none">
-          + Nova atividade
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="abas">
+            <Link href="/agenda" className="aba" data-ativa={true}>
+              Lista
+            </Link>
+            <Link
+              href="/agenda/calendario"
+              className="aba"
+              data-ativa={false}
+            >
+              Calendário
+            </Link>
+          </div>
+          <Link href="/atividades/nova" className="botao-primario flex-none">
+            + Nova atividade
+          </Link>
+        </div>
       </div>
 
       {lancado && (
