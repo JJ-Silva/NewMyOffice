@@ -101,9 +101,12 @@ export default async function PaginaProcessos({
               </div>
 
               <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate text-[13.5px] font-medium">
+                <Link
+                  href={`/pastas/${x.pastaId}`}
+                  className="truncate text-[13.5px] font-medium text-texto hover:text-teal hover:no-underline"
+                >
                   {x.pastaNome ?? x.pastaCodigo}
-                </span>
+                </Link>
                 <span className="truncate text-xs text-texto-secundario">
                   {x.clienteNome ?? "sem cliente"}
                   {x.valorCausa !== null ? ` · ${moeda(x.valorCausa)}` : ""}

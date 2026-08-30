@@ -121,6 +121,114 @@ export async function criarPasta(
   return { id: data.id as string, codigo: data.codigo as string };
 }
 
+// ── Detalhe de uma pasta ──────────────────────────────────────────────────
+export type PastaDetalhe = {
+  id: string;
+  codigo: string;
+  nome: string | null;
+  referencia_externa: string | null;
+  area_id: string | null;
+  area_nome: string | null;
+  objetivo: string | null;
+  objeto: string | null;
+  status: "ativa" | "arquivada" | "suspensa";
+  clientes: { id: string; nome: string }[];
+};
+
+export async function buscarPasta(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  id: string,
+): Promise<PastaDetalhe | null> {
+  const { data, error } = await supabase
+    .from("pasta")
+    .select(
+      `id, codigo, nome, referencia_externa, area_id, objetivo, objeto, status,
+       area:area_id ( nome ),
+       pasta_cliente ( cliente:cliente_id ( id, nome ) )`,
+    )
+    .eq("escritorio_id", escritorioId)
+    .eq("id", id)
+    .is("deletado_em", null)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Falha ao carregar a pasta: ${error.message}`);
+  }
+  if (!data) return null;
+
+  return {
+    id: data.id as string,
+    codigo: data.codigo as string,
+    nome: (data.nome as string | null) ?? null,
+    referencia_externa: (data.referencia_externa as string | null) ?? null,
+    area_id: (data.area_id as string | null) ?? null,
+    area_nome: um<{ nome: string }>(data.area)?.nome ?? null,
+    objetivo: (data.objetivo as string | null) ?? null,
+    objeto: (data.objeto as string | null) ?? null,
+    status: data.status as PastaDetalhe["status"],
+    clientes: arr(data.pasta_cliente)
+      .map((v) => um<{ id: string; nome: string }>((v as Registro).cliente))
+      .filter((c): c is { id: string; nome: string } => Boolean(c)),
+  };
+}
+
+export async function atualizarPasta(
+  supabase: SupabaseClient,
+  id: string,
+  campos: {
+    nome: string | null;
+    referenciaExterna: string | null;
+    areaId: string | null;
+    objetivo: string | null;
+    objeto: string | null;
+    status: "ativa" | "arquivada" | "suspensa";
+  },
+): Promise<void> {
+  const { error } = await supabase
+    .from("pasta")
+    .update({
+      nome: campos.nome,
+      referencia_externa: campos.referenciaExterna,
+      area_id: campos.areaId,
+      objetivo: campos.objetivo,
+      objeto: campos.objeto,
+      status: campos.status,
+    })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`Falha ao atualizar a pasta: ${error.message}`);
+  }
+}
+
+export async function vincularCliente(
+  supabase: SupabaseClient,
+  pastaId: string,
+  clienteId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("pasta_cliente")
+    .insert({ pasta_id: pastaId, cliente_id: clienteId });
+  if (error && error.code !== "23505") {
+    throw new Error(`Falha ao vincular o cliente: ${error.message}`);
+  }
+}
+
+export async function desvincularCliente(
+  supabase: SupabaseClient,
+  pastaId: string,
+  clienteId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("pasta_cliente")
+    .delete()
+    .eq("pasta_id", pastaId)
+    .eq("cliente_id", clienteId);
+  if (error) {
+    throw new Error(`Falha ao desvincular o cliente: ${error.message}`);
+  }
+}
+
 // ── helpers de normalização do retorno do PostgREST ────────────────────────
 type Registro = Record<string, unknown>;
 

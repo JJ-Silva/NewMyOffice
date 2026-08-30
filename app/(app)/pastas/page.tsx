@@ -46,9 +46,12 @@ export default async function PaginaPastas() {
                 className="card grid min-w-[900px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(220px,1.6fr)_minmax(150px,1fr)_100px_120px_120px]"
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="truncate text-sm font-semibold">
+                  <Link
+                    href={`/pastas/${p.id}`}
+                    className="truncate text-sm font-semibold text-texto hover:text-teal hover:no-underline"
+                  >
                     {p.nome ?? p.codigo}
-                  </span>
+                  </Link>
                   <span className="truncate text-xs text-texto-secundario">
                     {p.nome ? `${p.codigo} · ` : ""}
                     {clientes}
