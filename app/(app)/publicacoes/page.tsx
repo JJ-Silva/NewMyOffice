@@ -37,6 +37,15 @@ export default async function PaginaPublicacoes({
   const novas = typeof params.novas === "string" ? Number(params.novas) : null;
   const repetidas =
     typeof params.repetidas === "string" ? Number(params.repetidas) : null;
+  const virou = params.virou === "1";
+
+  // Presets de janela para a busca manual (o cron diário busca só o dia).
+  const diasPreset = [1, 7, 15, 30];
+  const diasEscolhido =
+    typeof params.dias === "string" && diasPreset.includes(Number(params.dias))
+      ? Number(params.dias)
+      : 7;
+  const inicioPadrao = somarDias(hoje, -(diasEscolhido - 1));
 
   const [oabs, publicacoes] = await Promise.all([
     listarOabs(supabase, sessao.escritorioId),
@@ -59,49 +68,72 @@ export default async function PaginaPublicacoes({
       </div>
 
       {/* Buscar */}
-      <form
-        action={buscarNoDjen}
-        className="card flex flex-wrap items-end gap-3 p-4"
-      >
-        <label className="flex flex-col gap-1.5">
-          <span className="rotulo">De</span>
-          <input
-            type="date"
-            name="data_inicio"
-            defaultValue={somarDias(hoje, -7)}
-            className="campo"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Até</span>
-          <input
-            type="date"
-            name="data_fim"
-            defaultValue={hoje}
-            className="campo"
-          />
-        </label>
-        <BotaoEnviar
-          className="botao-primario h-[38px]"
-          rotuloOcupado="Buscando no DJEN…"
-          disabled={oabsAtivas.length === 0}
+      <div className="card flex flex-col gap-3 p-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-texto-secundario">Janela:</span>
+          {diasPreset.map((d) => (
+            <Link
+              key={d}
+              href={`/publicacoes?status=${aba}&dias=${d}` as Route}
+              className="rounded-full border px-2.5 py-1 font-medium"
+              style={{
+                borderColor:
+                  d === diasEscolhido ? "var(--teal)" : "var(--tint-3)",
+                color: d === diasEscolhido ? "var(--teal)" : "var(--texto-secundario)",
+              }}
+            >
+              {d === 1 ? "hoje" : `${d} dias`}
+            </Link>
+          ))}
+          <span className="text-texto-secundario">
+            (a busca automática diária pega só o dia)
+          </span>
+        </div>
+
+        <form
+          action={buscarNoDjen}
+          className="flex flex-wrap items-end gap-3"
         >
-          Buscar no DJEN
-        </BotaoEnviar>
-        <span className="pb-2 text-xs text-texto-secundario">
-          {oabsAtivas.length === 0 ? (
-            <>
-              Nenhuma OAB ativa.{" "}
-              <Link href="/configuracoes" className="link-acao">
-                Cadastrar em Configurações
-              </Link>
-            </>
-          ) : (
-            `${oabsAtivas.length} OAB${oabsAtivas.length === 1 ? "" : "s"}: ` +
-            oabsAtivas.map((o) => `${o.numero}/${o.uf}`).join(", ")
-          )}
-        </span>
-      </form>
+          <label className="flex flex-col gap-1.5">
+            <span className="rotulo">De</span>
+            <input
+              type="date"
+              name="data_inicio"
+              defaultValue={inicioPadrao}
+              className="campo"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="rotulo">Até</span>
+            <input
+              type="date"
+              name="data_fim"
+              defaultValue={hoje}
+              className="campo"
+            />
+          </label>
+          <BotaoEnviar
+            className="botao-primario h-[38px]"
+            rotuloOcupado="Buscando no DJEN…"
+            disabled={oabsAtivas.length === 0}
+          >
+            Buscar no DJEN
+          </BotaoEnviar>
+          <span className="pb-2 text-xs text-texto-secundario">
+            {oabsAtivas.length === 0 ? (
+              <>
+                Nenhuma OAB ativa.{" "}
+                <Link href="/configuracoes" className="link-acao">
+                  Cadastrar em Configurações
+                </Link>
+              </>
+            ) : (
+              `${oabsAtivas.length} OAB${oabsAtivas.length === 1 ? "" : "s"}: ` +
+              oabsAtivas.map((o) => `${o.numero}/${o.uf}`).join(", ")
+            )}
+          </span>
+        </form>
+      </div>
 
       {erro && (
         <p className="rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
@@ -114,6 +146,11 @@ export default async function PaginaPublicacoes({
             ? "Nenhuma publicação nova no período."
             : `${novas} publicaç${novas === 1 ? "ão nova" : "ões novas"}.`}
           {repetidas ? ` ${repetidas} já estavam na lista.` : ""}
+        </div>
+      )}
+      {virou && (
+        <div className="rounded-lg border border-cumprido bg-[#F0FDF4] px-3.5 py-2.5 text-sm text-[#166534]">
+          Prazo criado a partir da publicação. Ela saiu da fila de triagem.
         </div>
       )}
 

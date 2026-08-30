@@ -57,8 +57,12 @@ Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a b
 - **Etapa 5**: import de publicações do DJEN. `oab_monitorada` + `publicacao` (migration
   aplicada); `lib/djen/comunica-api.ts` (API pública `comunicaapi.pje.jus.br`);
   `lib/domain/publicacao.ts` (limpa HTML, normaliza CNJ, sugere tipo/dias do texto);
-  tela `/publicacoes` (buscar por período, abas por status, auto-match por CNJ, descartar)
-  e `/publicacoes/[id]` (cadastrar processo na hora com CNJ travado / vincular a pasta /
-  virar prazo — reusa o form de prazo + motor). OABs cadastradas em Configurações.
+  tela `/publicacoes` (buscar por período com presets 1/7/15/30 dias, abas por status,
+  auto-match por CNJ, descartar) e `/publicacoes/[id]` (cadastrar processo na hora com CNJ
+  travado / vincular a pasta / virar prazo — reusa o form de prazo + motor). OABs
+  cadastradas em Configurações.
+  **Cron diário** (`vercel.json` + `/api/cron/buscar-djen`, 10h UTC = 7h BRT): busca só o
+  dia atual para todos os escritórios com OAB ativa. Exige na Vercel as envs
+  `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` (o cron não tem sessão de usuário).
 - **Próximo (roadmap §2 do plano)**: 4 documentos · 6 papéis/convites · 7 relatórios ·
   3b alertas por e-mail (adiado para o final).

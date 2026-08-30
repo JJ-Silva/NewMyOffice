@@ -16,6 +16,12 @@ import { NextResponse, type NextRequest } from "next/server";
 const ROTAS_PUBLICAS = ["/login", "/cadastro", "/esqueci-senha"];
 
 export async function atualizarSessao(request: NextRequest) {
+  // Rotas de API (ex.: o cron do DJEN) não usam sessão de usuário — elas se
+  // autenticam sozinhas (CRON_SECRET). Não redirecionar para /login.
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next({ request });
+  }
+
   let resposta = NextResponse.next({ request });
 
   const supabase = createServerClient(

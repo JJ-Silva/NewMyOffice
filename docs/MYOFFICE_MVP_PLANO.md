@@ -18,6 +18,8 @@
 > **Etapa 5 (import DJEN)** feita fora de ordem (2026-08-30): `oab_monitorada` + `publicacao`,
 > `lib/djen/comunica-api.ts`, `lib/domain/publicacao.ts`, telas `/publicacoes` (busca +
 > triagem) e `/publicacoes/[id]` (cadastra processo na hora / vincula / vira prazo).
+> **Cron diário** (Vercel Cron `0 10 * * *` → `/api/cron/buscar-djen`, service_role +
+> CRON_SECRET) busca o dia; janelas maiores são manuais.
 > **3b (alertas por e-mail) adiado para o final** (decisão 2026-08-30).
 > Próximo: Etapa 4 (documentos) · 6 (papéis/convites) · 7 (relatórios).
 

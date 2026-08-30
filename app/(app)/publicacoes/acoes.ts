@@ -7,10 +7,9 @@ import { exigirSessao } from "@/lib/supabase/sessao";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { somarDias } from "@/lib/domain/datas";
 import { listarOabs } from "@/lib/db/oab";
-import { buscarComunicacoes } from "@/lib/djen/comunica-api";
+import { sincronizarEscritorio } from "@/lib/djen/sincronizar";
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import {
-  salvarComunicacoes,
   descartarPublicacao,
   reabrirPublicacao,
   vincularProcessoNaPublicacao,
@@ -48,16 +47,10 @@ export async function buscarNoDjen(formData: FormData) {
 
   let resultado: { novas: number; jaExistiam: number };
   try {
-    const comunicacoes = await buscarComunicacoes({
-      oabs: oabs.map((o) => ({ numero: o.numero, uf: o.uf })),
+    resultado = await sincronizarEscritorio(supabase, sessao.escritorioId, {
       dataInicio,
       dataFim,
     });
-    resultado = await salvarComunicacoes(
-      supabase,
-      sessao.escritorioId,
-      comunicacoes,
-    );
   } catch (e) {
     redirect(
       "/publicacoes?erro=" +
