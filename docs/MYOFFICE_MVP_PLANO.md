@@ -3,10 +3,13 @@
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
 Última atualização: 2026-08-30.
 
-> **Estado (2026-08-30):** Etapa 1 completa e **deployada** — https://new-my-office.vercel.app
+> **Estado (2026-08-30):** Etapas 1 e 2 feitas e **deployadas** — https://new-my-office.vercel.app
 > (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
-> Repo: github.com/JJ-Silva/NewMyOffice. Os 3 tipos de atividade + motor de prazo funcionam.
-> Próximo: Etapa 2 (processos judiciais/administrativos, parsing CNJ, partes).
+> Repo: github.com/JJ-Silva/NewMyOffice.
+> **Etapa 1**: 3 tipos de atividade + motor de prazo (T1–T13) + agenda + auth + multi-tenant.
+> **Etapa 2**: `processo_judicial`/`administrativo`/`parte`, `lib/domain/cnj.ts` (dígito
+> verificador), telas de processos + detalhe/edição de pasta + partes, prazo ligado a processo.
+> Próximo: roadmap §2 — 3a recorrência, 3b alertas por e-mail, 3c visão calendário…
 
 ---
 

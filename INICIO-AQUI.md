@@ -37,12 +37,14 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30): Etapa 1 completa e DEPLOYADA.**
-- Passos 1–9 feitos. App no ar: https://new-my-office.vercel.app
-- Repo: github.com/JJ-Silva/NewMyOffice (auto-deploy no push da `master`).
-- Os 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo (T1–T13
-  validados) + agenda + auth + multi-tenant. Bateria de testes ponta a ponta OK.
-- Pendência menor: apontar Site URL / Redirect URLs no Supabase Auth para o domínio Vercel
-  (não trava o login por senha; importa para e-mail de confirmação/reset).
-- **Próximo: Etapa 2** — processos judiciais/administrativos, parsing CNJ, partes.
-  As tabelas `processo_judicial` etc. ainda não existem no banco.
+**Estado (2026-08-30): Etapas 1 e 2 feitas e DEPLOYADAS.**
+- App no ar: https://new-my-office.vercel.app · repo github.com/JJ-Silva/NewMyOffice
+  (auto-deploy no push da `master`).
+- **Etapa 1**: 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo
+  (T1–T13) + agenda + auth + multi-tenant.
+- **Etapa 2**: `processo_judicial` / `processo_administrativo` / `parte` (migration aplicada);
+  `lib/domain/cnj.ts` (parsing + dígito verificador Res. CNJ 65/2008); telas `/processos`
+  (lista + cadastro com validação do CNJ) e `/pastas/[id]` (detalhe, edição, partes);
+  o lançamento de prazo agora liga a atividade a um processo judicial específico.
+- **Próximo (roadmap §2 do plano)**: 3a recorrência · 3b alertas por e-mail ·
+  3c visão calendário · 4 documentos · 5 import DJEN · 6 papéis/convites · 7 relatórios.
