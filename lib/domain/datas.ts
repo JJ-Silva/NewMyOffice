@@ -53,6 +53,26 @@ export function somarDias(iso: string, n: number): string {
   return deUTC(paraUTC(iso) + n * MS_POR_DIA);
 }
 
+// Quantos dias tem o mês (1-12). Ex.: fev/2024 = 29, abr = 30.
+export function diasNoMes(ano: number, mes: number): number {
+  // O dia 0 do mês seguinte é o último dia deste mês.
+  return new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+}
+
+// Soma `n` meses (pode ser negativo). Se o dia não existe no mês de destino
+// (ex.: 31/jan + 1 mês), cai no último dia do mês (28/29/30). É a regra que a
+// recorrência mensal usa ("todo dia 31" = último dia nos meses curtos).
+export function somarMeses(iso: string, n: number): string {
+  const { ano, mes, dia } = partesDaData(iso);
+  const totalMeses = ano * 12 + (mes - 1) + n;
+  const novoAno = Math.floor(totalMeses / 12);
+  const novoMes = (totalMeses % 12) + 1; // 1-12
+  const novoDia = Math.min(dia, diasNoMes(novoAno, novoMes));
+  return `${novoAno}-${String(novoMes).padStart(2, "0")}-${String(
+    novoDia,
+  ).padStart(2, "0")}`;
+}
+
 // Negativo se a < b, zero se iguais, positivo se a > b.
 export function compararDatas(a: string, b: string): number {
   return paraUTC(a) - paraUTC(b);

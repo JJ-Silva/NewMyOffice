@@ -20,6 +20,7 @@ Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string d
 | `..._onboarding.sql` | função `onboarding_criar_escritorio(nome)` — cria escritório + membro dono + config + copia catálogos padrão |
 
 | `..._processo_judicial_administrativo_parte.sql` | **Etapa 2** — `processo_judicial` (CNJ + componentes), `processo_administrativo`, `parte` · RLS |
+| `..._recorrencia.sql` | **Etapa 3a** — `atividade_recorrencia` (template + regra de repetição + fim) · FK e índice único de `atividade.recorrencia_id` · RLS |
 
 ## Regras
 - Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.
