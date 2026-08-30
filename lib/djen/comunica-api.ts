@@ -20,6 +20,13 @@ const ITENS_POR_PAGINA = 100;
 const MAX_PAGINAS = 30; // trava de segurança (30 × 100 = 3000 publicações)
 const TIMEOUT_MS = 25_000;
 
+// A API do CNJ bloqueia (403) requisições de fora do Brasil / de alguns IPs de
+// datacenter. Em produção a função roda na região gru1 (São Paulo) — ver
+// vercel.json. Um User-Agent de navegador também ajuda a passar o WAF.
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+  "(KHTML, like Gecko) Chrome/121.0 Safari/537.36";
+
 export type OabConsulta = { numero: string; uf: string };
 
 // O que o resto do sistema usa — já normalizado.
@@ -99,10 +106,19 @@ async function pegarJson(url: URL): Promise<{ count?: number; items?: unknown }>
   const t = setTimeout(() => controle.abort(), TIMEOUT_MS);
   try {
     const resposta = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
       signal: controle.signal,
     });
     if (!resposta.ok) {
+      if (resposta.status === 403) {
+        throw new Error(
+          "O DJEN recusou a consulta (403). O serviço do CNJ costuma bloquear " +
+            "acessos de fora do Brasil — em produção a função roda em São Paulo.",
+        );
+      }
       throw new Error(`DJEN respondeu ${resposta.status} ${resposta.statusText}`);
     }
     return (await resposta.json()) as { count?: number; items?: unknown };
