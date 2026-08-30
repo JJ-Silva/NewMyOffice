@@ -8,6 +8,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComunicacaoDjen } from "@/lib/djen/comunica-api";
 import { trecho, pareceSemPrazo } from "@/lib/domain/publicacao";
 
+// Na UI "descartada" aparece como "arquivada" — o valor gravado continua
+// 'descartada' (constraint da migration); só o rótulo muda.
 export type StatusPublicacao = "nova" | "descartada" | "virou_prazo";
 
 export type PublicacaoLista = {
@@ -20,7 +22,9 @@ export type PublicacaoLista = {
   nomeClasse: string | null;
   cnj: string | null;
   resumo: string;
+  texto: string;
   status: StatusPublicacao;
+  motivoDescarte: string | null;
   semPrazoProvavel: boolean;
   // vínculo
   processoId: string | null;
@@ -33,12 +37,10 @@ export type PublicacaoLista = {
 };
 
 export type PublicacaoDetalhe = PublicacaoLista & {
-  texto: string;
   textoOriginal: string | null;
   hash: string | null;
   link: string | null;
   numeroProcesso: string | null;
-  motivoDescarte: string | null;
 };
 
 // Grava as comunicações novas. Dedupe por (escritorio_id, djen_id). Casa o CNJ
@@ -115,7 +117,8 @@ export async function salvarComunicacoes(
 
 const SELECT_LISTA = `
   id, djen_id, data_disponibilizacao, sigla_tribunal, nome_orgao,
-  tipo_comunicacao, nome_classe, cnj, texto, status, atividade_id, processo_id,
+  tipo_comunicacao, nome_classe, cnj, texto, status, motivo_descarte,
+  atividade_id, processo_id,
   processo:processo_id (
     tipo, numero, pasta_id,
     pasta:pasta_id ( codigo, nome, pasta_cliente ( cliente:cliente_id ( nome ) ) )
@@ -171,12 +174,10 @@ export async function buscarPublicacao(
 
   return {
     ...mapearLista(data),
-    texto: (data.texto as string) ?? "",
     textoOriginal: (data.texto_original as string | null) ?? null,
     hash: (data.hash as string | null) ?? null,
     link: (data.link as string | null) ?? null,
     numeroProcesso: (data.numero_processo as string | null) ?? null,
-    motivoDescarte: (data.motivo_descarte as string | null) ?? null,
   };
 }
 
@@ -196,7 +197,9 @@ export async function contarPublicacoesNovas(
   return count ?? 0;
 }
 
-export async function descartarPublicacao(
+// Arquivar = tirar da fila de triagem (não vira prazo). Guarda a justificativa.
+// O valor gravado em `status` é 'descartada' (constraint da migration).
+export async function arquivarPublicacao(
   supabase: SupabaseClient,
   args: { id: string; membroId: string; motivo: string | null },
 ): Promise<void> {
@@ -209,7 +212,7 @@ export async function descartarPublicacao(
       triado_em: new Date().toISOString(),
     })
     .eq("id", args.id);
-  if (error) throw new Error(`Falha ao descartar: ${error.message}`);
+  if (error) throw new Error(`Falha ao arquivar: ${error.message}`);
 }
 
 export async function reabrirPublicacao(
@@ -286,7 +289,9 @@ function mapearLista(linha: Record<string, unknown>): PublicacaoLista {
     nomeClasse: (linha.nome_classe as string | null) ?? null,
     cnj: (linha.cnj as string | null) ?? null,
     resumo: trecho(texto),
+    texto,
     status: linha.status as StatusPublicacao,
+    motivoDescarte: (linha.motivo_descarte as string | null) ?? null,
     semPrazoProvavel: pareceSemPrazo(texto),
     processoId: (linha.processo_id as string | null) ?? null,
     processoNumero: processo?.numero ?? null,

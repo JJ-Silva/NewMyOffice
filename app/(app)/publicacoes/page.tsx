@@ -11,12 +11,12 @@ import {
   type StatusPublicacao,
 } from "@/lib/db/publicacoes";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import { buscarNoDjen, descartar, reabrir } from "./acoes";
+import { buscarNoDjen, arquivar, reabrir } from "./acoes";
 
 const ABAS: { valor: StatusPublicacao | "todas"; label: string }[] = [
   { valor: "nova", label: "Novas" },
   { valor: "virou_prazo", label: "Viraram prazo" },
-  { valor: "descartada", label: "Descartadas" },
+  { valor: "descartada", label: "Arquivadas" },
   { valor: "todas", label: "Todas" },
 ];
 
@@ -63,7 +63,7 @@ export default async function PaginaPublicacoes({
         <h1 className="titulo-pagina">Publicações do DJEN</h1>
         <p className="subtitulo-pagina">
           Intimações do Diário de Justiça Nacional das OABs do escritório.
-          Trie cada uma: vira prazo ou é descartada.
+          Trie cada uma: vira prazo ou é arquivada.
         </p>
       </div>
 
@@ -214,9 +214,22 @@ function Cartao({ p }: { p: PublicacaoLista }) {
         </span>
       </div>
 
-      <p className="text-[13px] leading-relaxed text-texto">
-        {p.resumo}
-      </p>
+      {p.texto.length > p.resumo.length ? (
+        <details className="group">
+          <summary className="cursor-pointer list-none text-[13px] leading-relaxed text-texto">
+            {p.resumo}{" "}
+            <span className="text-xs font-medium text-teal group-open:hidden">
+              ver mais
+            </span>
+          </summary>
+          <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-texto">
+            {p.texto}
+          </p>
+          <span className="text-xs font-medium text-teal">ver menos</span>
+        </details>
+      ) : (
+        <p className="text-[13px] leading-relaxed text-texto">{p.texto}</p>
+      )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-texto-secundario">
         {p.cnj && <span className="tabular-nums">{p.cnj}</span>}
@@ -229,7 +242,10 @@ function Cartao({ p }: { p: PublicacaoLista }) {
           </Link>
         )}
         {p.status === "descartada" && (
-          <span>descartada</span>
+          <span>
+            <strong>arquivada</strong>
+            {p.motivoDescarte ? ` — ${p.motivoDescarte}` : " (sem justificativa)"}
+          </span>
         )}
       </div>
 
@@ -241,15 +257,15 @@ function Cartao({ p }: { p: PublicacaoLista }) {
           >
             Triar →
           </Link>
-          <form action={descartar} className="flex items-center gap-2">
+          <form action={arquivar} className="flex items-center gap-2">
             <input type="hidden" name="id" value={p.id} />
             <input
               name="motivo"
               placeholder="motivo (opcional)"
-              className="campo h-[34px] w-[200px] text-xs"
+              className="campo h-[34px] w-[220px] text-xs"
             />
             <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
-              Descartar
+              Arquivar
             </BotaoEnviar>
           </form>
         </div>

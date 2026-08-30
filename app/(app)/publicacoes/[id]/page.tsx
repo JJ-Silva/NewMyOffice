@@ -9,7 +9,7 @@ import { buscarPublicacao } from "@/lib/db/publicacoes";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import { descartar, reabrir, vincularProcessoJudicial } from "../acoes";
+import { arquivar, reabrir, vincularProcessoJudicial } from "../acoes";
 
 export default async function PaginaTriagem({
   params,
@@ -143,12 +143,10 @@ export default async function PaginaTriagem({
 
       {p.status === "descartada" && (
         <div className="card flex flex-col gap-3 p-5">
-          <span className="text-sm font-semibold">Descartada</span>
-          {p.motivoDescarte && (
-            <p className="text-[13px] italic text-texto-secundario">
-              “{p.motivoDescarte}”
-            </p>
-          )}
+          <span className="text-sm font-semibold">Arquivada</span>
+          <p className="text-[13px] italic text-texto-secundario">
+            {p.motivoDescarte ? `“${p.motivoDescarte}”` : "Sem justificativa."}
+          </p>
           <form action={reabrir}>
             <input type="hidden" name="id" value={p.id} />
             <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
@@ -260,15 +258,15 @@ export default async function PaginaTriagem({
             </span>
           </div>
 
-          {/* Descartar */}
+          {/* Arquivar */}
           <details className="text-sm">
             <summary className="cursor-pointer text-texto-secundario">
-              Descartar (não gera prazo)
+              Arquivar (não gera prazo)
             </summary>
-            <form action={descartar} className="mt-2 flex items-end gap-2">
+            <form action={arquivar} className="mt-2 flex items-end gap-2">
               <input type="hidden" name="id" value={p.id} />
               <label className="flex flex-col gap-1.5">
-                <span className="rotulo">Motivo (opcional)</span>
+                <span className="rotulo">Justificativa (opcional)</span>
                 <input
                   name="motivo"
                   placeholder="Ex.: intimação só informativa"
@@ -276,7 +274,7 @@ export default async function PaginaTriagem({
                 />
               </label>
               <BotaoEnviar className="botao-perigo h-[38px]" rotuloOcupado="…">
-                Descartar
+                Arquivar
               </BotaoEnviar>
             </form>
           </details>

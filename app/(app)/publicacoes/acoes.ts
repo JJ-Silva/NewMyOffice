@@ -9,7 +9,7 @@ import { somarDias } from "@/lib/domain/datas";
 import { listarOabs } from "@/lib/db/oab";
 import { sincronizarEscritorio } from "@/lib/djen/sincronizar";
 import {
-  descartarPublicacao,
+  arquivarPublicacao,
   reabrirPublicacao,
   vincularProcessoNaPublicacao,
 } from "@/lib/db/publicacoes";
@@ -65,11 +65,11 @@ export async function buscarNoDjen(formData: FormData) {
   );
 }
 
-export async function descartar(formData: FormData) {
+export async function arquivar(formData: FormData) {
   const { sessao, supabase } = await ctx();
   const id = txt(formData, "id");
   if (!id) return;
-  await descartarPublicacao(supabase, {
+  await arquivarPublicacao(supabase, {
     id,
     membroId: sessao.membro.id,
     motivo: txt(formData, "motivo") || null,
