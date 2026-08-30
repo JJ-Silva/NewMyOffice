@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PastaResumo } from "@/lib/db/pastas";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { salvarProcessoAdministrativo } from "./acoes";
 
 const POLOS = [
@@ -100,9 +101,7 @@ export function FormularioAdministrativo({
       </label>
 
       <div className="flex gap-3 pt-1">
-        <button type="submit" className="botao-primario">
-          Salvar processo
-        </button>
+        <BotaoEnviar>Salvar processo</BotaoEnviar>
         <Link
           href="/processos"
           className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"

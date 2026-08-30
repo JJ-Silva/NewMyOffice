@@ -1,4 +1,5 @@
 import { AbasAuth } from "../abas";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { criarConta } from "./acoes";
 
 export default async function PaginaCadastro({
@@ -66,9 +67,12 @@ export default async function PaginaCadastro({
           administradora.
         </p>
 
-        <button type="submit" className="botao-primario mt-1 h-[42px]">
+        <BotaoEnviar
+          className="botao-primario mt-1 h-[42px]"
+          rotuloOcupado="Criando…"
+        >
           Criar escritório
-        </button>
+        </BotaoEnviar>
       </form>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { analisarCnj } from "@/lib/domain/cnj";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { Tribunal } from "@/lib/db/tribunais";
 import { salvarProcessoJudicial } from "./acoes";
@@ -206,9 +207,9 @@ export function FormularioJudicial({
               {Object.entries(valores).map(([k, v]) => (
                 <input key={k} type="hidden" name={k} value={v} />
               ))}
-              <button type="submit" className="botao-primario h-[42px]">
+              <BotaoEnviar className="botao-primario h-[42px]">
                 Salvar processo
-              </button>
+              </BotaoEnviar>
             </form>
           </>
         )}

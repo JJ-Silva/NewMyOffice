@@ -7,6 +7,7 @@ import { formatarDataBR } from "@/lib/domain/datas";
 import { estadoNaAgenda } from "@/lib/domain/atividade";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import { carregarDetalheAtividade } from "@/lib/db/atividade-detalhe";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
   concluir,
   reativar,
@@ -233,12 +234,9 @@ export default async function PaginaDetalheAtividade({
               Fica registrado no histórico do prazo com autor, data e motivo. Se
               você mudar só o fatal, o interno é re-derivado (fatal − margem).
             </span>
-            <button
-              type="submit"
-              className="botao-primario h-[38px] self-start"
-            >
+            <BotaoEnviar className="botao-primario h-[38px] self-start">
               Salvar ajuste
-            </button>
+            </BotaoEnviar>
           </form>
         </details>
       )}
@@ -276,9 +274,9 @@ export default async function PaginaDetalheAtividade({
             placeholder="Ex.: cliente enviou os documentos por e-mail"
             className="campo flex-1"
           />
-          <button type="submit" className="botao-primario h-[38px]">
+          <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
             Adicionar
-          </button>
+          </BotaoEnviar>
         </form>
       </div>
 
@@ -337,12 +335,9 @@ export default async function PaginaDetalheAtividade({
             <span className="text-xs text-texto-secundario">
               Sem mudança e sem recorrência → a atividade é concluída.
             </span>
-            <button
-              type="submit"
-              className="botao-primario h-[38px] self-start"
-            >
+            <BotaoEnviar className="botao-primario h-[38px] self-start">
               Registrar
-            </button>
+            </BotaoEnviar>
           </form>
         ) : (
           <form
@@ -358,23 +353,23 @@ export default async function PaginaDetalheAtividade({
               </span>
               <input name="observacao" className="campo w-[280px]" />
             </label>
-            <button
-              type="submit"
+            <BotaoEnviar
               className="botao-primario h-[38px]"
+              rotuloOcupado="Concluindo…"
               style={{ background: "var(--cumprido)", color: "#fff" }}
             >
               {d.tipo === "prazo"
                 ? "Marcar como cumprido"
                 : "Marcar como realizado"}
-            </button>
+            </BotaoEnviar>
           </form>
         )
       ) : (
         <form action={reativar}>
           <input type="hidden" name="id" value={d.id} />
-          <button type="submit" className="botao-secundario h-[38px]">
+          <BotaoEnviar className="botao-secundario h-[38px]" rotuloOcupado="…">
             Reativar
-          </button>
+          </BotaoEnviar>
         </form>
       )}
 
@@ -389,9 +384,9 @@ export default async function PaginaDetalheAtividade({
               <span className="rotulo">Motivo do cancelamento</span>
               <input name="motivo" required className="campo w-[320px]" />
             </label>
-            <button type="submit" className="botao-perigo h-[38px]">
+            <BotaoEnviar className="botao-perigo h-[38px]" rotuloOcupado="…">
               Cancelar atividade
-            </button>
+            </BotaoEnviar>
           </form>
         </details>
       )}

@@ -16,6 +16,7 @@ import {
 } from "@/lib/domain/atividade";
 import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
 import { listarPastas } from "@/lib/db/pastas";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { concluir } from "./acoes";
 
 const COR_ESTADO: Record<EstadoAgenda, string> = {
@@ -295,9 +296,9 @@ export default async function PaginaAgenda({
                   ) : (
                     <form action={concluir}>
                       <input type="hidden" name="id" value={item.id} />
-                      <button type="submit" className="botao-concluir">
+                      <BotaoEnviar className="botao-concluir" rotuloOcupado="…">
                         ✓ Concluir
-                      </button>
+                      </BotaoEnviar>
                     </form>
                   )}
                 </div>

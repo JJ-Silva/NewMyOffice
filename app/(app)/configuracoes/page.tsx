@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { podeFazer } from "@/lib/domain/autorizacao";
 import { criarClienteServidor } from "@/lib/supabase/server";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { listarFeriados } from "@/lib/db/feriados";
 import { listarPeriodosNaoUteis } from "@/lib/db/periodos-nao-uteis";
@@ -72,9 +73,9 @@ export default async function PaginaConfiguracoes() {
               <span className="rotulo">Sigla</span>
               <input name="sigla" required placeholder="TJSP" className="campo" />
             </label>
-            <button type="submit" className="botao-primario h-[38px] px-0">
+            <BotaoEnviar className="botao-primario h-[38px] px-0">
               Adicionar
-            </button>
+            </BotaoEnviar>
           </form>
 
           {semTribunais ? (
@@ -134,13 +135,12 @@ export default async function PaginaConfiguracoes() {
                   className="campo"
                 />
               </label>
-              <button
-                type="submit"
+              <BotaoEnviar
                 className="botao-primario h-[38px] px-0"
                 disabled={semTribunais}
               >
                 Adicionar
-              </button>
+              </BotaoEnviar>
             </div>
 
             <label className="flex items-center gap-2 text-xs text-texto-secundario">
@@ -284,13 +284,12 @@ export default async function PaginaConfiguracoes() {
             </fieldset>
 
             <div>
-              <button
-                type="submit"
+              <BotaoEnviar
                 className="botao-primario h-[38px]"
                 disabled={semTribunais}
               >
                 Adicionar período
-              </button>
+              </BotaoEnviar>
             </div>
           </form>
 

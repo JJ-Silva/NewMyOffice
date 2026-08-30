@@ -4,6 +4,7 @@ import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import type { Tribunal } from "@/lib/db/tribunais";
 import type { ProcessoResumo } from "@/lib/db/processos";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
   EVENTOS,
   type CamposPrazo,
@@ -255,9 +256,9 @@ export function FormularioPrazo({
               }
             />
             <input type="hidden" name="titulo" value={campos.titulo} />
-            <button type="submit" className="botao-primario h-[42px]">
+            <BotaoEnviar className="botao-primario h-[42px]">
               Salvar prazo
-            </button>
+            </BotaoEnviar>
             <span className="text-xs text-texto-secundario">
               As datas serão recalculadas do zero ao salvar. Você poderá
               ajustá-las manualmente depois, sempre com motivo (histórico do

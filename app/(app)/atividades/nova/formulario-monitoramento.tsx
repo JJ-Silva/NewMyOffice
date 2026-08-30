@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatarDataBR } from "@/lib/domain/datas";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { salvarMonitoramento } from "./acoes";
 
 export function FormularioMonitoramento({
@@ -97,9 +98,7 @@ export function FormularioMonitoramento({
         </label>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" className="botao-primario">
-            Salvar monitoramento
-          </button>
+          <BotaoEnviar>Salvar monitoramento</BotaoEnviar>
           <Link
             href="/agenda"
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"

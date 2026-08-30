@@ -4,6 +4,7 @@ import { exigirSessao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
 import { listarAreas } from "@/lib/db/areas";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { criarPastaAction } from "./acoes";
 
 export default async function PaginaNovaPasta({
@@ -96,9 +97,7 @@ export default async function PaginaNovaPasta({
         </label>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" className="botao-primario">
-            Criar pasta
-          </button>
+          <BotaoEnviar rotuloOcupado="Criando…">Criar pasta</BotaoEnviar>
           <Link
             href="/pastas"
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"

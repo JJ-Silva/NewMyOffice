@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AbasAuth } from "../abas";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { entrar } from "./acoes";
 
 export default async function PaginaLogin({
@@ -50,9 +51,9 @@ export default async function PaginaLogin({
           />
         </label>
 
-        <button type="submit" className="botao-primario mt-1 h-[42px]">
+        <BotaoEnviar className="botao-primario mt-1 h-[42px]" rotuloOcupado="Entrando…">
           Entrar
-        </button>
+        </BotaoEnviar>
       </form>
 
       <p className="mt-4 text-center text-[13px]">

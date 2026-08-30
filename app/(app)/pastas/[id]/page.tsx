@@ -9,6 +9,7 @@ import { listarClientes } from "@/lib/db/clientes";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarPartesDoProcesso, TIPOS_PARTE } from "@/lib/db/partes";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
   salvarPasta,
   adicionarCliente,
@@ -148,9 +149,9 @@ export default async function PaginaPasta({
               className="campo"
             />
           </label>
-          <button type="submit" className="botao-primario h-[38px] self-start">
+          <BotaoEnviar className="botao-primario h-[38px] self-start">
             Salvar pasta
-          </button>
+          </BotaoEnviar>
         </form>
       </details>
 
@@ -186,9 +187,9 @@ export default async function PaginaPasta({
                 </option>
               ))}
             </select>
-            <button type="submit" className="botao-primario h-[38px]">
+            <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
               Vincular
-            </button>
+            </BotaoEnviar>
           </form>
         )}
       </div>
@@ -308,9 +309,12 @@ export default async function PaginaPasta({
                       placeholder="Adv. adverso"
                       className="campo"
                     />
-                    <button type="submit" className="botao-primario h-[38px] px-2">
+                    <BotaoEnviar
+                      className="botao-primario h-[38px] px-2"
+                      rotuloOcupado="…"
+                    >
                       +
-                    </button>
+                    </BotaoEnviar>
                   </form>
                 </div>
               </div>

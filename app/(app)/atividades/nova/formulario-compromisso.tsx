@@ -3,6 +3,7 @@ import { somarDias, formatarDataBR } from "@/lib/domain/datas";
 import { REGRAS_TIPO } from "@/lib/domain/atividade";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { salvarCompromisso } from "./acoes";
 
 export function FormularioCompromisso({
@@ -108,9 +109,7 @@ export function FormularioCompromisso({
         </label>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" className="botao-primario">
-            Salvar compromisso
-          </button>
+          <BotaoEnviar>Salvar compromisso</BotaoEnviar>
           <Link
             href="/agenda"
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"

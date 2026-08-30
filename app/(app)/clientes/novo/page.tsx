@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { criarClienteESeguir } from "./acoes";
 
 export default async function PaginaNovoCliente({
@@ -60,9 +61,9 @@ export default async function PaginaNovoCliente({
         </div>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" className="botao-primario">
+          <BotaoEnviar rotuloOcupado="Salvando…">
             Salvar e criar pasta
-          </button>
+          </BotaoEnviar>
           <Link
             href="/clientes"
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
