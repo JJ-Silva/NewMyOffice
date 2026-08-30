@@ -17,6 +17,7 @@ import {
   ajustarDatasDoPrazo,
   registrarVerificacao,
 } from "@/lib/db/atividade-acoes";
+import { gerarProximaInstancia } from "@/lib/db/recorrencias";
 
 function texto(fd: FormData, campo: string): string {
   return String(fd.get(campo) ?? "").trim();
@@ -43,6 +44,8 @@ export async function concluir(formData: FormData) {
     dataConclusao: hojeNoBrasil(),
     observacaoConclusao: texto(formData, "observacao") || null,
   });
+  // Se é uma instância de recorrência, garante que a próxima já exista.
+  await gerarProximaInstancia(supabase, sessao.escritorioId, id, hojeNoBrasil());
   recarregar(id);
 }
 
@@ -103,6 +106,8 @@ export async function verificar(formData: FormData) {
         | "urgente"
         | undefined) ?? "media",
   });
+  // Monitoramento recorrente: agenda a próxima verificação.
+  await gerarProximaInstancia(supabase, sessao.escritorioId, id, hojeNoBrasil());
   recarregar(id);
 }
 

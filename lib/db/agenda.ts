@@ -31,6 +31,8 @@ export type ItemAgenda = {
   prazoInterno: string | null;
   prazoApertado: boolean;
   calculoDesatualizado: boolean;
+  // instância de uma recorrência (Etapa 3a)?
+  recorrente: boolean;
 };
 
 export async function listarAgenda(
@@ -41,7 +43,7 @@ export async function listarAgenda(
   let q = supabase
     .from("atividade")
     .select(
-      `id, titulo, tipo, data, status, prioridade_manual, dias_antes_visivel_custom,
+      `id, titulo, tipo, data, status, prioridade_manual, dias_antes_visivel_custom, recorrencia_id,
        tipo_atividade:tipo_atividade_id ( nome ),
        responsavel:responsavel_id ( usuario:usuario_id ( nome ) ),
        processo:processo_id (
@@ -103,6 +105,7 @@ export async function listarAgenda(
       prazoInterno: prazo?.prazo_interno ?? null,
       prazoApertado: prazo?.prazo_apertado ?? false,
       calculoDesatualizado: prazo?.calculo_desatualizado ?? false,
+      recorrente: (linha.recorrencia_id as string | null) != null,
     };
   });
 

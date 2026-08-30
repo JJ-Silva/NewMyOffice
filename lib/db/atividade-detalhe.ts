@@ -36,6 +36,7 @@ export type DetalheAtividade = {
   clienteNome: string | null;
   processoTipo: string;
   tipoAtividadeNome: string | null;
+  recorrenciaId: string | null;
   // atividade_compromisso (quando tipo='compromisso')
   compromisso: {
     hora: string | null;
@@ -75,7 +76,7 @@ export async function carregarDetalheAtividade(
   const { data, error } = await supabase
     .from("atividade")
     .select(
-      `id, titulo, descricao, tipo, data, status, data_conclusao, observacao_conclusao,
+      `id, titulo, descricao, tipo, data, status, data_conclusao, observacao_conclusao, recorrencia_id,
        tipo_atividade:tipo_atividade_id ( nome ),
        processo:processo_id (
          tipo,
@@ -149,6 +150,7 @@ export async function carregarDetalheAtividade(
     clienteNome: cliente?.nome ?? null,
     processoTipo: processo?.tipo ?? "geral",
     tipoAtividadeNome: um<{ nome: string }>(data.tipo_atividade)?.nome ?? null,
+    recorrenciaId: (data.recorrencia_id as string | null) ?? null,
     compromisso: c
       ? {
           hora: (c.hora as string | null) ?? null,

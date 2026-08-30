@@ -16,6 +16,7 @@ import {
 } from "@/lib/domain/atividade";
 import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
 import { listarPastas } from "@/lib/db/pastas";
+import { materializarRecorrenciasDoEscritorio } from "@/lib/db/recorrencias";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { concluir } from "./acoes";
 
@@ -89,6 +90,12 @@ export default async function PaginaAgenda({
   const verTudo = params.tudo === "1";
   const lancado = params.lancado === "1";
   const temFiltro = Boolean(fPasta || fStatus || fTipo || verTudo);
+
+  // Janela rolante das recorrências (Etapa 3a): materializa as instâncias
+  // futuras que faltam antes de montar a lista. É uma escrita no carregamento
+  // da agenda — aceitável aqui: a página já é dinâmica (sessão + filtros) e no
+  // caso comum não há nada a criar, só leituras.
+  await materializarRecorrenciasDoEscritorio(supabase, sessao.escritorioId, hoje);
 
   const [pastas, itensBrutos] = await Promise.all([
     listarPastas(supabase, sessao.escritorioId),
