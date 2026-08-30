@@ -3,6 +3,8 @@
 
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { podeFazer } from "@/lib/domain/autorizacao";
+import { criarClienteServidor } from "@/lib/supabase/server";
+import { contarPublicacoesNovas } from "@/lib/db/publicacoes";
 import { Sidebar } from "@/components/Sidebar";
 
 export default async function LayoutApp({
@@ -11,6 +13,18 @@ export default async function LayoutApp({
   children: React.ReactNode;
 }) {
   const sessao = await exigirSessao();
+  const supabase = await criarClienteServidor();
+
+  // Badge de "publicações novas para triar" na sidebar.
+  let publicacoesNovas = 0;
+  try {
+    publicacoesNovas = await contarPublicacoesNovas(
+      supabase,
+      sessao.escritorioId,
+    );
+  } catch {
+    // a contagem é só um enfeite — não derruba o app
+  }
 
   return (
     <div className="app-shell">
@@ -21,6 +35,7 @@ export default async function LayoutApp({
           sessao.membro,
           "acessar_configuracoes",
         )}
+        publicacoesNovas={publicacoesNovas}
       />
       <main className="sidebar-conteudo">{children}</main>
     </div>

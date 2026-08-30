@@ -5,16 +5,18 @@ import { usePathname } from "next/navigation";
 import type { Route } from "next";
 import { sair } from "@/app/(app)/acoes";
 
-type ItemNav = { href: Route; label: string };
+type ItemNav = { href: Route; label: string; badge?: number };
 
 export function Sidebar({
   usuarioNome,
   escritorioNome,
   mostrarConfiguracoes,
+  publicacoesNovas = 0,
 }: {
   usuarioNome: string;
   escritorioNome: string;
   mostrarConfiguracoes: boolean;
+  publicacoesNovas?: number;
 }) {
   const caminho = usePathname();
 
@@ -23,6 +25,7 @@ export function Sidebar({
     { href: "/agenda", label: "Agenda de atividades" },
     { href: "/atividades/nova", label: "Nova atividade" },
     { href: "/recorrencias", label: "Recorrências" },
+    { href: "/publicacoes", label: "Publicações", badge: publicacoesNovas },
     { href: "/clientes", label: "Clientes" },
     { href: "/pastas", label: "Pastas" },
     { href: "/processos", label: "Processos" },
@@ -59,6 +62,11 @@ export function Sidebar({
             >
               <span className="h-4 w-4 flex-none rounded border-[1.5px] border-current opacity-75" />
               <span className="flex-1">{item.label}</span>
+              {item.badge ? (
+                <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amarelo px-1 text-[11px] font-semibold text-[#483d3f]">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}
