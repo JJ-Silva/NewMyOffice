@@ -4,6 +4,7 @@ import { REGRAS_TIPO } from "@/lib/domain/atividade";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarCompromisso } from "./acoes";
 
 export function FormularioCompromisso({
@@ -107,6 +108,8 @@ export function FormularioCompromisso({
             className="campo"
           />
         </label>
+
+        <CamposRecorrencia rotuloData="a data do compromisso" />
 
         <div className="flex gap-3 pt-1">
           <BotaoEnviar>Salvar compromisso</BotaoEnviar>

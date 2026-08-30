@@ -86,6 +86,14 @@ export default async function PaginaDetalheAtividade({
         <h1 className="titulo-pagina">
           {d.titulo} — {d.pastaNome ?? d.pastaCodigo}
         </h1>
+        {d.recorrenciaId && (
+          <span className="text-xs text-teal">
+            ↻ Parte de uma recorrência —{" "}
+            <Link href="/recorrencias" className="underline">
+              ver a série
+            </Link>
+          </span>
+        )}
       </div>
 
       {erro && (

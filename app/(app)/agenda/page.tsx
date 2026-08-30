@@ -266,6 +266,9 @@ export default async function PaginaAgenda({
 
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate text-[13.5px]">
+                    {item.recorrente && (
+                      <span title="Instância de uma recorrência">↻ </span>
+                    )}
                     {item.tipoAtividadeNome ?? item.titulo}
                   </span>
                   <span className="text-xs text-texto-secundario">

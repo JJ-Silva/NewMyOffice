@@ -11,6 +11,13 @@ import {
 } from "@/lib/db/atividades";
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
+import { criarRecorrencia } from "@/lib/db/recorrencias";
+import {
+  validarRegra,
+  type Periodicidade,
+  type RegraRecorrencia,
+  type Termino,
+} from "@/lib/domain/recorrencia";
 import { lerCampos, calcular } from "./calculo";
 
 // Salva o prazo. RECALCULA tudo do zero — não confia nas datas do formulário.
@@ -108,6 +115,53 @@ function voltarComErro(
   redirect(`/atividades/nova?${p.toString()}`);
 }
 
+// Lê os campos "rec_*" do formulário e monta a regra de recorrência (Etapa 3a).
+// A data-base é a data da 1ª ocorrência (o campo "data" do formulário).
+function lerRegraDoFormulario(
+  fd: FormData,
+  dataBase: string,
+): { ok: true; regra: RegraRecorrencia } | { ok: false; erro: string } {
+  const tipoPeriodicidade = texto(fd, "rec_periodicidade");
+  let periodicidade: Periodicidade;
+  if (tipoPeriodicidade === "semanal") {
+    const dias = fd
+      .getAll("rec_dias_semana")
+      .map((v) => Math.trunc(Number(v)))
+      .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6);
+    periodicidade = { tipo: "semanal", diasDaSemana: dias };
+  } else if (tipoPeriodicidade === "mensal") {
+    periodicidade = {
+      tipo: "mensal",
+      diaDoMes: Math.trunc(Number(texto(fd, "rec_dia_do_mes"))),
+    };
+  } else {
+    const unidade = texto(fd, "rec_intervalo_unidade");
+    periodicidade = {
+      tipo: "intervalo",
+      cada: Math.trunc(Number(texto(fd, "rec_intervalo_cada"))),
+      unidade:
+        unidade === "dias" || unidade === "meses" ? unidade : "semanas",
+    };
+  }
+
+  const tipoTermino = texto(fd, "rec_termino");
+  let termino: Termino;
+  if (tipoTermino === "data") {
+    termino = { tipo: "data", ate: texto(fd, "rec_termino_ate") };
+  } else if (tipoTermino === "ocorrencias") {
+    termino = {
+      tipo: "ocorrencias",
+      total: Math.trunc(Number(texto(fd, "rec_termino_ocorrencias"))),
+    };
+  } else {
+    termino = { tipo: "indefinido" };
+  }
+
+  const regra: RegraRecorrencia = { dataBase, periodicidade, termino };
+  const v = validarRegra(regra);
+  return v.ok ? { ok: true, regra } : { ok: false, erro: v.erro };
+}
+
 // ── Compromisso ───────────────────────────────────────────────────────────
 export async function salvarCompromisso(formData: FormData) {
   const sessao = await exigirSessao();
@@ -136,6 +190,46 @@ export async function salvarCompromisso(formData: FormData) {
   }
 
   const duracaoRaw = texto(formData, "duracao");
+
+  // Recorrência (Etapa 3a): cria a régua; ela materializa a 1ª instância.
+  if (texto(formData, "repetir") === "1") {
+    const r = lerRegraDoFormulario(formData, data);
+    if (!r.ok) {
+      voltarComErro("compromisso", pastaId, r.erro);
+    }
+    try {
+      await criarRecorrencia(
+        supabase,
+        {
+          escritorioId: sessao.escritorioId,
+          atividadeTipo: "compromisso",
+          processoId,
+          tipoAtividadeId: tipo.id,
+          titulo: texto(formData, "titulo") || tipo.nome,
+          descricao: null,
+          responsavelId: sessao.membro.id,
+          prioridadeManual: "media",
+          diasAntesVisivelCustom: null,
+          hora: texto(formData, "hora") || null,
+          local: texto(formData, "local") || null,
+          duracaoEstimadaMin: duracaoRaw
+            ? Math.trunc(Number(duracaoRaw))
+            : null,
+          alvo: null,
+          regra: r.regra,
+        },
+        hojeNoBrasil(),
+      );
+    } catch (e) {
+      voltarComErro(
+        "compromisso",
+        pastaId,
+        e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
+      );
+    }
+    redirect("/recorrencias?criada=1");
+  }
+
   try {
     await criarCompromisso(supabase, {
       escritorioId: sessao.escritorioId,
@@ -183,6 +277,43 @@ export async function salvarMonitoramento(formData: FormData) {
   const tipo = tipos.find((t) => t.id === tipoId);
   if (!tipo) {
     voltarComErro("monitoramento", pastaId, "Tipo de monitoramento inválido.");
+  }
+
+  // Recorrência (Etapa 3a).
+  if (texto(formData, "repetir") === "1") {
+    const r = lerRegraDoFormulario(formData, data);
+    if (!r.ok) {
+      voltarComErro("monitoramento", pastaId, r.erro);
+    }
+    try {
+      await criarRecorrencia(
+        supabase,
+        {
+          escritorioId: sessao.escritorioId,
+          atividadeTipo: "monitoramento",
+          processoId,
+          tipoAtividadeId: tipo.id,
+          titulo: texto(formData, "titulo") || tipo.nome,
+          descricao: null,
+          responsavelId: sessao.membro.id,
+          prioridadeManual: "media",
+          diasAntesVisivelCustom: null,
+          hora: null,
+          local: null,
+          duracaoEstimadaMin: null,
+          alvo: texto(formData, "alvo") || null,
+          regra: r.regra,
+        },
+        hojeNoBrasil(),
+      );
+    } catch (e) {
+      voltarComErro(
+        "monitoramento",
+        pastaId,
+        e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
+      );
+    }
+    redirect("/recorrencias?criada=1");
   }
 
   try {

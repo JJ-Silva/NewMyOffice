@@ -18,11 +18,11 @@ export function Sidebar({
 }) {
   const caminho = usePathname();
 
-  // Só as rotas que já existem na Etapa 1. "Nova atividade" (Passo 7) e a
-  // agenda de verdade (Passo 8) entram depois.
+  // Rotas do trabalho do dia a dia. Configurações fica separada (só dono).
   const itens: ItemNav[] = [
     { href: "/agenda", label: "Agenda de atividades" },
     { href: "/atividades/nova", label: "Nova atividade" },
+    { href: "/recorrencias", label: "Recorrências" },
     { href: "/clientes", label: "Clientes" },
     { href: "/pastas", label: "Pastas" },
     { href: "/processos", label: "Processos" },

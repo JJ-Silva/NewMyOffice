@@ -3,6 +3,7 @@ import { formatarDataBR } from "@/lib/domain/datas";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarMonitoramento } from "./acoes";
 
 export function FormularioMonitoramento({
@@ -96,6 +97,8 @@ export function FormularioMonitoramento({
             className="campo"
           />
         </label>
+
+        <CamposRecorrencia rotuloData="o dia da verificação" />
 
         <div className="flex gap-3 pt-1">
           <BotaoEnviar>Salvar monitoramento</BotaoEnviar>
