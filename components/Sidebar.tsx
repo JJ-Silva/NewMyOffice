@@ -25,6 +25,7 @@ export function Sidebar({
     { href: "/atividades/nova", label: "Nova atividade" },
     { href: "/clientes", label: "Clientes" },
     { href: "/pastas", label: "Pastas" },
+    { href: "/processos", label: "Processos" },
   ];
   if (mostrarConfiguracoes) {
     itens.push({ href: "/configuracoes", label: "Configurações" });
