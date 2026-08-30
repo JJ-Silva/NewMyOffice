@@ -171,6 +171,25 @@ textarea.campo {
   background: var(--atrasado-fundo);
 }
 
+.botao-concluir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cumprido);
+  background: #fff;
+  border: 1px solid var(--cumprido);
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.botao-concluir:hover {
+  background: #f0fdf4;
+}
+
 .link-acao {
   font-size: 13px;
   font-weight: 500;

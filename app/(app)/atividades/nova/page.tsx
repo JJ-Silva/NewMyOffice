@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
-import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
+import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import { listarPastas } from "@/lib/db/pastas";
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
@@ -255,147 +255,41 @@ function PainelMemoria({
   dados: CalculoPronto;
   campos: ReturnType<typeof lerCampos> & { processoId: string };
 }) {
-  const { resultado, dias, margem, natureza } = dados;
-  const m = resultado.memoriaCalculo;
-  const eventoLabel =
-    EVENTOS.find((e) => e.valor === campos.eventoTipo)?.label ?? "evento";
-
-  const passos: string[] = [];
-  if (m.dia1 === m.dataInicial) {
-    passos.push(
-      `${eventoLabel} em ${formatarDataBR(m.dataInicial)} — contado como o dia 1 (Opção A: não se exclui o dia do começo).`,
-    );
-  } else {
-    passos.push(
-      `${eventoLabel} em ${formatarDataBR(m.dataInicial)}; como não é dia útil, o dia 1 passa a ser ${formatarDataBR(m.dia1)} (${nomeDoDiaDaSemana(m.dia1)}).`,
-    );
-  }
-  passos.push(
-    m.dobro
-      ? `Contagem de ${m.nDias} dias úteis (prazo em dobro: ${m.nDiasInformado} × 2).`
-      : `Contagem de ${m.nDias} dias úteis.`,
-  );
-  if (m.diasPulados.length > 0) {
-    const amostra = m.diasPulados
-      .slice(0, 4)
-      .map((d) => `${formatarDataBR(d.data)} (${d.motivo})`)
-      .join("; ");
-    passos.push(
-      `Dias não úteis pulados no caminho: ${amostra}${m.diasPulados.length > 4 ? ` e mais ${m.diasPulados.length - 4}` : ""}.`,
-    );
-  }
-  passos.push(
-    `Prazo fatal = ${formatarDataBR(m.prazoFatalCalculado)} (${nomeDoDiaDaSemana(m.prazoFatalCalculado)}).`,
-  );
-  passos.push(
-    m.prazoApertado
-      ? `Prazo interno: ${dias} − ${margem} dias de margem ≤ 0 → interno = ${formatarDataBR(m.prazoInternoCalculado)} e o prazo fica marcado como apertado.`
-      : `Prazo interno = prazo fatal − ${margem} dias úteis = ${formatarDataBR(m.prazoInternoCalculado)} (${nomeDoDiaDaSemana(m.prazoInternoCalculado)}).`,
-  );
+  const { resultado, dias } = dados;
 
   return (
-    <div className="card overflow-hidden">
-      <div className="flex items-center justify-between bg-teal px-5 py-4">
-        <h2 className="text-base font-semibold text-white">
-          Memória de cálculo
-        </h2>
-        <span className="text-[11.5px] font-medium text-white/65">
-          cálculo automático
+    <MemoriaCalculoPainel
+      memoria={resultado.memoriaCalculo}
+      eventoTipo={campos.eventoTipo}
+      prazoFatal={resultado.prazoFatalCalculado}
+      prazoInterno={resultado.prazoInternoCalculado}
+      prazoApertado={resultado.prazoApertado}
+      aviso={resultado.avisoCalendarioIncompleto}
+    >
+      <form action={salvarPrazo} className="flex flex-col gap-3">
+        <input type="hidden" name="pasta" value={campos.pastaId} />
+        <input type="hidden" name="processo" value={campos.processoId} />
+        <input type="hidden" name="tipo" value={campos.tipoAtividadeId} />
+        <input type="hidden" name="tribunal" value={campos.tribunalId ?? ""} />
+        <input type="hidden" name="evento_tipo" value={campos.eventoTipo} />
+        <input type="hidden" name="evento_data" value={campos.eventoData} />
+        <input type="hidden" name="dobro" value={campos.dobro ? "1" : ""} />
+        <input
+          type="hidden"
+          name="dias"
+          value={
+            campos.diasInformado ? String(campos.diasInformado) : String(dias)
+          }
+        />
+        <input type="hidden" name="titulo" value={campos.titulo} />
+        <button type="submit" className="botao-primario h-[42px]">
+          Salvar prazo
+        </button>
+        <span className="text-xs text-texto-secundario">
+          As datas serão recalculadas do zero ao salvar. Você poderá ajustá-las
+          manualmente depois, sempre com motivo (histórico do prazo).
         </span>
-      </div>
-
-      <div className="flex flex-col gap-4 p-5">
-        <div className="grid gap-3.5 [grid-template-columns:1fr_1fr]">
-          <div className="flex flex-col gap-1 rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-3.5">
-            <span className="text-xs font-medium text-[#991B1B]">
-              Prazo fatal
-            </span>
-            <span className="text-xl font-semibold tabular-nums text-[#DC2626]">
-              {formatarDataBR(resultado.prazoFatalCalculado)}
-            </span>
-            <span className="text-[11.5px] text-[#B91C1C]">
-              {nomeDoDiaDaSemana(resultado.prazoFatalCalculado)}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] p-3.5">
-            <span className="text-xs font-medium text-[#92400E]">
-              Prazo interno
-            </span>
-            <span className="text-xl font-semibold tabular-nums text-[#D97706]">
-              {formatarDataBR(resultado.prazoInternoCalculado)}
-            </span>
-            <span className="text-[11.5px] text-[#B45309]">
-              {resultado.prazoApertado
-                ? "prazo apertado"
-                : nomeDoDiaDaSemana(resultado.prazoInternoCalculado)}
-            </span>
-          </div>
-        </div>
-
-        {resultado.avisoCalendarioIncompleto && (
-          <div className="flex gap-2.5 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-3.5 py-3">
-            <span className="font-bold text-[#B45309]">!</span>
-            <span className="text-[12.5px] leading-relaxed text-[#92400E]">
-              {resultado.avisoCalendarioIncompleto}
-            </span>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2 rounded-lg border border-tint-2 bg-fundo p-3.5">
-          <span className="rotulo">Como chegamos nessas datas</span>
-          {passos.map((texto, i) => (
-            <div key={i} className="flex items-start gap-2.5">
-              <span className="mt-0.5 flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full bg-[#CFE3DF] text-[11px] font-semibold text-teal">
-                {i + 1}
-              </span>
-              <span className="text-[13px] leading-relaxed">{texto}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="rotulo">Base legal</span>
-          <span className="text-[13px] leading-relaxed">
-            Contagem em dias úteis (CPC art. 219). Opção A do escritório: a
-            disponibilização no DJEN é o dia 1 da contagem — cerca de 2 dias
-            úteis mais conservador que o CPC art. 224 §§2º–3º.
-            {natureza === "processual" && m.marcosCpc && (
-              <>
-                {" "}
-                Marcos informativos: publicação (CPC) em{" "}
-                {formatarDataBR(m.marcosCpc.publicacaoCpc)}, início da contagem
-                em {formatarDataBR(m.marcosCpc.inicioContagemCpc)}, fatal pelo
-                CPC estrito em {formatarDataBR(m.marcosCpc.prazoFatalCpcEstrito)}.
-              </>
-            )}
-          </span>
-        </div>
-
-        <div className="h-px bg-tint-2" />
-
-        <form action={salvarPrazo} className="flex flex-col gap-3">
-          <input type="hidden" name="pasta" value={campos.pastaId} />
-          <input type="hidden" name="processo" value={campos.processoId} />
-          <input type="hidden" name="tipo" value={campos.tipoAtividadeId} />
-          <input type="hidden" name="tribunal" value={campos.tribunalId ?? ""} />
-          <input type="hidden" name="evento_tipo" value={campos.eventoTipo} />
-          <input type="hidden" name="evento_data" value={campos.eventoData} />
-          <input type="hidden" name="dobro" value={campos.dobro ? "1" : ""} />
-          <input
-            type="hidden"
-            name="dias"
-            value={campos.diasInformado ? String(campos.diasInformado) : String(dias)}
-          />
-          <input type="hidden" name="titulo" value={campos.titulo} />
-          <button type="submit" className="botao-primario h-[42px]">
-            Salvar prazo
-          </button>
-          <span className="text-xs text-texto-secundario">
-            As datas serão recalculadas do zero ao salvar. Você poderá ajustá-las
-            manualmente depois, sempre com motivo (histórico do prazo).
-          </span>
-        </form>
-      </div>
-    </div>
+      </form>
+    </MemoriaCalculoPainel>
   );
 }
