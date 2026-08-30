@@ -37,7 +37,7 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30): Etapas 1, 2, 3a e 3c feitas e DEPLOYADAS.**
+**Estado (2026-08-30): Etapas 1, 2, 3a, 3c e 5 feitas e DEPLOYADAS.**
 - App no ar: https://new-my-office.vercel.app · repo github.com/JJ-Silva/NewMyOffice
   (auto-deploy no push da `master`).
 - **Etapa 1**: 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo
@@ -54,5 +54,11 @@ Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a b
 - **Etapa 3c**: visão calendário em `/agenda/calendario` — grade mês/semana (domingo→sábado),
   navegação ‹ Hoje ›, filtros pasta/tipo + "mostrar concluídas", toggle Lista⇄Calendário no
   cabeçalho da agenda. `lib/domain/grade-calendario.ts` (puro, testado).
-- **Próximo (roadmap §2 do plano)**: 3b alertas por e-mail ·
-  4 documentos · 5 import DJEN · 6 papéis/convites · 7 relatórios.
+- **Etapa 5**: import de publicações do DJEN. `oab_monitorada` + `publicacao` (migration
+  aplicada); `lib/djen/comunica-api.ts` (API pública `comunicaapi.pje.jus.br`);
+  `lib/domain/publicacao.ts` (limpa HTML, normaliza CNJ, sugere tipo/dias do texto);
+  tela `/publicacoes` (buscar por período, abas por status, auto-match por CNJ, descartar)
+  e `/publicacoes/[id]` (cadastrar processo na hora com CNJ travado / vincular a pasta /
+  virar prazo — reusa o form de prazo + motor). OABs cadastradas em Configurações.
+- **Próximo (roadmap §2 do plano)**: 4 documentos · 6 papéis/convites · 7 relatórios ·
+  3b alertas por e-mail (adiado para o final).

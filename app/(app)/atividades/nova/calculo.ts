@@ -40,6 +40,8 @@ export type CamposPrazo = {
   dobro: boolean;
   diasInformado: number | null;
   titulo: string;
+  // quando o prazo veio de uma publicação do DJEN (Etapa 5) — id da publicacao
+  publicacaoId: string;
 };
 
 export function lerCampos(get: (chave: string) => string | null): CamposPrazo {
@@ -56,6 +58,7 @@ export function lerCampos(get: (chave: string) => string | null): CamposPrazo {
     dobro: s("dobro") === "1",
     diasInformado: Number.isFinite(dias) ? dias : null,
     titulo: s("titulo"),
+    publicacaoId: s("publicacao"),
   };
 }
 

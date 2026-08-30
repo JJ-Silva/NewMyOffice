@@ -52,7 +52,17 @@ export function FormularioPrazo({
         className="card flex flex-col gap-4 p-6"
       >
         <input type="hidden" name="aba" value="prazo" />
+        {campos.publicacaoId && (
+          <input type="hidden" name="publicacao" value={campos.publicacaoId} />
+        )}
         <h2 className="titulo-secao">Dados do prazo</h2>
+
+        {campos.publicacaoId && (
+          <p className="rounded-lg border border-tint-2 bg-fundo px-3 py-2 text-xs text-texto-secundario">
+            Vindo de uma publicação do DJEN — confira o tipo e os dias; ao
+            salvar, a publicação é marcada como triada.
+          </p>
+        )}
 
         {erro && (
           <p className="rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
@@ -256,6 +266,13 @@ export function FormularioPrazo({
               }
             />
             <input type="hidden" name="titulo" value={campos.titulo} />
+            {campos.publicacaoId && (
+              <input
+                type="hidden"
+                name="publicacao"
+                value={campos.publicacaoId}
+              />
+            )}
             <BotaoEnviar className="botao-primario h-[42px]">
               Salvar prazo
             </BotaoEnviar>

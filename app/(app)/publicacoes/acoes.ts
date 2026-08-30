@@ -8,10 +8,12 @@ import { hojeNoBrasil } from "@/lib/hoje";
 import { somarDias } from "@/lib/domain/datas";
 import { listarOabs } from "@/lib/db/oab";
 import { buscarComunicacoes } from "@/lib/djen/comunica-api";
+import { listarProcessosDaPasta } from "@/lib/db/processos";
 import {
   salvarComunicacoes,
   descartarPublicacao,
   reabrirPublicacao,
+  vincularProcessoNaPublicacao,
 } from "@/lib/db/publicacoes";
 
 function txt(fd: FormData, k: string): string {
@@ -90,5 +92,26 @@ export async function reabrir(formData: FormData) {
   if (!id) return;
   await reabrirPublicacao(supabase, id);
   revalidatePath("/publicacoes");
+  revalidatePath(`/publicacoes/${id}`);
+}
+
+// Vincula a publicação ao processo 'geral' de uma pasta existente (quando não
+// há um processo judicial cadastrado com esse CNJ).
+export async function vincularAPasta(formData: FormData) {
+  const { supabase } = await ctx();
+  const id = txt(formData, "id");
+  const pastaId = txt(formData, "pasta_id");
+  if (!id || !pastaId) return;
+
+  const processos = await listarProcessosDaPasta(supabase, pastaId);
+  const alvo =
+    processos.find((p) => p.tipo === "geral") ?? processos[0] ?? null;
+  if (!alvo) {
+    redirect(
+      `/publicacoes/${id}?erro=` +
+        encodeURIComponent("Essa pasta não tem processo."),
+    );
+  }
+  await vincularProcessoNaPublicacao(supabase, id, alvo.id);
   revalidatePath(`/publicacoes/${id}`);
 }

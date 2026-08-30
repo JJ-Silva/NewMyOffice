@@ -12,6 +12,7 @@ import {
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { criarRecorrencia } from "@/lib/db/recorrencias";
+import { marcarPublicacaoVirouPrazo } from "@/lib/db/publicacoes";
 import {
   validarRegra,
   type Periodicidade,
@@ -48,6 +49,7 @@ export async function salvarPrazo(formData: FormData) {
     dobro: campos.dobro ? "1" : "",
     dias: campos.diasInformado ? String(campos.diasInformado) : "",
     titulo: campos.titulo,
+    publicacao: campos.publicacaoId,
   });
 
   if (!calc.ok) {
@@ -58,8 +60,9 @@ export async function salvarPrazo(formData: FormData) {
   const { processoId, tipo, natureza, dias, resultado } = calc.dados;
   const titulo = campos.titulo.trim() || tipo.nome;
 
+  let atividadeId: string;
   try {
-    await criarPrazo(supabase, {
+    atividadeId = await criarPrazo(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       tipoAtividadeId: tipo.id,
@@ -83,6 +86,17 @@ export async function salvarPrazo(formData: FormData) {
       e instanceof Error ? e.message : "Falha ao salvar o prazo.",
     );
     redirect(`/atividades/nova?${paramsBase.toString()}`);
+  }
+
+  // Veio de uma publicação do DJEN (Etapa 5) → fecha a triagem.
+  if (campos.publicacaoId) {
+    await marcarPublicacaoVirouPrazo(supabase, {
+      id: campos.publicacaoId,
+      membroId: sessao.membro.id,
+      atividadeId,
+      processoId,
+    });
+    redirect("/publicacoes?virou=1");
   }
 
   redirect("/agenda?lancado=1");

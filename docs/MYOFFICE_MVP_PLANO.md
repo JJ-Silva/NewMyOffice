@@ -3,7 +3,7 @@
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
 Última atualização: 2026-08-30.
 
-> **Estado (2026-08-30):** Etapas 1, 2, **3a** e **3c** feitas e **deployadas** — https://new-my-office.vercel.app
+> **Estado (2026-08-30):** Etapas 1, 2, **3a**, **3c** e **5** feitas e **deployadas** — https://new-my-office.vercel.app
 > (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
 > Repo: github.com/JJ-Silva/NewMyOffice.
 > **Etapa 1**: 3 tipos de atividade + motor de prazo (T1–T13) + agenda + auth + multi-tenant.
@@ -15,8 +15,10 @@
 > **Etapa 3c**: visão calendário (`/agenda/calendario`) — grade mês/semana, navegação
 > ‹ Hoje ›, filtros pasta/tipo, toggle Lista⇄Calendário. `lib/domain/grade-calendario.ts`.
 > Sincronização com Google Calendar: descartada (decisão 2026-08-30).
-> **3b (alertas por e-mail) adiado para o final** (decisão 2026-08-30) — e isso empurra a
-> Etapa 5 (import DJEN) junto, que depende de 3b.
+> **Etapa 5 (import DJEN)** feita fora de ordem (2026-08-30): `oab_monitorada` + `publicacao`,
+> `lib/djen/comunica-api.ts`, `lib/domain/publicacao.ts`, telas `/publicacoes` (busca +
+> triagem) e `/publicacoes/[id]` (cadastra processo na hora / vincula / vira prazo).
+> **3b (alertas por e-mail) adiado para o final** (decisão 2026-08-30).
 > Próximo: Etapa 4 (documentos) · 6 (papéis/convites) · 7 (relatórios).
 
 ---
@@ -92,7 +94,7 @@ Cada etapa termina com algo **usável e deployado**.
 | 3b | **Alertas/notificações** (e-mail) — o que torna a agenda útil de verdade. **Adiado para o final** (decisão 2026-08-30) — precisa de provedor de e-mail + cron | 1 |
 | ~~3c~~ | ✅ **Visão calendário** (`/agenda/calendario`) — grade mês/semana, nav ‹ Hoje ›, filtros, toggle Lista⇄Calendário. Sync com calendário externo: descartado | 1 |
 | 4 | Documentos: modelos, geração, Storage (Word → pasta de modelos / PDF → pasta do cliente; API Google Drive) | 2 |
-| 5 | Import de publicações do **DJEN** → gera prazos automaticamente (skill `publicacoes-djen` / OAB 515.392-SP) | 2, 3b |
+| ~~5~~ | ✅ Import de publicações do **DJEN** — `oab_monitorada` + `publicacao` · `lib/djen/comunica-api.ts` (API pública do CNJ) · `lib/domain/publicacao.ts` (limpa HTML, normaliza CNJ, sugere tipo/dias) · tela `/publicacoes` (busca + triagem, auto-match CNJ) · triar → cadastra processo na hora ou vincula → vira prazo (reusa o form + motor). Feito antes da 3b — o alerta é plus, não bloqueio | 2 |
 | 6 | Papéis e permissões refinados (dono / advogado / secretaria — o que cada um vê e faz); convites de membro | 1 |
 | 7 | Relatórios e produtividade | 2 |
 
@@ -100,7 +102,7 @@ Cada etapa termina com algo **usável e deployado**.
 - **Decisão 29/08:** os **3 tipos de atividade entram na Etapa 1**. O sistema de tipos (base compartilhada + herança + agenda dinâmica) é **arquitetura**, não feature — construir uma vez, certo, evita o retrabalho de "colar depois" que quebrou o `Modular→MyOffice`. Custo: Etapa 1 vai de ~2 para **~4 semanas** (mas a 1ª fatia deployável continua sendo ~2 semanas — só prazo).
 - **Recorrência fica de fora da Etapa 1** — é **aditivo** (as colunas FK já existem nulas na base `atividade`), sem retrabalho. Na Etapa 1, atividade recorrente é recriada à mão.
 - **Recorrência não se aplica a `prazo`** (`REGRAS_TIPO.prazo.podeRecorrer = false`).
-- **DJEN** depende da Etapa 2 (mapear publicação → processo pelo nº CNJ) e da 3b (o valor do import é gerar prazo + alertar).
+- **DJEN** (Etapa 5, ✅ feita 2026-08-30) usa a API pública `comunicaapi.pje.jus.br` — casa publicação → processo pelo nº CNJ (Etapa 2). O alerta por e-mail (3b) é um plus, não era bloqueio.
 
 ---
 

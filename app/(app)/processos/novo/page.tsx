@@ -39,6 +39,7 @@ export default async function PaginaNovoProcesso({
     "polo",
     "valor_causa",
     "data_distribuicao",
+    "publicacao", // Etapa 5: veio da triagem de uma publicação do DJEN
   ]) {
     const v = get(k);
     if (v) valores[k] = v;

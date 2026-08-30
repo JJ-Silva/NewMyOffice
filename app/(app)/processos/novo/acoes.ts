@@ -8,6 +8,7 @@ import {
   criarProcessoJudicial,
   criarProcessoAdministrativo,
 } from "@/lib/db/processos";
+import { vincularProcessoNaPublicacao } from "@/lib/db/publicacoes";
 
 function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
@@ -36,6 +37,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
     polo: txt(formData, "polo"),
     valor_causa: txt(formData, "valor_causa"),
     data_distribuicao: txt(formData, "data_distribuicao"),
+    publicacao: txt(formData, "publicacao"),
   };
 
   function voltar(erro: string): never {
@@ -48,8 +50,9 @@ export async function salvarProcessoJudicial(formData: FormData) {
   const analise = analisarCnj(campos.cnj);
   if (!analise.ok) voltar(analise.erro);
 
+  let processoId: string;
   try {
-    await criarProcessoJudicial(supabase, {
+    processoId = await criarProcessoJudicial(supabase, {
       escritorioId: sessao.escritorioId,
       pastaId: campos.pasta,
       poloCliente: polo(campos.polo),
@@ -66,6 +69,12 @@ export async function salvarProcessoJudicial(formData: FormData) {
     });
   } catch (e) {
     voltar(e instanceof Error ? e.message : "Falha ao salvar o processo.");
+  }
+
+  // Veio da triagem de uma publicação do DJEN (Etapa 5): vincula e volta.
+  if (campos.publicacao) {
+    await vincularProcessoNaPublicacao(supabase, campos.publicacao, processoId);
+    redirect(`/publicacoes/${campos.publicacao}`);
   }
 
   redirect("/processos?criado=1");
