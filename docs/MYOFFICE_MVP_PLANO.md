@@ -3,13 +3,16 @@
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
 Última atualização: 2026-08-30.
 
-> **Estado (2026-08-30):** Etapas 1 e 2 feitas e **deployadas** — https://new-my-office.vercel.app
+> **Estado (2026-08-30):** Etapas 1, 2 e **3a** feitas e **deployadas** — https://new-my-office.vercel.app
 > (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
 > Repo: github.com/JJ-Silva/NewMyOffice.
 > **Etapa 1**: 3 tipos de atividade + motor de prazo (T1–T13) + agenda + auth + multi-tenant.
 > **Etapa 2**: `processo_judicial`/`administrativo`/`parte`, `lib/domain/cnj.ts` (dígito
 > verificador), telas de processos + detalhe/edição de pasta + partes, prazo ligado a processo.
-> Próximo: roadmap §2 — 3a recorrência, 3b alertas por e-mail, 3c visão calendário…
+> **Etapa 3a**: `atividade_recorrencia` + `lib/domain/recorrencia.ts` (intervalo/semanal/mensal,
+> fim por data/nº/indefinido); materialização em janela rolante (90d) na agenda + "gera a
+> próxima ao concluir"; bloco "Repetir" nos formulários; tela `/recorrencias`.
+> Próximo: roadmap §2 — 3b alertas por e-mail, 3c visão calendário…
 
 ---
 
@@ -80,7 +83,7 @@ Cada etapa termina com algo **usável e deployado**.
 |---|---|---|
 | **1** | **Os 3 tipos de atividade** (`prazo` + `compromisso` + `monitoramento`): cadastrar, editar, concluir cada um · **agenda unificada** com visibilidade por tipo · **motor de cálculo de prazo** · multi-tenant + auth | — |
 | 2 | CRUD completo de Pastas e Processos; partes; **parsing + validação do nº CNJ** | 1 |
-| 3a | **Recorrência** (compromissos e monitoramentos) — `atividade_recorrencia` + gerador de próximas instâncias | 1 |
+| ~~3a~~ | ✅ **Recorrência** (compromissos e monitoramentos) — `atividade_recorrencia` + `lib/domain/recorrencia.ts` + materialização (janela rolante 90d + próxima ao concluir) + tela `/recorrencias` | 1 |
 | 3b | **Alertas/notificações** (e-mail) — o que torna a agenda útil de verdade | 1 |
 | 3c | **Visão calendário** (mês/semana) além da lista | 1 |
 | 4 | Documentos: modelos, geração, Storage (Word → pasta de modelos / PDF → pasta do cliente; API Google Drive) | 2 |

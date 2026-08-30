@@ -37,7 +37,7 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30): Etapas 1 e 2 feitas e DEPLOYADAS.**
+**Estado (2026-08-30): Etapas 1, 2 e 3a feitas e DEPLOYADAS.**
 - App no ar: https://new-my-office.vercel.app · repo github.com/JJ-Silva/NewMyOffice
   (auto-deploy no push da `master`).
 - **Etapa 1**: 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo
@@ -46,5 +46,10 @@ Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a b
   `lib/domain/cnj.ts` (parsing + dígito verificador Res. CNJ 65/2008); telas `/processos`
   (lista + cadastro com validação do CNJ) e `/pastas/[id]` (detalhe, edição, partes);
   o lançamento de prazo agora liga a atividade a um processo judicial específico.
-- **Próximo (roadmap §2 do plano)**: 3a recorrência · 3b alertas por e-mail ·
+- **Etapa 3a**: `atividade_recorrencia` (migration aplicada) + `lib/domain/recorrencia.ts`
+  (intervalo / semanal / mensal · fim por data / nº de vezes / indefinido); materialização
+  em janela rolante de 90 dias ao abrir a agenda + "gera a próxima ao concluir"; bloco
+  "Repetir esta atividade" nos formulários de compromisso e monitoramento; tela
+  `/recorrencias` (lista, encerrar, excluir).
+- **Próximo (roadmap §2 do plano)**: 3b alertas por e-mail ·
   3c visão calendário · 4 documentos · 5 import DJEN · 6 papéis/convites · 7 relatórios.
