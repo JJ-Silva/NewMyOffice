@@ -12,6 +12,7 @@ import { listarPartesDoProcesso, TIPOS_PARTE } from "@/lib/db/partes";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
   salvarPasta,
+  excluirPastaAction,
   adicionarCliente,
   removerCliente,
   adicionarParteAction,
@@ -337,6 +338,31 @@ export default async function PaginaPasta({
             )
           : "—"}
       </p>
+
+      {/* Excluir pasta */}
+      <details className="text-sm">
+        <summary className="cursor-pointer text-texto-secundario">
+          Excluir esta pasta
+        </summary>
+        <form action={excluirPastaAction} className="mt-2 flex items-end gap-2">
+          <input type="hidden" name="id" value={pasta.id} />
+          <label className="flex flex-col gap-1.5">
+            <span className="rotulo">
+              Some das listas (soft-delete). Digite <strong>EXCLUIR</strong> para
+              confirmar.
+            </span>
+            <input
+              name="confirmacao"
+              required
+              placeholder="EXCLUIR"
+              className="campo w-[220px]"
+            />
+          </label>
+          <BotaoEnviar className="botao-perigo h-[38px]" rotuloOcupado="…">
+            Excluir pasta
+          </BotaoEnviar>
+        </form>
+      </details>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import {
   atualizarPasta,
+  excluirPasta,
   vincularCliente,
   desvincularCliente,
 } from "@/lib/db/pastas";
@@ -42,6 +43,21 @@ export async function salvarPasta(formData: FormData) {
         : "ativa",
   });
   revalidatePath(`/pastas/${id}`);
+}
+
+export async function excluirPastaAction(formData: FormData) {
+  const { supabase } = await ctx();
+  const id = txt(formData, "id");
+  const confirmacao = txt(formData, "confirmacao");
+  if (!id) return;
+  if (confirmacao !== "EXCLUIR") {
+    redirect(
+      `/pastas/${id}?erro=` +
+        encodeURIComponent('Digite EXCLUIR para confirmar.'),
+    );
+  }
+  await excluirPasta(supabase, id);
+  redirect("/pastas");
 }
 
 export async function adicionarCliente(formData: FormData) {

@@ -201,6 +201,21 @@ export async function atualizarPasta(
   }
 }
 
+// Soft-delete da pasta (§0: dado jurídico não se apaga de verdade). Some das
+// listas; os processos e atividades ligados continuam no banco mas invisíveis.
+export async function excluirPasta(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("pasta")
+    .update({ deletado_em: new Date().toISOString() })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`Falha ao excluir a pasta: ${error.message}`);
+  }
+}
+
 export async function vincularCliente(
   supabase: SupabaseClient,
   pastaId: string,
