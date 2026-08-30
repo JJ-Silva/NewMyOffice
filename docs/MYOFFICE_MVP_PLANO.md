@@ -1,7 +1,12 @@
 # MYOFFICE — PLANO DO MVP (reinício)
 
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
-Última atualização: 2026-08-28.
+Última atualização: 2026-08-30.
+
+> **Estado (2026-08-30):** Etapa 1 completa e **deployada** — https://new-my-office.vercel.app
+> (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
+> Repo: github.com/JJ-Silva/NewMyOffice. Os 3 tipos de atividade + motor de prazo funcionam.
+> Próximo: Etapa 2 (processos judiciais/administrativos, parsing CNJ, partes).
 
 ---
 

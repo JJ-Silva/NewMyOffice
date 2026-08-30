@@ -37,7 +37,12 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30):** Passos 1–8 feitos; bateria de testes T1–T13 + RLS + auth OK.
-`compromisso` e `monitoramento` implementados (form com abas, agenda com visibilidade
-por tipo, "registrar verificação"). **Falta o Passo 9 (deploy Vercel)** — depende do
-Jefferson (GitHub + Vercel). Etapa 2 (processos/CNJ) só depois do deploy.
+**Estado (2026-08-30): Etapa 1 completa e DEPLOYADA.**
+- Passos 1–9 feitos. App no ar: https://new-my-office.vercel.app
+- Repo: github.com/JJ-Silva/NewMyOffice (auto-deploy no push da `master`).
+- Os 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo (T1–T13
+  validados) + agenda + auth + multi-tenant. Bateria de testes ponta a ponta OK.
+- Pendência menor: apontar Site URL / Redirect URLs no Supabase Auth para o domínio Vercel
+  (não trava o login por senha; importa para e-mail de confirmação/reset).
+- **Próximo: Etapa 2** — processos judiciais/administrativos, parsing CNJ, partes.
+  As tabelas `processo_judicial` etc. ainda não existem no banco.
