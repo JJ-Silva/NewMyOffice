@@ -216,16 +216,20 @@ function Cartao({ p }: { p: PublicacaoLista }) {
 
       {p.texto.length > p.resumo.length ? (
         <details className="group">
-          <summary className="cursor-pointer list-none text-[13px] leading-relaxed text-texto">
-            {p.resumo}{" "}
-            <span className="text-xs font-medium text-teal group-open:hidden">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <span className="text-[13px] leading-relaxed text-texto group-open:hidden">
+              {p.resumo}
+            </span>
+            <span className="ml-1 text-xs font-medium text-teal group-open:hidden">
               ver mais
             </span>
+            <span className="hidden text-xs font-medium text-teal group-open:inline">
+              ver menos
+            </span>
           </summary>
-          <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-texto">
+          <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-texto">
             {p.texto}
           </p>
-          <span className="text-xs font-medium text-teal">ver menos</span>
         </details>
       ) : (
         <p className="text-[13px] leading-relaxed text-texto">{p.texto}</p>
