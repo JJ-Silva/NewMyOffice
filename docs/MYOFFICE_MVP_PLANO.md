@@ -15,7 +15,9 @@
 > **Etapa 3c**: visão calendário (`/agenda/calendario`) — grade mês/semana, navegação
 > ‹ Hoje ›, filtros pasta/tipo, toggle Lista⇄Calendário. `lib/domain/grade-calendario.ts`.
 > Sincronização com Google Calendar: descartada (decisão 2026-08-30).
-> Próximo: roadmap §2 — 3b alertas por e-mail…
+> **3b (alertas por e-mail) adiado para o final** (decisão 2026-08-30) — e isso empurra a
+> Etapa 5 (import DJEN) junto, que depende de 3b.
+> Próximo: Etapa 4 (documentos) · 6 (papéis/convites) · 7 (relatórios).
 
 ---
 
@@ -87,7 +89,7 @@ Cada etapa termina com algo **usável e deployado**.
 | **1** | **Os 3 tipos de atividade** (`prazo` + `compromisso` + `monitoramento`): cadastrar, editar, concluir cada um · **agenda unificada** com visibilidade por tipo · **motor de cálculo de prazo** · multi-tenant + auth | — |
 | 2 | CRUD completo de Pastas e Processos; partes; **parsing + validação do nº CNJ** | 1 |
 | ~~3a~~ | ✅ **Recorrência** (compromissos e monitoramentos) — `atividade_recorrencia` + `lib/domain/recorrencia.ts` + materialização (janela rolante 90d + próxima ao concluir) + tela `/recorrencias` | 1 |
-| 3b | **Alertas/notificações** (e-mail) — o que torna a agenda útil de verdade | 1 |
+| 3b | **Alertas/notificações** (e-mail) — o que torna a agenda útil de verdade. **Adiado para o final** (decisão 2026-08-30) — precisa de provedor de e-mail + cron | 1 |
 | ~~3c~~ | ✅ **Visão calendário** (`/agenda/calendario`) — grade mês/semana, nav ‹ Hoje ›, filtros, toggle Lista⇄Calendário. Sync com calendário externo: descartado | 1 |
 | 4 | Documentos: modelos, geração, Storage (Word → pasta de modelos / PDF → pasta do cliente; API Google Drive) | 2 |
 | 5 | Import de publicações do **DJEN** → gera prazos automaticamente (skill `publicacoes-djen` / OAB 515.392-SP) | 2, 3b |
