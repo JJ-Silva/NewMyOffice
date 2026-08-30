@@ -6,10 +6,10 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
 import { sugerirPrazo } from "@/lib/domain/publicacao";
 import { buscarPublicacao } from "@/lib/db/publicacoes";
-import { listarPastas } from "@/lib/db/pastas";
+import { listarProcessos } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import { descartar, reabrir, vincularAPasta } from "../acoes";
+import { descartar, reabrir, vincularProcessoJudicial } from "../acoes";
 
 export default async function PaginaTriagem({
   params,
@@ -26,10 +26,11 @@ export default async function PaginaTriagem({
 
   const sugestao = sugerirPrazo(p.texto);
 
-  const [pastas, tiposPrazo] = await Promise.all([
-    listarPastas(supabase, sessao.escritorioId),
+  const [processos, tiposPrazo] = await Promise.all([
+    listarProcessos(supabase, sessao.escritorioId),
     listarTiposDeAtividade(supabase, sessao.escritorioId, "prazo"),
   ]);
+  const judiciais = processos.filter((x) => x.tipo === "judicial");
 
   // Tribunal do processo vinculado (para pré-preencher o calendário do prazo).
   let tribunalIdDoProcesso = "";
@@ -174,8 +175,9 @@ export default async function PaginaTriagem({
               <div className="flex flex-col gap-3">
                 <p className="text-[13px] text-texto-secundario">
                   {p.cnj
-                    ? "Nenhum processo cadastrado com este CNJ."
-                    : "A publicação não traz número de processo reconhecível."}
+                    ? "Nenhum processo judicial cadastrado com este CNJ."
+                    : "A publicação não traz número de processo reconhecível."}{" "}
+                  Uma publicação do DJEN sempre se liga a um processo judicial.
                 </p>
 
                 <Link
@@ -185,47 +187,50 @@ export default async function PaginaTriagem({
                   Cadastrar processo judicial
                 </Link>
 
-                <div className="flex items-center gap-3 text-xs text-texto-secundario">
-                  <span className="h-px flex-1 bg-tint-2" />
-                  ou
-                  <span className="h-px flex-1 bg-tint-2" />
-                </div>
+                {judiciais.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-3 text-xs text-texto-secundario">
+                      <span className="h-px flex-1 bg-tint-2" />
+                      ou, se já existe
+                      <span className="h-px flex-1 bg-tint-2" />
+                    </div>
 
-                <form
-                  action={vincularAPasta}
-                  className="flex flex-wrap items-end gap-2"
-                >
-                  <input type="hidden" name="id" value={p.id} />
-                  <label className="flex flex-col gap-1.5">
-                    <span className="rotulo">Vincular a uma pasta existente</span>
-                    <select
-                      name="pasta_id"
-                      required
-                      defaultValue=""
-                      className="campo w-[320px]"
+                    <form
+                      action={vincularProcessoJudicial}
+                      className="flex flex-wrap items-end gap-2"
                     >
-                      <option value="" disabled>
-                        Selecione a pasta…
-                      </option>
-                      {pastas.map((pa) => (
-                        <option key={pa.id} value={pa.id}>
-                          {(pa.nome ?? pa.codigo) +
-                            (pa.clientes[0] ? ` · ${pa.clientes[0].nome}` : "")}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <BotaoEnviar
-                    className="botao-secundario h-[38px]"
-                    rotuloOcupado="…"
-                  >
-                    Vincular
-                  </BotaoEnviar>
-                </form>
-                <span className="text-xs text-texto-secundario">
-                  Vincular usa o processo “geral” da pasta — dá para cadastrar o
-                  processo judicial depois.
-                </span>
+                      <input type="hidden" name="id" value={p.id} />
+                      <label className="flex flex-col gap-1.5">
+                        <span className="rotulo">
+                          Vincular a um processo judicial já cadastrado
+                        </span>
+                        <select
+                          name="processo_id"
+                          required
+                          defaultValue=""
+                          className="campo w-[360px]"
+                        >
+                          <option value="" disabled>
+                            Selecione o processo…
+                          </option>
+                          {judiciais.map((x) => (
+                            <option key={x.id} value={x.id}>
+                              {(x.numero ?? "sem número") +
+                                ` · ${x.pastaNome ?? x.pastaCodigo}` +
+                                (x.clienteNome ? ` · ${x.clienteNome}` : "")}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <BotaoEnviar
+                        className="botao-secundario h-[38px]"
+                        rotuloOcupado="…"
+                      >
+                        Vincular
+                      </BotaoEnviar>
+                    </form>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -8,7 +8,6 @@ import { hojeNoBrasil } from "@/lib/hoje";
 import { somarDias } from "@/lib/domain/datas";
 import { listarOabs } from "@/lib/db/oab";
 import { sincronizarEscritorio } from "@/lib/djen/sincronizar";
-import { listarProcessosDaPasta } from "@/lib/db/processos";
 import {
   descartarPublicacao,
   reabrirPublicacao,
@@ -88,23 +87,30 @@ export async function reabrir(formData: FormData) {
   revalidatePath(`/publicacoes/${id}`);
 }
 
-// Vincula a publicação ao processo 'geral' de uma pasta existente (quando não
-// há um processo judicial cadastrado com esse CNJ).
-export async function vincularAPasta(formData: FormData) {
-  const { supabase } = await ctx();
+// Vincula a publicação a um PROCESSO JUDICIAL já cadastrado (para o caso em que
+// o casamento automático por CNJ falhou). Publicação do DJEN só se liga a
+// processo judicial — nunca ao "geral" de uma pasta.
+export async function vincularProcessoJudicial(formData: FormData) {
+  const { sessao, supabase } = await ctx();
   const id = txt(formData, "id");
-  const pastaId = txt(formData, "pasta_id");
-  if (!id || !pastaId) return;
+  const processoId = txt(formData, "processo_id");
+  if (!id || !processoId) return;
 
-  const processos = await listarProcessosDaPasta(supabase, pastaId);
-  const alvo =
-    processos.find((p) => p.tipo === "geral") ?? processos[0] ?? null;
-  if (!alvo) {
+  const { data } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("id", processoId)
+    .eq("escritorio_id", sessao.escritorioId)
+    .eq("tipo", "judicial")
+    .is("deletado_em", null)
+    .maybeSingle();
+  if (!data) {
     redirect(
       `/publicacoes/${id}?erro=` +
-        encodeURIComponent("Essa pasta não tem processo."),
+        encodeURIComponent("Processo judicial inválido."),
     );
   }
-  await vincularProcessoNaPublicacao(supabase, id, alvo.id);
+
+  await vincularProcessoNaPublicacao(supabase, id, processoId);
   revalidatePath(`/publicacoes/${id}`);
 }
