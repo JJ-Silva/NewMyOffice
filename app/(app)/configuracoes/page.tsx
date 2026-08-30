@@ -6,6 +6,7 @@ import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { listarFeriados } from "@/lib/db/feriados";
 import { listarPeriodosNaoUteis } from "@/lib/db/periodos-nao-uteis";
+import { listarOabs } from "@/lib/db/oab";
 import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
 import {
   adicionarTribunal,
@@ -14,6 +15,8 @@ import {
   removerFeriado,
   adicionarPeriodoNaoUtil,
   removerPeriodoNaoUtil,
+  adicionarOabAction,
+  removerOabAction,
 } from "./acoes";
 
 // 'AAAA-MM-DD' → "25/12/2026 · sexta-feira"
@@ -21,17 +24,23 @@ function formatarData(iso: string): string {
   return `${formatarDataBR(iso)} · ${nomeDoDiaDaSemana(iso)}`;
 }
 
-export default async function PaginaConfiguracoes() {
+export default async function PaginaConfiguracoes({
+  searchParams,
+}: PageProps<"/configuracoes">) {
   const sessao = await exigirSessao();
   if (!podeFazer(sessao.membro, "acessar_configuracoes")) {
     redirect("/agenda");
   }
 
+  const params = await searchParams;
+  const erro = typeof params.erro === "string" ? params.erro : null;
+
   const supabase = await criarClienteServidor();
-  const [tribunais, feriados, periodos] = await Promise.all([
+  const [tribunais, feriados, periodos, oabs] = await Promise.all([
     listarTribunais(supabase, sessao.escritorioId),
     listarFeriados(supabase, sessao.escritorioId),
     listarPeriodosNaoUteis(supabase, sessao.escritorioId),
+    listarOabs(supabase, sessao.escritorioId),
   ]);
 
   const semTribunais = tribunais.length === 0;
@@ -45,6 +54,12 @@ export default async function PaginaConfiguracoes() {
           vê esta tela.
         </p>
       </div>
+
+      {erro && (
+        <p className="rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
+          {erro}
+        </p>
+      )}
 
       <div className="grid items-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(340px,1fr))]">
         {/* ── Tribunais ──────────────────────────────────────────── */}
@@ -312,6 +327,85 @@ export default async function PaginaConfiguracoes() {
                   </div>
                   <form action={removerPeriodoNaoUtil}>
                     <input type="hidden" name="id" value={p.id} />
+                    <button type="submit" className="botao-perigo">
+                      Excluir
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── OABs monitoradas (DJEN) ────────────────────────────── */}
+        <section className="card flex flex-col gap-4 p-[22px]">
+          <div className="flex flex-col gap-0.5">
+            <h2 className="titulo-secao">OABs monitoradas (DJEN)</h2>
+            <span className="text-[12.5px] text-texto-secundario">
+              As OABs dos advogados do escritório. A busca em “Publicações” traz
+              as intimações de todas elas no Diário de Justiça Nacional.
+            </span>
+          </div>
+
+          <form
+            action={adicionarOabAction}
+            className="grid items-end gap-2.5 [grid-template-columns:1fr_110px_70px_96px]"
+          >
+            <label className="flex min-w-0 flex-col gap-1.5">
+              <span className="rotulo">Advogado (opcional)</span>
+              <input
+                name="nome_advogado"
+                placeholder="José Jefferson da Silva"
+                className="campo"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">Nº OAB</span>
+              <input
+                name="numero"
+                required
+                inputMode="numeric"
+                placeholder="515392"
+                className="campo"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">UF</span>
+              <input
+                name="uf"
+                required
+                maxLength={2}
+                placeholder="SP"
+                className="campo uppercase"
+              />
+            </label>
+            <BotaoEnviar className="botao-primario h-[38px] px-0">
+              Adicionar
+            </BotaoEnviar>
+          </form>
+
+          {oabs.length === 0 ? (
+            <p className="painel-vazio">
+              Nenhuma OAB cadastrada. Adicione ao menos uma para buscar
+              publicações no DJEN.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {oabs.map((o) => (
+                <div key={o.id} className="linha-lista">
+                  <span className="etiqueta-sigla">
+                    {o.numero}/{o.uf}
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-px">
+                    <span className="truncate text-[13.5px]">
+                      {o.nomeAdvogado ?? "—"}
+                    </span>
+                    <span className="text-xs text-texto-secundario">
+                      {o.ativo ? "ativa" : "inativa"}
+                    </span>
+                  </div>
+                  <form action={removerOabAction}>
+                    <input type="hidden" name="id" value={o.id} />
                     <button type="submit" className="botao-perigo">
                       Excluir
                     </button>

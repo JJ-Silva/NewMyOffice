@@ -14,6 +14,7 @@ import {
   criarPeriodoNaoUtil,
   excluirPeriodoNaoUtil,
 } from "@/lib/db/periodos-nao-uteis";
+import { adicionarOab, excluirOab } from "@/lib/db/oab";
 
 // Todas as ações de Configurações passam por aqui: exigem sessão e o papel
 // `dono` (decisão P6 — só o administrador mexe em tribunais/feriados).
@@ -109,6 +110,39 @@ export async function removerPeriodoNaoUtil(formData: FormData) {
   const id = texto(formData, "id");
   if (id) {
     await excluirPeriodoNaoUtil(supabase, id);
+    revalidatePath("/configuracoes");
+  }
+}
+
+// ── OABs monitoradas (DJEN) ────────────────────────────────────────────────
+export async function adicionarOabAction(formData: FormData) {
+  const { sessao, supabase } = await contextoAutorizado();
+  const numero = texto(formData, "numero");
+  const uf = texto(formData, "uf");
+  if (!numero || !uf) return;
+  try {
+    await adicionarOab(supabase, {
+      escritorioId: sessao.escritorioId,
+      numero,
+      uf,
+      nomeAdvogado: texto(formData, "nome_advogado") || null,
+    });
+  } catch (e) {
+    redirect(
+      "/configuracoes?erro=" +
+        encodeURIComponent(
+          e instanceof Error ? e.message : "Falha ao adicionar a OAB.",
+        ),
+    );
+  }
+  revalidatePath("/configuracoes");
+}
+
+export async function removerOabAction(formData: FormData) {
+  const { supabase } = await contextoAutorizado();
+  const id = texto(formData, "id");
+  if (id) {
+    await excluirOab(supabase, id);
     revalidatePath("/configuracoes");
   }
 }
