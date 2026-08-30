@@ -36,6 +36,17 @@ export type DetalheAtividade = {
   clienteNome: string | null;
   processoTipo: string;
   tipoAtividadeNome: string | null;
+  // atividade_compromisso (quando tipo='compromisso')
+  compromisso: {
+    hora: string | null;
+    local: string | null;
+    duracaoEstimadaMin: number | null;
+  } | null;
+  // atividade_monitoramento (quando tipo='monitoramento')
+  monitoramento: {
+    alvo: string | null;
+    ultimaVerificacao: string | null;
+  } | null;
   // atividade_prazo (quando tipo='prazo')
   prazo: {
     tribunalId: string | null;
@@ -71,6 +82,8 @@ export async function carregarDetalheAtividade(
          pasta_id,
          pasta:pasta_id ( codigo, nome, pasta_cliente ( cliente:cliente_id ( nome ) ) )
        ),
+       atividade_compromisso ( hora, local, duracao_estimada_min ),
+       atividade_monitoramento ( alvo, ultima_verificacao ),
        atividade_prazo (
          tribunal_id, evento_tipo, evento_data,
          prazo_fatal_calculado, prazo_fatal, prazo_fatal_ajustado_manual,
@@ -118,6 +131,8 @@ export async function carregarDetalheAtividade(
     um<{ cliente: unknown }>(arr(pasta?.pasta_cliente)[0])?.cliente,
   );
   const p = um<Record<string, unknown>>(data.atividade_prazo);
+  const c = um<Record<string, unknown>>(data.atividade_compromisso);
+  const mo = um<Record<string, unknown>>(data.atividade_monitoramento);
 
   return {
     id: data.id as string,
@@ -134,6 +149,19 @@ export async function carregarDetalheAtividade(
     clienteNome: cliente?.nome ?? null,
     processoTipo: processo?.tipo ?? "geral",
     tipoAtividadeNome: um<{ nome: string }>(data.tipo_atividade)?.nome ?? null,
+    compromisso: c
+      ? {
+          hora: (c.hora as string | null) ?? null,
+          local: (c.local as string | null) ?? null,
+          duracaoEstimadaMin: (c.duracao_estimada_min as number | null) ?? null,
+        }
+      : null,
+    monitoramento: mo
+      ? {
+          alvo: (mo.alvo as string | null) ?? null,
+          ultimaVerificacao: (mo.ultima_verificacao as string | null) ?? null,
+        }
+      : null,
     prazo: p
       ? {
           tribunalId: (p.tribunal_id as string | null) ?? null,

@@ -7,7 +7,14 @@ import { formatarDataBR } from "@/lib/domain/datas";
 import { estadoNaAgenda } from "@/lib/domain/atividade";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import { carregarDetalheAtividade } from "@/lib/db/atividade-detalhe";
-import { concluir, reativar, cancelar, anotar, ajustarPrazo } from "../acoes";
+import {
+  concluir,
+  reativar,
+  cancelar,
+  anotar,
+  ajustarPrazo,
+  verificar,
+} from "../acoes";
 
 const ESTADO_LABEL: Record<string, string> = {
   atrasada: "Atrasada",
@@ -18,9 +25,14 @@ const ESTADO_LABEL: Record<string, string> = {
   cancelada: "Cancelada",
 };
 
+const TIPO_LABEL = {
+  prazo: "Prazo",
+  compromisso: "Compromisso",
+  monitoramento: "Monitoramento",
+} as const;
+
 function dataHora(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("pt-BR", {
+  return new Date(iso).toLocaleString("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
     timeZone: "America/Sao_Paulo",
@@ -45,10 +57,20 @@ export default async function PaginaDetalheAtividade({
   const hoje = hojeNoBrasil();
   const prazo = d.prazo;
   const estado = estadoNaAgenda(
-    { status: d.status, data: d.data, prazoInterno: prazo?.prazoInterno ?? null },
+    {
+      status: d.status,
+      data: d.data,
+      prazoInterno: prazo?.prazoInterno ?? null,
+    },
     hoje,
   );
   const aberta = d.status === "pendente" || d.status === "em_andamento";
+  const rotuloData =
+    d.tipo === "prazo"
+      ? "Prazo fatal (adotado)"
+      : d.tipo === "compromisso"
+        ? "Data do compromisso"
+        : "Dia da verificação";
 
   return (
     <div className="flex max-w-[820px] flex-col gap-5">
@@ -57,7 +79,8 @@ export default async function PaginaDetalheAtividade({
           ← Voltar para a agenda
         </Link>
         <span className="text-xs text-texto-secundario">
-          {d.pastaCodigo} · {d.clienteNome ?? "sem cliente"} · Geral da pasta
+          {TIPO_LABEL[d.tipo]} · {d.pastaCodigo} ·{" "}
+          {d.clienteNome ?? "sem cliente"} · Geral da pasta
         </span>
         <h1 className="titulo-pagina">
           {d.titulo} — {d.pastaNome ?? d.pastaCodigo}
@@ -73,28 +96,58 @@ export default async function PaginaDetalheAtividade({
       {/* Datas + situação */}
       <div className="grid gap-3 [grid-template-columns:1fr_1fr_1fr]">
         <div className="card flex flex-col gap-1 p-3.5">
-          <span className="rotulo">Prazo fatal (adotado)</span>
+          <span className="rotulo">{rotuloData}</span>
           <span className="text-lg font-semibold tabular-nums text-atrasado">
             {formatarDataBR(d.data)}
           </span>
-          {prazo && prazo.prazoFatalCalculado &&
+          {prazo &&
+            prazo.prazoFatalCalculado &&
             prazo.prazoFatalCalculado !== d.data && (
               <span className="text-xs text-texto-secundario">
                 sistema calculou {formatarDataBR(prazo.prazoFatalCalculado)}
               </span>
             )}
+          {d.tipo === "compromisso" && d.compromisso?.hora && (
+            <span className="text-xs text-texto-secundario">
+              às {d.compromisso.hora.slice(0, 5)}
+            </span>
+          )}
         </div>
         <div className="card flex flex-col gap-1 p-3.5">
-          <span className="rotulo">Prazo interno (adotado)</span>
-          <span className="text-lg font-semibold tabular-nums text-aviso">
-            {prazo ? formatarDataBR(prazo.prazoInterno) : "—"}
-          </span>
-          {prazo && prazo.prazoInternoCalculado &&
-            prazo.prazoInternoCalculado !== prazo.prazoInterno && (
-              <span className="text-xs text-texto-secundario">
-                sistema calculou {formatarDataBR(prazo.prazoInternoCalculado)}
+          {d.tipo === "prazo" ? (
+            <>
+              <span className="rotulo">Prazo interno (adotado)</span>
+              <span className="text-lg font-semibold tabular-nums text-aviso">
+                {prazo ? formatarDataBR(prazo.prazoInterno) : "—"}
               </span>
-            )}
+              {prazo &&
+                prazo.prazoInternoCalculado &&
+                prazo.prazoInternoCalculado !== prazo.prazoInterno && (
+                  <span className="text-xs text-texto-secundario">
+                    sistema calculou{" "}
+                    {formatarDataBR(prazo.prazoInternoCalculado)}
+                  </span>
+                )}
+            </>
+          ) : d.tipo === "monitoramento" ? (
+            <>
+              <span className="rotulo">Última verificação</span>
+              <span className="text-base font-semibold">
+                {d.monitoramento?.ultimaVerificacao
+                  ? dataHora(d.monitoramento.ultimaVerificacao)
+                  : "ainda não verificado"}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="rotulo">Duração estimada</span>
+              <span className="text-base font-semibold">
+                {d.compromisso?.duracaoEstimadaMin
+                  ? `${d.compromisso.duracaoEstimadaMin} min`
+                  : "—"}
+              </span>
+            </>
+          )}
         </div>
         <div className="card flex flex-col gap-1 p-3.5">
           <span className="rotulo">Situação</span>
@@ -107,6 +160,20 @@ export default async function PaginaDetalheAtividade({
         </div>
       </div>
 
+      {/* Detalhe do compromisso */}
+      {d.tipo === "compromisso" && d.compromisso?.local && (
+        <p className="rounded-lg border border-tint-2 bg-tint-1 px-3.5 py-2.5 text-[13px]">
+          Local: <strong>{d.compromisso.local}</strong>
+        </p>
+      )}
+
+      {/* Detalhe do monitoramento */}
+      {d.tipo === "monitoramento" && d.monitoramento?.alvo && (
+        <p className="rounded-lg border border-tint-2 bg-tint-1 px-3.5 py-2.5 text-[13px]">
+          Alvo: <strong>{d.monitoramento.alvo}</strong>
+        </p>
+      )}
+
       {prazo?.motivoAjuste && (
         <p className="rounded-lg border border-tint-2 bg-tint-1 px-3.5 py-2.5 text-[13px] text-texto-secundario">
           Datas ajustadas manualmente. Motivo do último ajuste:{" "}
@@ -114,7 +181,7 @@ export default async function PaginaDetalheAtividade({
         </p>
       )}
 
-      {/* Memória de cálculo */}
+      {/* Memória de cálculo (só prazo) */}
       {prazo?.memoriaCalculo && (
         <MemoriaCalculoPainel
           memoria={prazo.memoriaCalculo}
@@ -125,7 +192,7 @@ export default async function PaginaDetalheAtividade({
         />
       )}
 
-      {/* Ajustar datas */}
+      {/* Ajustar datas (só prazo) */}
       {prazo && aberta && (
         <details className="card p-5">
           <summary className="cursor-pointer text-sm font-semibold">
@@ -166,7 +233,10 @@ export default async function PaginaDetalheAtividade({
               Fica registrado no histórico do prazo com autor, data e motivo. Se
               você mudar só o fatal, o interno é re-derivado (fatal − margem).
             </span>
-            <button type="submit" className="botao-primario h-[38px] self-start">
+            <button
+              type="submit"
+              className="botao-primario h-[38px] self-start"
+            >
               Salvar ajuste
             </button>
           </form>
@@ -242,33 +312,71 @@ export default async function PaginaDetalheAtividade({
       )}
 
       {/* Ações */}
-      <div className="flex flex-wrap gap-3">
-        {aberta ? (
-          <>
-            <form action={concluir} className="flex items-end gap-2">
-              <input type="hidden" name="id" value={d.id} />
-              <label className="flex flex-col gap-1.5">
-                <span className="rotulo">Como foi cumprido (opcional)</span>
-                <input name="observacao" className="campo w-[280px]" />
-              </label>
-              <button
-                type="submit"
-                className="botao-primario h-[38px]"
-                style={{ background: "var(--cumprido)", color: "#fff" }}
-              >
-                Marcar como cumprido
-              </button>
-            </form>
-          </>
-        ) : (
-          <form action={reativar}>
+      {aberta ? (
+        d.tipo === "monitoramento" ? (
+          <form
+            action={verificar}
+            className="card flex flex-col gap-3 p-5"
+          >
+            <span className="text-sm font-semibold">Registrar verificação</span>
             <input type="hidden" name="id" value={d.id} />
-            <button type="submit" className="botao-secundario h-[38px]">
-              Reativar
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">Resultado</span>
+              <input
+                name="resultado"
+                required
+                placeholder="Ex.: nada de novo no andamento / saiu decisão"
+                className="campo"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="achou_mudanca" value="1" />
+              Encontrei uma mudança (a prioridade sobe e a atividade fica
+              pendente)
+            </label>
+            <span className="text-xs text-texto-secundario">
+              Sem mudança e sem recorrência → a atividade é concluída.
+            </span>
+            <button
+              type="submit"
+              className="botao-primario h-[38px] self-start"
+            >
+              Registrar
             </button>
           </form>
-        )}
-      </div>
+        ) : (
+          <form
+            action={concluir}
+            className="card flex flex-wrap items-end gap-2 p-5"
+          >
+            <input type="hidden" name="id" value={d.id} />
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">
+                {d.tipo === "prazo"
+                  ? "Como foi cumprido (opcional)"
+                  : "Observação (opcional)"}
+              </span>
+              <input name="observacao" className="campo w-[280px]" />
+            </label>
+            <button
+              type="submit"
+              className="botao-primario h-[38px]"
+              style={{ background: "var(--cumprido)", color: "#fff" }}
+            >
+              {d.tipo === "prazo"
+                ? "Marcar como cumprido"
+                : "Marcar como realizado"}
+            </button>
+          </form>
+        )
+      ) : (
+        <form action={reativar}>
+          <input type="hidden" name="id" value={d.id} />
+          <button type="submit" className="botao-secundario h-[38px]">
+            Reativar
+          </button>
+        </form>
+      )}
 
       {aberta && (
         <details className="text-sm">
@@ -290,7 +398,8 @@ export default async function PaginaDetalheAtividade({
 
       {d.status === "concluida" && d.observacaoConclusao && (
         <p className="text-[13px] text-texto-secundario">
-          Concluída em {d.dataConclusao ? formatarDataBR(d.dataConclusao) : "—"}:{" "}
+          Concluída em{" "}
+          {d.dataConclusao ? formatarDataBR(d.dataConclusao) : "—"}:{" "}
           {d.observacaoConclusao}
         </p>
       )}

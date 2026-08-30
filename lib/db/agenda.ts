@@ -10,6 +10,7 @@ import type { StatusAtividade } from "@/lib/domain/atividade";
 export type FiltrosAgenda = {
   pastaId?: string;
   status?: StatusAtividade | "";
+  tipo?: "prazo" | "compromisso" | "monitoramento" | "";
 };
 
 export type ItemAgenda = {
@@ -18,6 +19,7 @@ export type ItemAgenda = {
   tipo: "prazo" | "compromisso" | "monitoramento";
   data: string; // 'AAAA-MM-DD' (= prazo fatal adotado, para prazo)
   status: StatusAtividade;
+  diasAntesVisivelCustom: number | null;
   prioridadeManual: "baixa" | "media" | "alta" | "urgente";
   pastaId: string;
   pastaCodigo: string;
@@ -39,7 +41,7 @@ export async function listarAgenda(
   let q = supabase
     .from("atividade")
     .select(
-      `id, titulo, tipo, data, status, prioridade_manual,
+      `id, titulo, tipo, data, status, prioridade_manual, dias_antes_visivel_custom,
        tipo_atividade:tipo_atividade_id ( nome ),
        responsavel:responsavel_id ( usuario:usuario_id ( nome ) ),
        processo:processo_id (
@@ -54,6 +56,9 @@ export async function listarAgenda(
 
   if (filtros.status) {
     q = q.eq("status", filtros.status);
+  }
+  if (filtros.tipo) {
+    q = q.eq("tipo", filtros.tipo);
   }
 
   const { data, error } = await q;
@@ -84,6 +89,8 @@ export async function listarAgenda(
       tipo: linha.tipo as ItemAgenda["tipo"],
       data: linha.data as string,
       status: linha.status as StatusAtividade,
+      diasAntesVisivelCustom:
+        (linha.dias_antes_visivel_custom as number | null) ?? null,
       prioridadeManual:
         linha.prioridade_manual as ItemAgenda["prioridadeManual"],
       pastaId: processo?.pasta_id ?? "",

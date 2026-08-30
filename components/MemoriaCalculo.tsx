@@ -33,13 +33,26 @@ export function passosDaMemoria(m: MemoriaCalculo, eventoTipo: string): string[]
   );
 
   if (m.diasPulados.length > 0) {
-    const amostra = m.diasPulados
-      .slice(0, 4)
-      .map((d) => `${formatarDataBR(d.data)} (${d.motivo})`)
-      .join("; ");
-    passos.push(
-      `Dias não úteis pulados no caminho: ${amostra}${m.diasPulados.length > 4 ? ` e mais ${m.diasPulados.length - 4}` : ""}.`,
+    // Feriado e recesso são o que importa conferir — sempre visíveis.
+    // Fins de semana são resumidos numa contagem.
+    const feriadosERecessos = m.diasPulados.filter(
+      (d) => d.motivo !== "fim de semana",
     );
+    const qtdFimDeSemana = m.diasPulados.length - feriadosERecessos.length;
+    const partes = feriadosERecessos
+      .slice(0, 6)
+      .map((d) => `${formatarDataBR(d.data)} (${d.motivo})`);
+    if (feriadosERecessos.length > 6) {
+      partes.push(`e mais ${feriadosERecessos.length - 6} feriado(s)/recesso`);
+    }
+    if (qtdFimDeSemana > 0) {
+      partes.push(
+        qtdFimDeSemana === 1
+          ? "1 dia de fim de semana"
+          : `${qtdFimDeSemana} dias de fim de semana`,
+      );
+    }
+    passos.push(`Dias não úteis pulados no caminho: ${partes.join("; ")}.`);
   }
 
   passos.push(

@@ -14,3 +14,5 @@ Criados no Passo 6: `clientes.ts`, `pastas.ts` (o código e o processo geral vê
 Criados no Passo 7: `configuracao.ts`, `tipos-atividade.ts`, `processos.ts`, `calendario.ts` (monta o `Calendario` do motor a partir dos feriados do tribunal), `atividades.ts` (`criarPrazo` — os 3 inserts; a trigger sincroniza `atividade.data`).
 Criados no Passo 8: `agenda.ts` (lista), `atividade-detalhe.ts` (detalhe + observações + histórico), `atividade-acoes.ts` (concluir/reativar/cancelar/anotar/ajustar datas — ajuste grava `prazo_historico`).
 
+**Semanas 3–4 da Etapa 1:** `atividades.ts` ganha `criarCompromisso` / `criarMonitoramento`; `atividade-acoes.ts` ganha `registrarVerificacao` (monitoramento: eleva prioridade se achou mudança, senão conclui). A agenda aplica `atividadeVisivelEm` (§3.6): prazo sempre, compromisso 5 dias antes, monitoramento no dia — toggle "ver tudo" e filtro de status ignoram.
+

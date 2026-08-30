@@ -15,6 +15,7 @@ import {
   cancelarAtividade,
   adicionarObservacao,
   ajustarDatasDoPrazo,
+  registrarVerificacao,
 } from "@/lib/db/atividade-acoes";
 
 function texto(fd: FormData, campo: string): string {
@@ -65,6 +66,42 @@ export async function cancelar(formData: FormData) {
     escritorioId: sessao.escritorioId,
     membroId: sessao.membro.id,
     motivo,
+  });
+  recarregar(id);
+}
+
+export async function verificar(formData: FormData) {
+  const { sessao, supabase } = await contexto();
+  const id = texto(formData, "id");
+  const resultado = texto(formData, "resultado");
+  const achouMudanca = formData.get("achou_mudanca") === "1";
+  if (!id || !resultado) {
+    redirect(
+      `/agenda/${id}?erro=` +
+        encodeURIComponent("Descreva o resultado da verificação."),
+    );
+  }
+
+  const { data } = await supabase
+    .from("atividade")
+    .select("prioridade_manual")
+    .eq("id", id)
+    .maybeSingle();
+
+  await registrarVerificacao(supabase, {
+    atividadeId: id,
+    escritorioId: sessao.escritorioId,
+    membroId: sessao.membro.id,
+    dataHoje: hojeNoBrasil(),
+    resultado,
+    achouMudanca,
+    prioridadeAtual:
+      (data?.prioridade_manual as
+        | "baixa"
+        | "media"
+        | "alta"
+        | "urgente"
+        | undefined) ?? "media",
   });
   recarregar(id);
 }

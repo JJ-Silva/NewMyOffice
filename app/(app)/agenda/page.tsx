@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
@@ -10,6 +11,7 @@ import {
 import {
   estadoNaAgenda,
   prioridadeEfetiva,
+  atividadeVisivelEm,
   type EstadoAgenda,
 } from "@/lib/domain/atividade";
 import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
@@ -25,12 +27,25 @@ const COR_ESTADO: Record<EstadoAgenda, string> = {
   cancelada: "#9AA0A6",
 };
 
+const TIPO_LABEL: Record<ItemAgenda["tipo"], string> = {
+  prazo: "Prazo",
+  compromisso: "Compromisso",
+  monitoramento: "Monitoramento",
+};
+
 const STATUS_OPCOES = [
   { valor: "", label: "Em aberto" },
   { valor: "pendente", label: "Pendente" },
   { valor: "em_andamento", label: "Em andamento" },
   { valor: "concluida", label: "Concluída" },
   { valor: "cancelada", label: "Cancelada" },
+];
+
+const TIPO_OPCOES = [
+  { valor: "", label: "Todos os tipos" },
+  { valor: "prazo", label: "Prazo" },
+  { valor: "compromisso", label: "Compromisso" },
+  { valor: "monitoramento", label: "Monitoramento" },
 ];
 
 function diasDeDiferenca(de: string, ate: string): number {
@@ -69,22 +84,42 @@ export default async function PaginaAgenda({
 
   const fPasta = typeof params.pasta === "string" ? params.pasta : "";
   const fStatus = typeof params.status === "string" ? params.status : "";
+  const fTipo = typeof params.tipo === "string" ? params.tipo : "";
+  const verTudo = params.tudo === "1";
   const lancado = params.lancado === "1";
+  const temFiltro = Boolean(fPasta || fStatus || fTipo || verTudo);
 
   const [pastas, itensBrutos] = await Promise.all([
     listarPastas(supabase, sessao.escritorioId),
     listarAgenda(supabase, sessao.escritorioId, {
       pastaId: fPasta || undefined,
       status: (fStatus as "" | undefined) || undefined,
+      tipo: (fTipo as "" | undefined) || undefined,
     }),
   ]);
 
-  // Sem filtro de status: esconde concluídas/canceladas (comportamento padrão da agenda).
-  const itens = fStatus
+  // Sem filtro de status: esconde concluídas/canceladas.
+  let itens = fStatus
     ? itensBrutos
     : itensBrutos.filter(
         (i) => i.status !== "concluida" && i.status !== "cancelada",
       );
+
+  // Visibilidade por tipo (§3.6): prazo sempre; compromisso 5 dias antes;
+  // monitoramento no dia. O toggle "ver tudo" e o filtro de status ignoram isso.
+  if (!verTudo && !fStatus) {
+    itens = itens.filter((i) =>
+      atividadeVisivelEm(
+        {
+          tipo: i.tipo,
+          status: i.status,
+          data: i.data,
+          diasAntesVisivelCustom: i.diasAntesVisivelCustom,
+        },
+        hoje,
+      ),
+    );
+  }
 
   const atrasados = itens.filter(
     (i) =>
@@ -92,6 +127,14 @@ export default async function PaginaAgenda({
       i.status !== "cancelada" &&
       compararDatas(i.data, hoje) < 0,
   ).length;
+
+  const paramsAtuais = new URLSearchParams();
+  if (fPasta) paramsAtuais.set("pasta", fPasta);
+  if (fStatus) paramsAtuais.set("status", fStatus);
+  if (fTipo) paramsAtuais.set("tipo", fTipo);
+  const hrefVerTudo = (`/agenda?${paramsAtuais.toString()}${
+    paramsAtuais.toString() ? "&" : ""
+  }tudo=1` as unknown) as Route;
 
   return (
     <div className="flex flex-col gap-5">
@@ -101,17 +144,19 @@ export default async function PaginaAgenda({
           <p className="subtitulo-pagina">
             {formatarDataBR(hoje)} ({nomeDoDiaDaSemana(hoje)}) ·{" "}
             {itens.length} atividade{itens.length === 1 ? "" : "s"}
-            {atrasados > 0 ? ` · ${atrasados} atrasada${atrasados === 1 ? "" : "s"}` : ""}
+            {atrasados > 0
+              ? ` · ${atrasados} atrasada${atrasados === 1 ? "" : "s"}`
+              : ""}
           </p>
         </div>
         <Link href="/atividades/nova" className="botao-primario flex-none">
-          + Novo prazo
+          + Nova atividade
         </Link>
       </div>
 
       {lancado && (
         <div className="rounded-lg border border-cumprido bg-[#F0FDF4] px-3.5 py-2.5 text-sm text-[#166534]">
-          Prazo lançado. Ele aparece abaixo, ordenado pela data de vencimento.
+          Atividade lançada. Ela aparece na agenda no momento certo do tipo.
         </div>
       )}
 
@@ -121,7 +166,7 @@ export default async function PaginaAgenda({
         action="/agenda"
         className="card flex flex-wrap items-end gap-3 p-4"
       >
-        <label className="flex min-w-[220px] flex-1 flex-col gap-1.5">
+        <label className="flex min-w-[200px] flex-1 flex-col gap-1.5">
           <span className="rotulo">Pasta</span>
           <select name="pasta" defaultValue={fPasta} className="campo">
             <option value="">Todas as pastas</option>
@@ -132,7 +177,17 @@ export default async function PaginaAgenda({
             ))}
           </select>
         </label>
-        <label className="flex min-w-[160px] flex-col gap-1.5">
+        <label className="flex min-w-[150px] flex-col gap-1.5">
+          <span className="rotulo">Tipo</span>
+          <select name="tipo" defaultValue={fTipo} className="campo">
+            {TIPO_OPCOES.map((t) => (
+              <option key={t.valor} value={t.valor}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-w-[150px] flex-col gap-1.5">
           <span className="rotulo">Status</span>
           <select name="status" defaultValue={fStatus} className="campo">
             {STATUS_OPCOES.map((s) => (
@@ -142,10 +197,16 @@ export default async function PaginaAgenda({
             ))}
           </select>
         </label>
+        {verTudo && <input type="hidden" name="tudo" value="1" />}
         <button type="submit" className="botao-primario h-[38px]">
           Filtrar
         </button>
-        {(fPasta || fStatus) && (
+        {!verTudo && !fStatus && (
+          <Link href={hrefVerTudo} className="link-acao pb-2.5">
+            Ver tudo
+          </Link>
+        )}
+        {temFiltro && (
           <Link href="/agenda" className="link-acao pb-2.5">
             Limpar
           </Link>
@@ -154,14 +215,14 @@ export default async function PaginaAgenda({
 
       {itens.length === 0 ? (
         <div className="painel-vazio">
-          Nenhuma atividade na agenda. Lance um prazo em “+ Novo prazo”.
+          Nenhuma atividade na agenda. Lance uma em “+ Nova atividade”.
         </div>
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
-          <div className="grid min-w-[860px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]">
+          <div className="grid min-w-[880px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]">
             <span className="rotulo">Pasta / cliente</span>
-            <span className="rotulo">Prazo</span>
-            <span className="rotulo">Vencimento</span>
+            <span className="rotulo">Atividade</span>
+            <span className="rotulo">Quando</span>
             <span className="rotulo text-center">Ação</span>
           </div>
 
@@ -176,7 +237,7 @@ export default async function PaginaAgenda({
             return (
               <div
                 key={item.id}
-                className="card grid min-w-[860px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]"
+                className="card grid min-w-[880px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]"
                 style={{
                   borderLeft: `4px solid ${r.cor}`,
                   opacity: esmaecida ? 0.6 : 1,
@@ -200,14 +261,16 @@ export default async function PaginaAgenda({
                     {item.tipoAtividadeNome ?? item.titulo}
                   </span>
                   <span className="text-xs text-texto-secundario">
-                    {item.responsavelNome ?? "sem responsável"}
+                    {TIPO_LABEL[item.tipo]} · {item.responsavelNome ?? "—"}
                   </span>
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span
                     className="text-sm font-semibold tabular-nums"
-                    style={{ color: r.cor === "#B9D4D3" ? "var(--texto)" : r.cor }}
+                    style={{
+                      color: r.cor === "#B9D4D3" ? "var(--texto)" : r.cor,
+                    }}
                   >
                     {formatarDataBR(item.data)}
                   </span>
@@ -222,8 +285,7 @@ export default async function PaginaAgenda({
                 </div>
 
                 <div className="flex justify-center">
-                  {item.status === "concluida" ||
-                  item.status === "cancelada" ? (
+                  {esmaecida ? (
                     <Link
                       href={`/agenda/${item.id}`}
                       className="text-xs text-texto-secundario hover:text-teal"

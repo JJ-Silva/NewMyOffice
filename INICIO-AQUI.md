@@ -36,3 +36,8 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
+
+**Estado (2026-08-30):** Passos 1–8 feitos; bateria de testes T1–T13 + RLS + auth OK.
+`compromisso` e `monitoramento` implementados (form com abas, agenda com visibilidade
+por tipo, "registrar verificação"). **Falta o Passo 9 (deploy Vercel)** — depende do
+Jefferson (GitHub + Vercel). Etapa 2 (processos/CNJ) só depois do deploy.

@@ -97,3 +97,101 @@ export async function criarPrazo(
 
   return atividadeId;
 }
+
+// ── Compromisso (audiência, reunião, perícia…) ─────────────────────────────
+// Sem motor: a data é definida pelo usuário. (= AppointmentActivity)
+export type NovoCompromisso = {
+  escritorioId: string;
+  processoId: string;
+  tipoAtividadeId: string;
+  titulo: string;
+  responsavelId: string | null;
+  data: string; // 'AAAA-MM-DD'
+  hora: string | null; // 'HH:MM'
+  local: string | null;
+  duracaoEstimadaMin: number | null;
+};
+
+export async function criarCompromisso(
+  supabase: SupabaseClient,
+  c: NovoCompromisso,
+): Promise<string> {
+  const atividade = await supabase
+    .from("atividade")
+    .insert({
+      escritorio_id: c.escritorioId,
+      processo_id: c.processoId,
+      tipo: "compromisso",
+      tipo_atividade_id: c.tipoAtividadeId,
+      titulo: c.titulo,
+      data: c.data,
+      responsavel_id: c.responsavelId,
+      status: "pendente",
+    })
+    .select("id")
+    .single();
+  if (atividade.error) {
+    throw new Error(`Falha ao gravar a atividade: ${atividade.error.message}`);
+  }
+  const atividadeId = atividade.data.id as string;
+
+  const detalhe = await supabase.from("atividade_compromisso").insert({
+    atividade_id: atividadeId,
+    escritorio_id: c.escritorioId,
+    hora: c.hora,
+    local: c.local,
+    duracao_estimada_min: c.duracaoEstimadaMin,
+  });
+  if (detalhe.error) {
+    throw new Error(`Falha ao gravar o compromisso: ${detalhe.error.message}`);
+  }
+  return atividadeId;
+}
+
+// ── Monitoramento (verificar publicação, acompanhar andamento…) ────────────
+// Sem motor: aparece na agenda no dia. (= MonitoringActivity)
+export type NovoMonitoramento = {
+  escritorioId: string;
+  processoId: string;
+  tipoAtividadeId: string;
+  titulo: string;
+  responsavelId: string | null;
+  data: string; // 'AAAA-MM-DD' (dia da verificação)
+  alvo: string | null;
+};
+
+export async function criarMonitoramento(
+  supabase: SupabaseClient,
+  m: NovoMonitoramento,
+): Promise<string> {
+  const atividade = await supabase
+    .from("atividade")
+    .insert({
+      escritorio_id: m.escritorioId,
+      processo_id: m.processoId,
+      tipo: "monitoramento",
+      tipo_atividade_id: m.tipoAtividadeId,
+      titulo: m.titulo,
+      data: m.data,
+      responsavel_id: m.responsavelId,
+      status: "pendente",
+    })
+    .select("id")
+    .single();
+  if (atividade.error) {
+    throw new Error(`Falha ao gravar a atividade: ${atividade.error.message}`);
+  }
+  const atividadeId = atividade.data.id as string;
+
+  const detalhe = await supabase.from("atividade_monitoramento").insert({
+    atividade_id: atividadeId,
+    escritorio_id: m.escritorioId,
+    alvo: m.alvo,
+  });
+  if (detalhe.error) {
+    throw new Error(
+      `Falha ao gravar o monitoramento: ${detalhe.error.message}`,
+    );
+  }
+  return atividadeId;
+}

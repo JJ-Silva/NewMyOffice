@@ -76,6 +76,61 @@ export async function adicionarObservacao(
   if (error) throw new Error(`Falha ao gravar a anotação: ${error.message}`);
 }
 
+// Registrar verificação de um monitoramento (§4 C.4):
+//  - grava a hora da verificação e uma observação com o resultado;
+//  - se encontrou mudança e a prioridade estava baixa/média → eleva para alta;
+//  - se não encontrou mudança (e não há recorrência na Etapa 1) → conclui.
+export async function registrarVerificacao(
+  supabase: SupabaseClient,
+  args: {
+    atividadeId: string;
+    escritorioId: string;
+    membroId: string;
+    dataHoje: string;
+    resultado: string;
+    achouMudanca: boolean;
+    prioridadeAtual: "baixa" | "media" | "alta" | "urgente";
+  },
+): Promise<void> {
+  const carimbo = await supabase
+    .from("atividade_monitoramento")
+    .update({ ultima_verificacao: new Date().toISOString() })
+    .eq("atividade_id", args.atividadeId);
+  if (carimbo.error) {
+    throw new Error(`Falha ao registrar a verificação: ${carimbo.error.message}`);
+  }
+
+  await adicionarObservacao(supabase, {
+    escritorioId: args.escritorioId,
+    atividadeId: args.atividadeId,
+    autorId: args.membroId,
+    texto:
+      `Verificação: ${args.resultado}` +
+      (args.achouMudanca ? " — encontrou mudança." : " — sem mudança."),
+  });
+
+  if (args.achouMudanca) {
+    if (args.prioridadeAtual === "baixa" || args.prioridadeAtual === "media") {
+      const { error } = await supabase
+        .from("atividade")
+        .update({ prioridade_manual: "alta" })
+        .eq("id", args.atividadeId);
+      if (error) {
+        throw new Error(`Falha ao elevar a prioridade: ${error.message}`);
+      }
+    }
+    return; // continua pendente para tratar a mudança
+  }
+
+  // Sem mudança e sem recorrência (Etapa 1) → conclui.
+  await concluirAtividade(supabase, {
+    atividadeId: args.atividadeId,
+    membroId: args.membroId,
+    dataConclusao: args.dataHoje,
+    observacaoConclusao: args.resultado,
+  });
+}
+
 // Ajuste manual das datas do prazo (§4.B "Data calculada × data adotada").
 // Grava uma linha em prazo_historico por campo alterado; motivo é obrigatório.
 export async function ajustarDatasDoPrazo(
