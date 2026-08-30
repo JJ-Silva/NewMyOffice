@@ -19,7 +19,7 @@ Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string d
 | `..._atividade.sql` | `configuracao_contagem`, `atividade`, `atividade_prazo` (+ trigger que sincroniza `atividade.data`), `atividade_compromisso`, `atividade_monitoramento`, `observacao`, `prazo_historico` · RLS |
 | `..._onboarding.sql` | função `onboarding_criar_escritorio(nome)` — cria escritório + membro dono + config + copia catálogos padrão |
 
-**Falta para a Etapa 2:** `processo_judicial`, `processo_administrativo`, `parte`.
+| `..._processo_judicial_administrativo_parte.sql` | **Etapa 2** — `processo_judicial` (CNJ + componentes), `processo_administrativo`, `parte` · RLS |
 
 ## Regras
 - Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.
