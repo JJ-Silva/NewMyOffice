@@ -114,32 +114,24 @@ async function PrazoComDados({
     listarTribunais(supabase, escritorioId),
   ]);
 
-  let processoGeralId = "";
-  if (campos.pastaId) {
-    const processos = await listarProcessosDaPasta(supabase, campos.pastaId);
-    processoGeralId = processos.find((p) => p.tipo === "geral")?.id ?? "";
-  }
+  const processos = campos.pastaId
+    ? await listarProcessosDaPasta(supabase, campos.pastaId)
+    : [];
 
   const tentouCalcular = Boolean(
     campos.pastaId && campos.tipoAtividadeId && campos.eventoData,
   );
-  const calc =
-    tentouCalcular && processoGeralId
-      ? await calcular(
-          supabase,
-          escritorioId,
-          { ...campos, processoId: processoGeralId },
-          hojeNoBrasil(),
-        )
-      : null;
+  const calc = tentouCalcular
+    ? await calcular(supabase, escritorioId, campos, hojeNoBrasil())
+    : null;
 
   return (
     <FormularioPrazo
       campos={campos}
       pastas={pastas}
+      processos={processos}
       tipos={tipos}
       tribunais={tribunais}
-      processoGeralId={processoGeralId}
       calc={calc}
       erro={erro}
     />

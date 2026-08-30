@@ -31,8 +31,9 @@ export async function salvarPrazo(formData: FormData) {
   );
 
   const paramsBase = new URLSearchParams({
+    aba: "prazo",
     pasta: campos.pastaId,
-    processo: campos.processoId,
+    nivel: campos.nivel,
     tipo: campos.tipoAtividadeId,
     tribunal: campos.tribunalId ?? "",
     evento_tipo: campos.eventoTipo,
@@ -47,13 +48,13 @@ export async function salvarPrazo(formData: FormData) {
     redirect(`/atividades/nova?${paramsBase.toString()}`);
   }
 
-  const { tipo, natureza, dias, resultado } = calc.dados;
+  const { processoId, tipo, natureza, dias, resultado } = calc.dados;
   const titulo = campos.titulo.trim() || tipo.nome;
 
   try {
     await criarPrazo(supabase, {
       escritorioId: sessao.escritorioId,
-      processoId: campos.processoId,
+      processoId,
       tipoAtividadeId: tipo.id,
       titulo,
       responsavelId: sessao.membro.id,
@@ -85,12 +86,17 @@ function texto(fd: FormData, campo: string): string {
   return String(fd.get(campo) ?? "").trim();
 }
 
-async function resolverProcessoGeral(
+async function resolverNivel(
   supabase: Awaited<ReturnType<typeof criarClienteServidor>>,
   pastaId: string,
+  nivel: string,
 ): Promise<string | null> {
   const processos = await listarProcessosDaPasta(supabase, pastaId);
-  return processos.find((p) => p.tipo === "geral")?.id ?? null;
+  return (
+    processos.find((p) => p.id === nivel)?.id ??
+    processos.find((p) => p.tipo === "geral")?.id ??
+    null
+  );
 }
 
 function voltarComErro(
@@ -114,7 +120,7 @@ export async function salvarCompromisso(formData: FormData) {
     voltarComErro("compromisso", pastaId, "Preencha pasta, tipo e data.");
   }
 
-  const processoId = await resolverProcessoGeral(supabase, pastaId);
+  const processoId = await resolverNivel(supabase, pastaId, texto(formData, "nivel"));
   if (!processoId) {
     voltarComErro("compromisso", pastaId, "Pasta inválida.");
   }
@@ -164,7 +170,7 @@ export async function salvarMonitoramento(formData: FormData) {
     voltarComErro("monitoramento", pastaId, "Preencha pasta e tipo.");
   }
 
-  const processoId = await resolverProcessoGeral(supabase, pastaId);
+  const processoId = await resolverNivel(supabase, pastaId, texto(formData, "nivel"));
   if (!processoId) {
     voltarComErro("monitoramento", pastaId, "Pasta inválida.");
   }

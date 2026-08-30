@@ -3,6 +3,7 @@ import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import type { Tribunal } from "@/lib/db/tribunais";
+import type { ProcessoResumo } from "@/lib/db/processos";
 import {
   EVENTOS,
   type CamposPrazo,
@@ -10,23 +11,31 @@ import {
 } from "./calculo";
 import { salvarPrazo } from "./acoes";
 
+function rotuloProcesso(p: ProcessoResumo): string {
+  if (p.tipo === "geral") return "Geral da pasta (sem processo)";
+  const t = p.tipo === "judicial" ? "Judicial" : "Administrativo";
+  return `${p.numero ?? "sem número"} — ${t}`;
+}
+
 export function FormularioPrazo({
   campos,
   pastas,
+  processos,
   tipos,
   tribunais,
-  processoGeralId,
   calc,
   erro,
 }: {
   campos: CamposPrazo;
   pastas: PastaResumo[];
+  processos: ProcessoResumo[];
   tipos: TipoAtividadeCatalogo[];
   tribunais: Tribunal[];
-  processoGeralId: string;
   calc: { ok: true; dados: CalculoPronto } | { ok: false; erro: string } | null;
   erro: string | null;
 }) {
+  const geralId = processos.find((p) => p.tipo === "geral")?.id ?? "";
+  const nivelAtual = campos.nivel || geralId;
   const tipoSelecionado = tipos.find((t) => t.id === campos.tipoAtividadeId);
   const diasPlaceholder =
     tipoSelecionado?.dias_padrao != null
@@ -68,9 +77,28 @@ export function FormularioPrazo({
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Nível da atividade</span>
+          <select
+            name="nivel"
+            defaultValue={nivelAtual}
+            className="campo"
+            disabled={processos.length <= 1}
+          >
+            {processos.length === 0 && (
+              <option value="">selecione a pasta primeiro</option>
+            )}
+            {processos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {rotuloProcesso(p)}
+              </option>
+            ))}
+          </select>
           <span className="text-xs text-texto-secundario">
-            Nível: <strong>Geral da pasta</strong> (Etapa 1). Processos
-            judiciais entram na Etapa 2.
+            O prazo se liga a um processo específico da pasta, ou ao “geral”
+            (trabalho da pasta sem número de processo).
           </span>
         </label>
 
@@ -199,7 +227,11 @@ export function FormularioPrazo({
         >
           <form action={salvarPrazo} className="flex flex-col gap-3">
             <input type="hidden" name="pasta" value={campos.pastaId} />
-            <input type="hidden" name="processo" value={processoGeralId} />
+            <input
+              type="hidden"
+              name="nivel"
+              value={campos.nivel || calc.dados.processoId}
+            />
             <input type="hidden" name="tipo" value={campos.tipoAtividadeId} />
             <input
               type="hidden"
