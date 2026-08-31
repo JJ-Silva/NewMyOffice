@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import {
@@ -45,6 +45,7 @@ export default async function PaginaCalendario({
   searchParams,
 }: PageProps<"/agenda/calendario">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.ver");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
   const hoje = hojeNoBrasil();

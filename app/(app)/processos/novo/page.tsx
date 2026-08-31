@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarPastas } from "@/lib/db/pastas";
 import { listarTribunais } from "@/lib/db/tribunais";
@@ -13,6 +13,7 @@ export default async function PaginaNovoProcesso({
   searchParams,
 }: PageProps<"/processos/novo">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "processos.criar");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
 

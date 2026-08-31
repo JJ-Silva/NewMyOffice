@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { analisarCnj } from "@/lib/domain/cnj";
 import {
   criarProcessoJudicial,
@@ -25,6 +25,7 @@ function polo(v: string): "autor" | "reu" | "terceiro" | null {
 
 export async function salvarProcessoJudicial(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "processos.criar");
   const supabase = await criarClienteServidor();
 
   const campos: Record<string, string> = {
@@ -92,6 +93,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
 
 export async function salvarProcessoAdministrativo(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "processos.criar");
   const supabase = await criarClienteServidor();
 
   const pasta = txt(formData, "pasta");

@@ -1,12 +1,19 @@
 import Link from "next/link";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
 
 export default async function PaginaClientes() {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "clientes.ver");
   const supabase = await criarClienteServidor();
   const clientes = await listarClientes(supabase, sessao.escritorioId);
+  const podeCriarCliente = sessaoPode(sessao, "clientes.criar");
+  const podeCriarPasta = sessaoPode(sessao, "pastas.criar");
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -18,15 +25,18 @@ export default async function PaginaClientes() {
             cadastrado{clientes.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/clientes/novo" className="botao-primario flex-none">
-          + Novo cliente
-        </Link>
+        {podeCriarCliente && (
+          <Link href="/clientes/novo" className="botao-primario flex-none">
+            + Novo cliente
+          </Link>
+        )}
       </div>
 
       {clientes.length === 0 ? (
         <div className="painel-vazio">
-          Nenhum cliente cadastrado. Comece por “+ Novo cliente” — o fluxo leva à
-          criação da pasta.
+          {podeCriarCliente
+            ? "Nenhum cliente cadastrado. Comece por “+ Novo cliente” — o fluxo leva à criação da pasta."
+            : "Nenhum cliente cadastrado."}
         </div>
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
@@ -60,12 +70,14 @@ export default async function PaginaClientes() {
                 {c.qtd_pastas} pasta{c.qtd_pastas === 1 ? "" : "s"}
               </span>
               <div className="flex justify-center">
-                <Link
-                  href={`/pastas/nova?cliente=${c.id}`}
-                  className="botao-secundario"
-                >
-                  + Pasta
-                </Link>
+                {podeCriarPasta && (
+                  <Link
+                    href={`/pastas/nova?cliente=${c.id}`}
+                    className="botao-secundario"
+                  >
+                    + Pasta
+                  </Link>
+                )}
               </div>
             </div>
           ))}

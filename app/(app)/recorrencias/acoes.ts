@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { hojeNoBrasil } from "@/lib/hoje";
 import {
   encerrarRecorrencia,
@@ -17,6 +17,7 @@ function txt(fd: FormData, k: string): string {
 // Encerrar: para de gerar; remove as instâncias futuras ainda pendentes.
 export async function encerrarRecorrenciaAction(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "recorrencias.gerenciar");
   const supabase = await criarClienteServidor();
   const id = txt(formData, "id");
   if (!id) return;
@@ -29,6 +30,7 @@ export async function encerrarRecorrenciaAction(formData: FormData) {
 // em diante. O que já foi concluído fica.
 export async function excluirRecorrenciaAction(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "recorrencias.gerenciar");
   const supabase = await criarClienteServidor();
   const id = txt(formData, "id");
   if (!id) return;

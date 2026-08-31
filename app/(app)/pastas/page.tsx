@@ -1,12 +1,19 @@
 import Link from "next/link";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarPastas } from "@/lib/db/pastas";
 
 export default async function PaginaPastas() {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "pastas.ver");
   const supabase = await criarClienteServidor();
   const pastas = await listarPastas(supabase, sessao.escritorioId);
+  const podeCriarPasta = sessaoPode(sessao, "pastas.criar");
+  const podeLancarAtividade = sessaoPode(sessao, "atividades.criar");
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -17,9 +24,11 @@ export default async function PaginaPastas() {
             {pastas.length} pasta{pastas.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/pastas/nova" className="botao-primario flex-none">
-          + Nova pasta
-        </Link>
+        {podeCriarPasta && (
+          <Link href="/pastas/nova" className="botao-primario flex-none">
+            + Nova pasta
+          </Link>
+        )}
       </div>
 
       {pastas.length === 0 ? (
@@ -75,12 +84,14 @@ export default async function PaginaPastas() {
                     : "nenhum"}
                 </span>
                 <div className="flex justify-center">
-                  <Link
-                    href={`/atividades/nova?pasta=${p.id}`}
-                    className="botao-secundario"
-                  >
-                    + Prazo
-                  </Link>
+                  {podeLancarAtividade && (
+                    <Link
+                      href={`/atividades/nova?pasta=${p.id}`}
+                      className="botao-secundario"
+                    >
+                      + Prazo
+                    </Link>
+                  )}
                 </div>
               </div>
             );

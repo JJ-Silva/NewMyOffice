@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
+import type { Permissao } from "@/lib/domain/permissoes";
 import { analisarCnj } from "@/lib/domain/cnj";
 import {
   atualizarProcessoJudicial,
@@ -31,14 +32,15 @@ function esfera(v: string): "federal" | "estadual" | "municipal" | null {
   return v === "federal" || v === "estadual" || v === "municipal" ? v : null;
 }
 
-async function ctx() {
-  await exigirSessao();
+async function ctx(permissao: Permissao) {
+  const sessao = await exigirSessao();
+  exigirPermissao(sessao, permissao);
   const supabase = await criarClienteServidor();
   return { supabase };
 }
 
 export async function salvarJudicial(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("processos.editar");
   const id = txt(formData, "id");
   if (!id) return;
 
@@ -81,7 +83,7 @@ export async function salvarJudicial(formData: FormData) {
 }
 
 export async function salvarAdministrativo(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("processos.editar");
   const id = txt(formData, "id");
   if (!id) return;
 
@@ -116,7 +118,7 @@ export async function salvarAdministrativo(formData: FormData) {
 }
 
 export async function excluir(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("processos.excluir");
   const id = txt(formData, "id");
   if (!id) return;
   if (txt(formData, "confirmacao") !== "EXCLUIR") {

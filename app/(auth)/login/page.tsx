@@ -8,6 +8,7 @@ export default async function PaginaLogin({
 }: PageProps<"/login">) {
   const params = await searchParams;
   const erro = typeof params.erro === "string" ? params.erro : null;
+  const next = typeof params.next === "string" ? params.next : "";
 
   return (
     <div>
@@ -26,7 +27,14 @@ export default async function PaginaLogin({
         </p>
       )}
 
+      {next && (
+        <p className="mb-4 rounded-lg border border-tint-2 bg-tint-1 px-3 py-2 text-[13px] text-texto-secundario">
+          Entre para continuar.
+        </p>
+      )}
+
       <form action={entrar} className="flex flex-col gap-4">
+        {next && <input type="hidden" name="next" value={next} />}
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">E-mail</span>
           <input

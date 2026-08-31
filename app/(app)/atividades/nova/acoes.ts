@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { hojeNoBrasil } from "@/lib/hoje";
 import {
   criarPrazo,
@@ -23,6 +23,7 @@ import { lerCampos, calcular } from "./calculo";
 // Salva o prazo. RECALCULA tudo do zero — não confia nas datas do formulário.
 export async function salvarPrazo(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
 
   const campos = lerCampos((k) => {
@@ -183,6 +184,7 @@ function lerRegraDoFormulario(
 // ── Compromisso ───────────────────────────────────────────────────────────
 export async function salvarCompromisso(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
 
   const processoId = texto(formData, "processo_id");
@@ -272,6 +274,7 @@ export async function salvarCompromisso(formData: FormData) {
 // ── Monitoramento ─────────────────────────────────────────────────────────
 export async function salvarMonitoramento(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
 
   const processoId = texto(formData, "processo_id");

@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Route } from "next";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
 import { sugerirPrazo } from "@/lib/domain/publicacao";
@@ -20,6 +24,9 @@ export default async function PaginaTriagem({
   const erro = typeof sp.erro === "string" ? sp.erro : null;
 
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "publicacoes.ver");
+  const podeTriar = sessaoPode(sessao, "publicacoes.triar");
+  const podeArquivar = sessaoPode(sessao, "publicacoes.arquivar");
   const supabase = await criarClienteServidor();
   const p = await buscarPublicacao(supabase, sessao.escritorioId, id);
   if (!p) notFound();
@@ -148,17 +155,25 @@ export default async function PaginaTriagem({
           <p className="text-[13px] italic text-texto-secundario">
             {p.motivoDescarte ? `“${p.motivoDescarte}”` : "Sem justificativa."}
           </p>
-          <form action={reabrir}>
-            <input type="hidden" name="id" value={p.id} />
-            <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
-              Reabrir para triar
-            </BotaoEnviar>
-          </form>
+          {podeArquivar && (
+            <form action={reabrir}>
+              <input type="hidden" name="id" value={p.id} />
+              <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
+                Reabrir para triar
+              </BotaoEnviar>
+            </form>
+          )}
         </div>
       )}
 
       {/* Triagem */}
-      {p.status === "nova" && (
+      {p.status === "nova" && !podeTriar && !podeArquivar && (
+        <div className="painel-vazio">
+          Seu rótulo pode ver esta publicação, mas não triá-la nem arquivá-la.
+        </div>
+      )}
+
+      {p.status === "nova" && podeTriar && (
         <>
           {/* Passo 1 — processo */}
           <div className="card flex flex-col gap-3 p-5">
@@ -258,28 +273,30 @@ export default async function PaginaTriagem({
               o interno; você confere e salva.
             </span>
           </div>
-
-          {/* Arquivar */}
-          <details className="text-sm">
-            <summary className="cursor-pointer text-texto-secundario">
-              Arquivar (não gera prazo)
-            </summary>
-            <form action={arquivar} className="mt-2 flex items-end gap-2">
-              <input type="hidden" name="id" value={p.id} />
-              <label className="flex flex-col gap-1.5">
-                <span className="rotulo">Justificativa (opcional)</span>
-                <input
-                  name="motivo"
-                  placeholder="Ex.: intimação só informativa"
-                  className="campo w-[320px]"
-                />
-              </label>
-              <BotaoEnviar className="botao-perigo h-[38px]" rotuloOcupado="…">
-                Arquivar
-              </BotaoEnviar>
-            </form>
-          </details>
         </>
+      )}
+
+      {/* Arquivar */}
+      {p.status === "nova" && podeArquivar && (
+        <details className="text-sm">
+          <summary className="cursor-pointer text-texto-secundario">
+            Arquivar (não gera prazo)
+          </summary>
+          <form action={arquivar} className="mt-2 flex items-end gap-2">
+            <input type="hidden" name="id" value={p.id} />
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">Justificativa (opcional)</span>
+              <input
+                name="motivo"
+                placeholder="Ex.: intimação só informativa"
+                className="campo w-[320px]"
+              />
+            </label>
+            <BotaoEnviar className="botao-perigo h-[38px]" rotuloOcupado="…">
+              Arquivar
+            </BotaoEnviar>
+          </form>
+        </details>
       )}
     </div>
   );

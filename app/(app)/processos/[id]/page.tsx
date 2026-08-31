@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarProcesso } from "@/lib/db/processos";
 import { listarTribunais } from "@/lib/db/tribunais";
@@ -18,6 +22,9 @@ export default async function PaginaEditarProcesso({
   const erro = typeof sp.erro === "string" ? sp.erro : null;
 
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "processos.ver");
+  const podeEditar = sessaoPode(sessao, "processos.editar");
+  const podeExcluir = sessaoPode(sessao, "processos.excluir");
   const supabase = await criarClienteServidor();
   const processo = await buscarProcesso(supabase, sessao.escritorioId, id);
   if (!processo) notFound();
@@ -58,9 +65,15 @@ export default async function PaginaEditarProcesso({
         <FormularioJudicial
           processo={processo}
           tribunais={await listarTribunais(supabase, sessao.escritorioId)}
+          podeEditar={podeEditar}
+          podeExcluir={podeExcluir}
         />
       ) : (
-        <FormularioAdministrativo processo={processo} />
+        <FormularioAdministrativo
+          processo={processo}
+          podeEditar={podeEditar}
+          podeExcluir={podeExcluir}
+        />
       )}
     </div>
   );

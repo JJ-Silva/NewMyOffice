@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
-import { podeFazer } from "@/lib/domain/autorizacao";
+import { headers } from "next/headers";
+import {
+  exigirSessao,
+  podeAbrirConfiguracoes,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { CamposTipoAtividade } from "@/components/CamposTipoAtividade";
+import { FormularioRotulo } from "@/components/FormularioRotulo";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { listarFeriados } from "@/lib/db/feriados";
 import { listarPeriodosNaoUteis } from "@/lib/db/periodos-nao-uteis";
@@ -12,6 +17,11 @@ import {
   listarTiposParaGestao,
   type TipoAtividadeGestao,
 } from "@/lib/db/tipos-atividade";
+import { listarRotulos } from "@/lib/db/rotulos";
+import { listarEquipe } from "@/lib/db/membros";
+import { listarConvitesPendentes } from "@/lib/db/convites";
+import { CopiarLink } from "@/components/CopiarLink";
+import { TODAS_PERMISSOES, rotuloDaPermissao } from "@/lib/domain/permissoes";
 import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
 import {
   adicionarTribunal,
@@ -25,6 +35,14 @@ import {
   adicionarTipoAtividadeAction,
   editarTipoAtividadeAction,
   removerTipoAtividadeAction,
+  criarRotuloAction,
+  editarRotuloAction,
+  excluirRotuloAction,
+  trocarRotuloMembroAction,
+  alternarAtivoMembroAction,
+  definirOverrideMembroAction,
+  convidarMembroAction,
+  cancelarConviteAction,
 } from "./acoes";
 
 const APLICA_A_LABEL = {
@@ -84,9 +102,14 @@ export default async function PaginaConfiguracoes({
   searchParams,
 }: PageProps<"/configuracoes">) {
   const sessao = await exigirSessao();
-  if (!podeFazer(sessao.membro, "acessar_configuracoes")) {
+  if (!podeAbrirConfiguracoes(sessao)) {
     redirect("/agenda");
   }
+  const podeCalendario = sessaoPode(sessao, "config.tribunais");
+  const podeOab = sessaoPode(sessao, "oab.gerenciar");
+  const podeCatalogos = sessaoPode(sessao, "config.catalogos");
+  const podeRotulos = sessaoPode(sessao, "rotulos.gerenciar");
+  const podeMembros = sessaoPode(sessao, "membros.gerenciar");
 
   const params = await searchParams;
   const erro = typeof params.erro === "string" ? params.erro : null;
@@ -104,6 +127,27 @@ export default async function PaginaConfiguracoes({
     (a) => ({ aplicaA: a, itens: tiposAtividade.filter((t) => t.aplica_a === a) }),
   );
 
+  // Rótulos e equipe — só quem administra vê. Equipe também precisa da lista
+  // de rótulos para o select "trocar rótulo".
+  const rotulos =
+    podeRotulos || podeMembros
+      ? await listarRotulos(supabase, sessao.escritorioId)
+      : [];
+  const equipe = podeMembros
+    ? await listarEquipe(supabase, sessao.escritorioId, sessao.usuario.id)
+    : [];
+  const convites = podeMembros
+    ? await listarConvitesPendentes(supabase, sessao.escritorioId)
+    : [];
+
+  // Origem para montar o link do convite (fallback: localhost).
+  const cab = await headers();
+  const host = cab.get("host") ?? "localhost:3000";
+  const proto =
+    cab.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+  const origem = `${proto}://${host}`;
+
   const semTribunais = tribunais.length === 0;
   const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? "" : "s"}`;
 
@@ -112,8 +156,8 @@ export default async function PaginaConfiguracoes({
       <div className="flex flex-col gap-1.5">
         <h1 className="titulo-pagina">Configurações</h1>
         <p className="subtitulo-pagina">
-          Tribunais, calendário e OABs do escritório. Só o administrador vê esta
-          tela.
+          Equipe, rótulos, tribunais e catálogos do escritório. Cada seção
+          aparece conforme as suas permissões.
         </p>
       </div>
 
@@ -123,6 +167,340 @@ export default async function PaginaConfiguracoes({
         </p>
       )}
 
+      {/* ── Rótulos e permissões ───────────────────────────────── */}
+      {podeRotulos && (
+        <SecaoRecolhivel
+          titulo="Rótulos e permissões"
+          resumo={plural(rotulos.length, "rótulo")}
+        >
+          <p className="text-[12.5px] text-texto-secundario">
+            O rótulo é a função da pessoa no escritório. Marque o que cada
+            rótulo pode fazer. Marcar qualquer ação de um grupo liga o “ver” do
+            grupo junto.
+          </p>
+
+          <details className="rounded-lg border border-tint-2 p-3.5">
+            <summary className="cursor-pointer text-sm font-semibold">
+              + Novo rótulo
+            </summary>
+            <div className="mt-3">
+              <FormularioRotulo
+                action={criarRotuloAction}
+                rotuloEnviar="Criar rótulo"
+              />
+            </div>
+          </details>
+
+          <div className="flex flex-col gap-2">
+            {rotulos.map((r) => (
+              <details
+                key={r.id}
+                className="rounded-lg border border-tint-2 p-3.5"
+              >
+                <summary className="flex cursor-pointer items-center justify-between gap-3">
+                  <span className="text-sm font-semibold">{r.nome}</span>
+                  <span className="text-xs text-texto-secundario">
+                    {plural(r.permissoes.length, "permissão")} ·{" "}
+                    {plural(r.qtdMembros, "membro")}
+                  </span>
+                </summary>
+                <div className="mt-3 flex flex-col gap-4">
+                  <FormularioRotulo
+                    action={editarRotuloAction}
+                    id={r.id}
+                    nome={r.nome}
+                    descricao={r.descricao ?? ""}
+                    permissoes={r.permissoes}
+                    rotuloEnviar="Salvar rótulo"
+                  />
+                  <details className="text-sm">
+                    <summary className="cursor-pointer text-texto-secundario">
+                      Excluir este rótulo
+                    </summary>
+                    {r.qtdMembros > 0 ? (
+                      <p className="mt-2 text-[13px] text-texto-secundario">
+                        Não dá para excluir: {plural(r.qtdMembros, "membro")} com
+                        este rótulo. Troque o rótulo dessas pessoas antes.
+                      </p>
+                    ) : (
+                      <form
+                        action={excluirRotuloAction}
+                        className="mt-2 flex items-center gap-2"
+                      >
+                        <input type="hidden" name="id" value={r.id} />
+                        <BotaoEnviar
+                          className="botao-perigo h-[34px]"
+                          rotuloOcupado="…"
+                        >
+                          Excluir rótulo
+                        </BotaoEnviar>
+                      </form>
+                    )}
+                  </details>
+                </div>
+              </details>
+            ))}
+          </div>
+        </SecaoRecolhivel>
+      )}
+
+      {/* ── Equipe ─────────────────────────────────────────────── */}
+      {podeMembros && (
+        <SecaoRecolhivel
+          titulo="Equipe"
+          resumo={plural(equipe.length, "membro")}
+        >
+          <p className="text-[12.5px] text-texto-secundario">
+            Cada pessoa recebe um rótulo. As exceções ajustam uma permissão só
+            para aquela pessoa, sem mexer no rótulo.
+          </p>
+
+          {/* Convidar */}
+          <details className="rounded-lg border border-tint-2 p-3.5">
+            <summary className="cursor-pointer text-sm font-semibold">
+              + Convidar pessoa
+            </summary>
+            <form
+              action={convidarMembroAction}
+              className="mt-3 flex flex-wrap items-end gap-2"
+            >
+              <label className="flex flex-col gap-1.5">
+                <span className="rotulo">E-mail</span>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="pessoa@escritorio.adv.br"
+                  className="campo w-[260px]"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="rotulo">Rótulo</span>
+                <select name="rotulo_id" defaultValue="" className="campo w-[200px]">
+                  <option value="">— sem rótulo —</option>
+                  {rotulos.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
+                Convidar
+              </BotaoEnviar>
+            </form>
+            <p className="mt-2 text-[12px] text-texto-secundario">
+              Depois de convidar, copie o link abaixo e mande para a pessoa
+              (e-mail, WhatsApp). Ela cria a conta pelo próprio link. Vale por 14
+              dias.
+            </p>
+          </details>
+
+          {convites.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="rotulo">Convites pendentes</span>
+              {convites.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-tint-2 p-3 text-[13px]"
+                >
+                  <div className="flex min-w-0 flex-col">
+                    <span className="font-medium">{c.email}</span>
+                    <span className="text-xs text-texto-secundario">
+                      {c.rotuloNome ?? "sem rótulo"}
+                    </span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <CopiarLink url={`${origem}/convite/${c.token}`} />
+                    <form action={cancelarConviteAction}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <button
+                        type="submit"
+                        className="text-xs text-atrasado hover:underline"
+                      >
+                        cancelar
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            {equipe.map((m) => (
+              <div
+                key={m.id}
+                className="flex flex-col gap-2.5 rounded-lg border border-tint-2 p-3.5"
+                style={{ opacity: m.ativo ? 1 : 0.55 }}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm font-semibold">
+                      {m.usuarioNome}
+                      {m.ehVoce && (
+                        <span className="ml-1.5 text-xs font-normal text-texto-secundario">
+                          (você)
+                        </span>
+                      )}
+                      {m.fundador && (
+                        <span className="ml-1.5 rounded bg-fundo px-1.5 py-0.5 text-[11px] font-medium text-teal">
+                          sócio fundador
+                        </span>
+                      )}
+                      {!m.ativo && (
+                        <span className="ml-1.5 text-[11px] font-normal text-atrasado">
+                          inativo
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-xs text-texto-secundario">
+                      {m.usuarioEmail}
+                    </span>
+                  </div>
+
+                  {!m.fundador && !m.ehVoce && (
+                    <form action={alternarAtivoMembroAction}>
+                      <input type="hidden" name="membro_id" value={m.id} />
+                      <input
+                        type="hidden"
+                        name="ativo"
+                        value={m.ativo ? "0" : "1"}
+                      />
+                      <BotaoEnviar
+                        className="botao-secundario h-[32px]"
+                        rotuloOcupado="…"
+                      >
+                        {m.ativo ? "Desativar" : "Reativar"}
+                      </BotaoEnviar>
+                    </form>
+                  )}
+                </div>
+
+                <form
+                  action={trocarRotuloMembroAction}
+                  className="flex flex-wrap items-end gap-2"
+                >
+                  <input type="hidden" name="membro_id" value={m.id} />
+                  <label className="flex flex-col gap-1.5">
+                    <span className="rotulo">Rótulo</span>
+                    <select
+                      name="rotulo_id"
+                      defaultValue={m.rotuloId ?? ""}
+                      className="campo w-[240px]"
+                    >
+                      <option value="">— sem rótulo —</option>
+                      {rotulos.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <BotaoEnviar
+                    className="botao-secundario h-[38px]"
+                    rotuloOcupado="…"
+                  >
+                    Trocar
+                  </BotaoEnviar>
+                  {m.fundador && (
+                    <span className="pb-2 text-[11px] text-texto-secundario">
+                      O fundador enxerga tudo, tenha o rótulo que tiver.
+                    </span>
+                  )}
+                </form>
+
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-texto-secundario">
+                    Exceções de permissão ({m.overrides.length})
+                  </summary>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {m.overrides.map((o) => (
+                      <form
+                        key={o.permissao}
+                        action={definirOverrideMembroAction}
+                        className="flex flex-wrap items-center gap-2 text-[13px]"
+                      >
+                        <input type="hidden" name="membro_id" value={m.id} />
+                        <input
+                          type="hidden"
+                          name="permissao"
+                          value={o.permissao}
+                        />
+                        <input type="hidden" name="valor" value="herda" />
+                        <span
+                          className={
+                            "rounded px-1.5 py-0.5 text-[11px] font-medium " +
+                            (o.concedida
+                              ? "bg-[#F0FDF4] text-[#166534]"
+                              : "bg-[var(--atrasado-fundo)] text-atrasado")
+                          }
+                        >
+                          {o.concedida ? "concede" : "nega"}
+                        </span>
+                        <span className="flex-1">
+                          {rotuloDaPermissao(o.permissao)}
+                        </span>
+                        <button
+                          type="submit"
+                          className="text-xs text-teal hover:underline"
+                        >
+                          voltar a herdar
+                        </button>
+                      </form>
+                    ))}
+
+                    <form
+                      action={definirOverrideMembroAction}
+                      className="mt-1 flex flex-wrap items-end gap-2"
+                    >
+                      <input type="hidden" name="membro_id" value={m.id} />
+                      <label className="flex flex-col gap-1.5">
+                        <span className="rotulo">Permissão</span>
+                        <select
+                          name="permissao"
+                          required
+                          defaultValue=""
+                          className="campo w-[280px]"
+                        >
+                          <option value="" disabled>
+                            Escolha a permissão…
+                          </option>
+                          {TODAS_PERMISSOES.map((p) => (
+                            <option key={p} value={p}>
+                              {rotuloDaPermissao(p)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="rotulo">Efeito</span>
+                        <select
+                          name="valor"
+                          defaultValue="concede"
+                          className="campo w-[130px]"
+                        >
+                          <option value="concede">Sempre pode</option>
+                          <option value="nega">Nunca pode</option>
+                        </select>
+                      </label>
+                      <BotaoEnviar
+                        className="botao-secundario h-[38px]"
+                        rotuloOcupado="…"
+                      >
+                        Adicionar exceção
+                      </BotaoEnviar>
+                    </form>
+                  </div>
+                </details>
+              </div>
+            ))}
+          </div>
+        </SecaoRecolhivel>
+      )}
+
+      {podeCalendario && (
+      <>
       {/* ── Tribunais ──────────────────────────────────────────── */}
       <SecaoRecolhivel
         titulo="Tribunais"
@@ -371,8 +749,11 @@ export default async function PaginaConfiguracoes({
           </div>
         )}
       </SecaoRecolhivel>
+      </>
+      )}
 
       {/* ── OABs monitoradas (DJEN) ────────────────────────────── */}
+      {podeOab && (
       <SecaoRecolhivel
         titulo="OABs monitoradas (DJEN)"
         resumo={
@@ -449,8 +830,10 @@ export default async function PaginaConfiguracoes({
           </div>
         )}
       </SecaoRecolhivel>
+      )}
 
       {/* ── Tipos de atividade (catálogo) ──────────────────────── */}
+      {podeCatalogos && (
       <SecaoRecolhivel
         titulo="Tipos de atividade"
         resumo={plural(tiposAtividade.length, "tipo")}
@@ -528,6 +911,7 @@ export default async function PaginaConfiguracoes({
           </div>
         ))}
       </SecaoRecolhivel>
+      )}
     </div>
   );
 }

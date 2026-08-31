@@ -2,12 +2,15 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
+import { lerRetorno } from "@/lib/navegacao";
 
 // Entra com e-mail e senha (Supabase Auth). Em caso de erro, volta para
 // /login?erro=... — a página mostra a mensagem.
 export async function entrar(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const senha = String(formData.get("senha") ?? "");
+  // Para onde ir depois de entrar (ex.: aceitar um convite). Só caminho interno.
+  const destino = lerRetorno(String(formData.get("next") ?? "")) ?? "/agenda";
 
   if (!email || !senha) {
     redirect("/login?erro=" + encodeURIComponent("Informe e-mail e senha."));
@@ -25,5 +28,5 @@ export async function entrar(formData: FormData) {
     );
   }
 
-  redirect("/agenda");
+  redirect(destino);
 }

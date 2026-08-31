@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
 import { buscarPasta } from "@/lib/db/pastas";
@@ -34,6 +38,12 @@ export default async function PaginaPasta({
   const erro = typeof sp.erro === "string" ? sp.erro : null;
 
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "pastas.ver");
+  const podeEditar = sessaoPode(sessao, "pastas.editar");
+  const podeExcluir = sessaoPode(sessao, "pastas.excluir");
+  const podeMexerProcesso = sessaoPode(sessao, "processos.editar");
+  const podeCriarProcesso = sessaoPode(sessao, "processos.criar");
+  const podeLancarAtividade = sessaoPode(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
   const pasta = await buscarPasta(supabase, sessao.escritorioId, id);
   if (!pasta) {
@@ -89,18 +99,23 @@ export default async function PaginaPasta({
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Link href={`/atividades/nova?pasta=${pasta.id}`} className="botao-secundario">
-          + Atividade
-        </Link>
-        <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`} className="botao-secundario">
-          + Processo
-        </Link>
+        {podeLancarAtividade && (
+          <Link href={`/atividades/nova?pasta=${pasta.id}`} className="botao-secundario">
+            + Atividade
+          </Link>
+        )}
+        {podeCriarProcesso && (
+          <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`} className="botao-secundario">
+            + Processo
+          </Link>
+        )}
         <Link href={`/agenda?pasta=${pasta.id}&tudo=1`} className="botao-secundario">
           Ver agenda desta pasta
         </Link>
       </div>
 
       {/* Editar */}
+      {podeEditar && (
       <details className="card p-5">
         <summary className="cursor-pointer text-sm font-semibold">
           Editar pasta
@@ -155,6 +170,7 @@ export default async function PaginaPasta({
           </BotaoEnviar>
         </form>
       </details>
+      )}
 
       {/* Clientes */}
       <div className="card flex flex-col gap-3 p-5">
@@ -163,7 +179,7 @@ export default async function PaginaPasta({
           {pasta.clientes.map((c) => (
             <div key={c.id} className="linha-lista">
               <span className="flex-1 text-[13.5px]">{c.nome}</span>
-              {pasta.clientes.length > 1 && (
+              {podeEditar && pasta.clientes.length > 1 && (
                 <form action={removerCliente}>
                   <input type="hidden" name="id" value={pasta.id} />
                   <input type="hidden" name="cliente_id" value={c.id} />
@@ -175,7 +191,7 @@ export default async function PaginaPasta({
             </div>
           ))}
         </div>
-        {clientesDisponiveis.length > 0 && (
+        {podeEditar && clientesDisponiveis.length > 0 && (
           <form action={adicionarCliente} className="flex gap-2">
             <input type="hidden" name="id" value={pasta.id} />
             <select name="cliente_id" required className="campo flex-1" defaultValue="">
@@ -211,11 +227,16 @@ export default async function PaginaPasta({
 
         {processosDetalhe.length === 0 ? (
           <p className="text-[13px] text-texto-secundario">
-            Nenhum processo judicial ou administrativo.{" "}
-            <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`}>
-              Cadastrar
-            </Link>
-            .
+            Nenhum processo judicial ou administrativo.
+            {podeCriarProcesso && (
+              <>
+                {" "}
+                <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`}>
+                  Cadastrar
+                </Link>
+                .
+              </>
+            )}
           </p>
         ) : (
           processosDetalhe.map((p) => {
@@ -249,7 +270,7 @@ export default async function PaginaPasta({
                     href={`/processos/${p.id}`}
                     className="text-xs font-medium text-teal hover:underline"
                   >
-                    editar
+                    {podeMexerProcesso ? "editar" : "ver"}
                   </Link>
                 </div>
 
@@ -277,20 +298,23 @@ export default async function PaginaPasta({
                             ? ` · adv. ${parte.advogado_adverso}${parte.oab_adverso ? ` (${parte.oab_adverso})` : ""}`
                             : ""}
                         </span>
-                        <form action={removerParteAction}>
-                          <input type="hidden" name="pasta_id" value={pasta.id} />
-                          <input type="hidden" name="parte_id" value={parte.id} />
-                          <button
-                            type="submit"
-                            className="text-xs text-atrasado hover:underline"
-                          >
-                            remover
-                          </button>
-                        </form>
+                        {podeMexerProcesso && (
+                          <form action={removerParteAction}>
+                            <input type="hidden" name="pasta_id" value={pasta.id} />
+                            <input type="hidden" name="parte_id" value={parte.id} />
+                            <button
+                              type="submit"
+                              className="text-xs text-atrasado hover:underline"
+                            >
+                              remover
+                            </button>
+                          </form>
+                        )}
                       </div>
                     ))
                   )}
 
+                  {podeMexerProcesso && (
                   <form
                     action={adicionarParteAction}
                     className="mt-1 grid gap-2 [grid-template-columns:1fr_150px_140px_120px_90px]"
@@ -326,6 +350,7 @@ export default async function PaginaPasta({
                       +
                     </BotaoEnviar>
                   </form>
+                  )}
                 </div>
               </div>
             );
@@ -349,6 +374,7 @@ export default async function PaginaPasta({
       </p>
 
       {/* Excluir pasta */}
+      {podeExcluir && (
       <details className="text-sm">
         <summary className="cursor-pointer text-texto-secundario">
           Excluir esta pasta
@@ -372,6 +398,7 @@ export default async function PaginaPasta({
           </BotaoEnviar>
         </form>
       </details>
+      )}
     </div>
   );
 }

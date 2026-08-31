@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
+import type { Permissao } from "@/lib/domain/permissoes";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { prazoInternoAPartirDoFatal } from "@/lib/domain/prazo";
 import { carregarConfiguracao } from "@/lib/db/configuracao";
@@ -23,8 +24,9 @@ function texto(fd: FormData, campo: string): string {
   return String(fd.get(campo) ?? "").trim();
 }
 
-async function contexto() {
+async function contexto(permissao: Permissao) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, permissao);
   const supabase = await criarClienteServidor();
   return { sessao, supabase };
 }
@@ -35,7 +37,7 @@ function recarregar(id: string) {
 }
 
 export async function concluir(formData: FormData) {
-  const { sessao, supabase } = await contexto();
+  const { sessao, supabase } = await contexto("atividades.concluir");
   const id = texto(formData, "id");
   if (!id) return;
   await concluirAtividade(supabase, {
@@ -50,7 +52,7 @@ export async function concluir(formData: FormData) {
 }
 
 export async function reativar(formData: FormData) {
-  const { supabase } = await contexto();
+  const { supabase } = await contexto("atividades.concluir");
   const id = texto(formData, "id");
   if (!id) return;
   await reativarAtividade(supabase, id);
@@ -58,7 +60,7 @@ export async function reativar(formData: FormData) {
 }
 
 export async function cancelar(formData: FormData) {
-  const { sessao, supabase } = await contexto();
+  const { sessao, supabase } = await contexto("atividades.concluir");
   const id = texto(formData, "id");
   const motivo = texto(formData, "motivo");
   if (!id || !motivo) {
@@ -74,7 +76,7 @@ export async function cancelar(formData: FormData) {
 }
 
 export async function verificar(formData: FormData) {
-  const { sessao, supabase } = await contexto();
+  const { sessao, supabase } = await contexto("atividades.concluir");
   const id = texto(formData, "id");
   const resultado = texto(formData, "resultado");
   const achouMudanca = formData.get("achou_mudanca") === "1";
@@ -112,7 +114,7 @@ export async function verificar(formData: FormData) {
 }
 
 export async function anotar(formData: FormData) {
-  const { sessao, supabase } = await contexto();
+  const { sessao, supabase } = await contexto("atividades.concluir");
   const id = texto(formData, "id");
   const txt = texto(formData, "texto");
   if (!id || !txt) return;
@@ -126,7 +128,7 @@ export async function anotar(formData: FormData) {
 }
 
 export async function ajustarPrazo(formData: FormData) {
-  const { sessao, supabase } = await contexto();
+  const { sessao, supabase } = await contexto("atividades.ajustar_prazo");
   const id = texto(formData, "id");
   const motivo = texto(formData, "motivo");
   const fatalNovo = texto(formData, "prazo_fatal");

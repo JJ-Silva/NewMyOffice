@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { somarDias, formatarDataBR } from "@/lib/domain/datas";
@@ -24,6 +28,9 @@ export default async function PaginaPublicacoes({
   searchParams,
 }: PageProps<"/publicacoes">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "publicacoes.ver");
+  const podeTriar = sessaoPode(sessao, "publicacoes.triar");
+  const podeArquivar = sessaoPode(sessao, "publicacoes.arquivar");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
   const hoje = hojeNoBrasil();
@@ -63,6 +70,7 @@ export default async function PaginaPublicacoes({
       </div>
 
       {/* Buscar */}
+      {podeTriar && (
       <div className="card flex flex-col gap-2 p-4">
         <form action={buscarNoDjen} className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1.5">
@@ -109,6 +117,7 @@ export default async function PaginaPublicacoes({
           escolhe o período que precisar.
         </span>
       </div>
+      )}
 
       {erro && (
         <p className="rounded-lg border border-atrasado bg-[var(--atrasado-fundo)] px-3 py-2 text-sm text-atrasado">
@@ -152,7 +161,12 @@ export default async function PaginaPublicacoes({
       ) : (
         <div className="flex flex-col gap-2.5">
           {publicacoes.map((p) => (
-            <Cartao key={p.id} p={p} />
+            <Cartao
+              key={p.id}
+              p={p}
+              podeTriar={podeTriar}
+              podeArquivar={podeArquivar}
+            />
           ))}
         </div>
       )}
@@ -160,7 +174,15 @@ export default async function PaginaPublicacoes({
   );
 }
 
-function Cartao({ p }: { p: PublicacaoLista }) {
+function Cartao({
+  p,
+  podeTriar,
+  podeArquivar,
+}: {
+  p: PublicacaoLista;
+  podeTriar: boolean;
+  podeArquivar: boolean;
+}) {
   return (
     <div className="card flex flex-col gap-2.5 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -228,29 +250,33 @@ function Cartao({ p }: { p: PublicacaoLista }) {
         )}
       </div>
 
-      {p.status === "nova" && (
+      {p.status === "nova" && (podeTriar || podeArquivar) && (
         <div className="flex flex-wrap items-center gap-2 border-t border-tint-1 pt-2.5">
-          <Link
-            href={`/publicacoes/${p.id}`}
-            className="botao-primario h-[34px]"
-          >
-            Triar →
-          </Link>
-          <form action={arquivar} className="flex items-center gap-2">
-            <input type="hidden" name="id" value={p.id} />
-            <input
-              name="motivo"
-              placeholder="motivo (opcional)"
-              className="campo h-[34px] w-[220px] text-xs"
-            />
-            <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
-              Arquivar
-            </BotaoEnviar>
-          </form>
+          {podeTriar && (
+            <Link
+              href={`/publicacoes/${p.id}`}
+              className="botao-primario h-[34px]"
+            >
+              Triar →
+            </Link>
+          )}
+          {podeArquivar && (
+            <form action={arquivar} className="flex items-center gap-2">
+              <input type="hidden" name="id" value={p.id} />
+              <input
+                name="motivo"
+                placeholder="motivo (opcional)"
+                className="campo h-[34px] w-[220px] text-xs"
+              />
+              <BotaoEnviar className="botao-secundario h-[34px]" rotuloOcupado="…">
+                Arquivar
+              </BotaoEnviar>
+            </form>
+          )}
         </div>
       )}
 
-      {p.status === "descartada" && (
+      {p.status === "descartada" && podeArquivar && (
         <div className="border-t border-tint-1 pt-2.5">
           <form action={reabrir}>
             <input type="hidden" name="id" value={p.id} />

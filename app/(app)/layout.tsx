@@ -1,8 +1,7 @@
 // Layout das telas internas (protegidas). Exige sessão e desenha o shell
 // com a sidebar teal (porte do protótipo).
 
-import { exigirSessao } from "@/lib/supabase/sessao";
-import { podeFazer } from "@/lib/domain/autorizacao";
+import { exigirSessao, podeAbrirConfiguracoes } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { contarPublicacoesNovas } from "@/lib/db/publicacoes";
 import { Sidebar } from "@/components/Sidebar";
@@ -31,10 +30,9 @@ export default async function LayoutApp({
       <Sidebar
         usuarioNome={sessao.usuario.nome}
         escritorioNome={sessao.escritorioNome}
-        mostrarConfiguracoes={podeFazer(
-          sessao.membro,
-          "acessar_configuracoes",
-        )}
+        mostrarConfiguracoes={podeAbrirConfiguracoes(sessao)}
+        permissoes={[...sessao.permissoes]}
+        fundador={sessao.fundador}
         publicacoesNovas={publicacoesNovas}
       />
       <main className="sidebar-conteudo">{children}</main>

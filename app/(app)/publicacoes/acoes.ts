@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
+import type { Permissao } from "@/lib/domain/permissoes";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { somarDias } from "@/lib/domain/datas";
 import { listarOabs } from "@/lib/db/oab";
@@ -18,15 +19,16 @@ function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
 }
 
-async function ctx() {
+async function ctx(permissao: Permissao) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, permissao);
   const supabase = await criarClienteServidor();
   return { sessao, supabase };
 }
 
 // Busca no DJEN as publicações das OABs do escritório no período e grava as novas.
 export async function buscarNoDjen(formData: FormData) {
-  const { sessao, supabase } = await ctx();
+  const { sessao, supabase } = await ctx("publicacoes.triar");
 
   const hoje = hojeNoBrasil();
   const dataInicio = txt(formData, "data_inicio") || somarDias(hoje, -7);
@@ -66,7 +68,7 @@ export async function buscarNoDjen(formData: FormData) {
 }
 
 export async function arquivar(formData: FormData) {
-  const { sessao, supabase } = await ctx();
+  const { sessao, supabase } = await ctx("publicacoes.arquivar");
   const id = txt(formData, "id");
   if (!id) return;
   await arquivarPublicacao(supabase, {
@@ -79,7 +81,7 @@ export async function arquivar(formData: FormData) {
 }
 
 export async function reabrir(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("publicacoes.arquivar");
   const id = txt(formData, "id");
   if (!id) return;
   await reabrirPublicacao(supabase, id);
@@ -91,7 +93,7 @@ export async function reabrir(formData: FormData) {
 // o casamento automático por CNJ falhou). Publicação do DJEN só se liga a
 // processo judicial — nunca ao "geral" de uma pasta.
 export async function vincularProcessoJudicial(formData: FormData) {
-  const { sessao, supabase } = await ctx();
+  const { sessao, supabase } = await ctx("publicacoes.triar");
   const id = txt(formData, "id");
   const processoId = txt(formData, "processo_id");
   if (!id || !processoId) return;

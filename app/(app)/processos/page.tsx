@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
 import { listarProcessos } from "@/lib/db/processos";
@@ -14,6 +18,7 @@ export default async function PaginaProcessos({
   searchParams,
 }: PageProps<"/processos">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "processos.ver");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
   const fPasta = typeof params.pasta === "string" ? params.pasta : "";
@@ -27,6 +32,10 @@ export default async function PaginaProcessos({
     listarPastas(supabase, sessao.escritorioId),
   ]);
 
+  const podeCriarProcesso = sessaoPode(sessao, "processos.criar");
+  const podeEditarProcesso = sessaoPode(sessao, "processos.editar");
+  const podeLancarAtividade = sessaoPode(sessao, "atividades.criar");
+
   return (
     <div className="flex flex-col gap-[18px]">
       <div className="flex items-end justify-between gap-5">
@@ -37,9 +46,11 @@ export default async function PaginaProcessos({
             (judicial e administrativo)
           </p>
         </div>
-        <Link href="/processos/novo" className="botao-primario flex-none">
-          + Cadastrar processo
-        </Link>
+        {podeCriarProcesso && (
+          <Link href="/processos/novo" className="botao-primario flex-none">
+            + Cadastrar processo
+          </Link>
+        )}
       </div>
 
       {(salvo || excluido) && (
@@ -152,14 +163,16 @@ export default async function PaginaProcessos({
                   href={`/processos/${x.id}`}
                   className="text-xs font-medium text-teal hover:underline"
                 >
-                  Editar
+                  {podeEditarProcesso ? "Editar" : "Ver"}
                 </Link>
-                <Link
-                  href={`/atividades/nova?pasta=${x.pastaId}`}
-                  className="botao-secundario"
-                >
-                  + Prazo
-                </Link>
+                {podeLancarAtividade && (
+                  <Link
+                    href={`/atividades/nova?pasta=${x.pastaId}`}
+                    className="botao-secundario"
+                  >
+                    + Prazo
+                  </Link>
+                )}
               </div>
             </div>
           ))}

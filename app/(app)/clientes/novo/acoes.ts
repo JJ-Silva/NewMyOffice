@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarCliente, type TipoPessoa } from "@/lib/db/clientes";
 import { lerRetorno, anexarId } from "@/lib/navegacao";
 
@@ -14,6 +14,7 @@ function voltarComErro(mensagem: string): never {
 // "Salvar e criar pasta").
 export async function criarClienteESeguir(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "clientes.criar");
 
   const nome = String(formData.get("nome") ?? "").trim();
   const cpfCnpj = String(formData.get("cpf_cnpj") ?? "").trim();

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
 import { listarAreas } from "@/lib/db/areas";
@@ -13,6 +13,7 @@ export default async function PaginaNovaPasta({
   searchParams,
 }: PageProps<"/pastas/nova">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "pastas.criar");
   const params = await searchParams;
   const erro = typeof params.erro === "string" ? params.erro : null;
   const clientePreSelecionado =

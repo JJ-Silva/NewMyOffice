@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
+import type { Permissao } from "@/lib/domain/permissoes";
 import {
   atualizarPasta,
   excluirPasta,
@@ -20,14 +21,15 @@ function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
 }
 
-async function ctx() {
+async function ctx(permissao: Permissao) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, permissao);
   const supabase = await criarClienteServidor();
   return { sessao, supabase };
 }
 
 export async function salvarPasta(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("pastas.editar");
   const id = txt(formData, "id");
   if (!id) return;
   const statusRaw = txt(formData, "status");
@@ -46,7 +48,7 @@ export async function salvarPasta(formData: FormData) {
 }
 
 export async function excluirPastaAction(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("pastas.excluir");
   const id = txt(formData, "id");
   const confirmacao = txt(formData, "confirmacao");
   if (!id) return;
@@ -61,7 +63,7 @@ export async function excluirPastaAction(formData: FormData) {
 }
 
 export async function adicionarCliente(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("pastas.editar");
   const id = txt(formData, "id");
   const clienteId = txt(formData, "cliente_id");
   if (!id || !clienteId) return;
@@ -70,7 +72,7 @@ export async function adicionarCliente(formData: FormData) {
 }
 
 export async function removerCliente(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("pastas.editar");
   const id = txt(formData, "id");
   const clienteId = txt(formData, "cliente_id");
   if (!id || !clienteId) return;
@@ -79,7 +81,7 @@ export async function removerCliente(formData: FormData) {
 }
 
 export async function adicionarParteAction(formData: FormData) {
-  const { sessao, supabase } = await ctx();
+  const { sessao, supabase } = await ctx("processos.editar");
   const pastaId = txt(formData, "pasta_id");
   const processoId = txt(formData, "processo_id");
   const nome = txt(formData, "nome");
@@ -100,7 +102,7 @@ export async function adicionarParteAction(formData: FormData) {
 }
 
 export async function removerParteAction(formData: FormData) {
-  const { supabase } = await ctx();
+  const { supabase } = await ctx("processos.editar");
   const pastaId = txt(formData, "pasta_id");
   const parteId = txt(formData, "parte_id");
   if (!parteId) return;

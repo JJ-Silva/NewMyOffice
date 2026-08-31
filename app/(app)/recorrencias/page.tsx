@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
@@ -16,6 +20,9 @@ export default async function PaginaRecorrencias({
   searchParams,
 }: PageProps<"/recorrencias">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.ver");
+  const podeGerenciar = sessaoPode(sessao, "recorrencias.gerenciar");
+  const podeLancarAtividade = sessaoPode(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
   const hoje = hojeNoBrasil();
@@ -41,9 +48,11 @@ export default async function PaginaRecorrencias({
             na agenda automaticamente. Prazo nunca recorre.
           </p>
         </div>
-        <Link href="/atividades/nova" className="botao-primario flex-none">
-          + Nova atividade
-        </Link>
+        {podeLancarAtividade && (
+          <Link href="/atividades/nova" className="botao-primario flex-none">
+            + Nova atividade
+          </Link>
+        )}
       </div>
 
       {criada && (
@@ -71,14 +80,16 @@ export default async function PaginaRecorrencias({
                 Nenhuma recorrência ativa.
               </p>
             ) : (
-              ativas.map((r) => <Cartao key={r.id} r={r} />)
+              ativas.map((r) => (
+                <Cartao key={r.id} r={r} podeGerenciar={podeGerenciar} />
+              ))
             )}
           </Secao>
 
           {encerradas.length > 0 && (
             <Secao titulo={`Encerradas (${encerradas.length})`}>
               {encerradas.map((r) => (
-                <Cartao key={r.id} r={r} />
+                <Cartao key={r.id} r={r} podeGerenciar={podeGerenciar} />
               ))}
             </Secao>
           )}
@@ -105,8 +116,10 @@ function Secao({
 
 function Cartao({
   r,
+  podeGerenciar,
 }: {
   r: Awaited<ReturnType<typeof listarRecorrencias>>[number];
+  podeGerenciar: boolean;
 }) {
   return (
     <div
@@ -149,7 +162,11 @@ function Cartao({
         </span>
       </div>
 
-      {r.ativa ? (
+      {!r.ativa ? (
+        <span className="border-t border-tint-1 pt-3 text-xs text-texto-secundario">
+          Encerrada — não gera mais instâncias.
+        </span>
+      ) : !podeGerenciar ? null : (
         <div className="flex flex-wrap items-center gap-3 border-t border-tint-1 pt-3">
           <form action={encerrarRecorrenciaAction}>
             <input type="hidden" name="id" value={r.id} />
@@ -189,10 +206,6 @@ function Cartao({
             </form>
           </details>
         </div>
-      ) : (
-        <span className="border-t border-tint-1 pt-3 text-xs text-texto-secundario">
-          Encerrada — não gera mais instâncias.
-        </span>
       )}
     </div>
   );

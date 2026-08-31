@@ -4,32 +4,53 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
 import { sair } from "@/app/(app)/acoes";
+import type { Permissao } from "@/lib/domain/permissoes";
 
-type ItemNav = { href: Route; label: string; badge?: number };
+type ItemNav = {
+  href: Route;
+  label: string;
+  badge?: number;
+  // permissão de "ver" que libera o item; ausente = todo membro vê
+  exige?: Permissao;
+};
 
 export function Sidebar({
   usuarioNome,
   escritorioNome,
   mostrarConfiguracoes,
+  permissoes,
+  fundador = false,
   publicacoesNovas = 0,
 }: {
   usuarioNome: string;
   escritorioNome: string;
   mostrarConfiguracoes: boolean;
+  permissoes: Permissao[];
+  fundador?: boolean;
   publicacoesNovas?: number;
 }) {
   const caminho = usePathname();
+  const conjunto = new Set(permissoes);
+  const pode = (p?: Permissao) => !p || fundador || conjunto.has(p);
 
-  // Rotas do trabalho do dia a dia. Configurações fica separada (só dono).
-  const itens: ItemNav[] = [
-    { href: "/agenda", label: "Agenda de atividades" },
-    { href: "/atividades/nova", label: "Nova atividade" },
-    { href: "/recorrencias", label: "Recorrências" },
-    { href: "/publicacoes", label: "Publicações", badge: publicacoesNovas },
-    { href: "/clientes", label: "Clientes" },
-    { href: "/pastas", label: "Pastas" },
-    { href: "/processos", label: "Processos" },
-  ];
+  // Rotas do trabalho do dia a dia. Cada uma aparece se o rótulo puder vê-la.
+  const itens: ItemNav[] = (
+    [
+      { href: "/agenda", label: "Agenda de atividades", exige: "atividades.ver" },
+      { href: "/atividades/nova", label: "Nova atividade", exige: "atividades.criar" },
+      { href: "/recorrencias", label: "Recorrências", exige: "atividades.ver" },
+      {
+        href: "/publicacoes",
+        label: "Publicações",
+        badge: publicacoesNovas,
+        exige: "publicacoes.ver",
+      },
+      { href: "/clientes", label: "Clientes", exige: "clientes.ver" },
+      { href: "/pastas", label: "Pastas", exige: "pastas.ver" },
+      { href: "/processos", label: "Processos", exige: "processos.ver" },
+    ] satisfies ItemNav[]
+  ).filter((item) => pode(item.exige));
+
   if (mostrarConfiguracoes) {
     itens.push({ href: "/configuracoes", label: "Configurações" });
   }

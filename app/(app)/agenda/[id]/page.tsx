@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  sessaoPode,
+} from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { formatarDataBR } from "@/lib/domain/datas";
@@ -49,6 +53,9 @@ export default async function PaginaDetalheAtividade({
   const erro = typeof sp.erro === "string" ? sp.erro : null;
 
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.ver");
+  const podeTrabalhar = sessaoPode(sessao, "atividades.concluir");
+  const podeAjustarPrazo = sessaoPode(sessao, "atividades.ajustar_prazo");
   const supabase = await criarClienteServidor();
   const d = await carregarDetalheAtividade(supabase, sessao.escritorioId, id);
   if (!d) {
@@ -205,7 +212,7 @@ export default async function PaginaDetalheAtividade({
       )}
 
       {/* Ajustar datas (só prazo) */}
-      {prazo && aberta && (
+      {prazo && aberta && podeAjustarPrazo && (
         <details className="card p-5">
           <summary className="cursor-pointer text-sm font-semibold">
             Ajustar datas manualmente
@@ -277,18 +284,20 @@ export default async function PaginaDetalheAtividade({
             </div>
           ))
         )}
-        <form action={anotar} className="flex gap-2">
-          <input type="hidden" name="id" value={d.id} />
-          <input
-            name="texto"
-            required
-            placeholder="Ex.: cliente enviou os documentos por e-mail"
-            className="campo flex-1"
-          />
-          <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
-            Adicionar
-          </BotaoEnviar>
-        </form>
+        {podeTrabalhar && (
+          <form action={anotar} className="flex gap-2">
+            <input type="hidden" name="id" value={d.id} />
+            <input
+              name="texto"
+              required
+              placeholder="Ex.: cliente enviou os documentos por e-mail"
+              className="campo flex-1"
+            />
+            <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
+              Adicionar
+            </BotaoEnviar>
+          </form>
+        )}
       </div>
 
       {/* Histórico de ajustes */}
@@ -321,7 +330,8 @@ export default async function PaginaDetalheAtividade({
       )}
 
       {/* Ações */}
-      {aberta ? (
+      {podeTrabalhar &&
+        (aberta ? (
         d.tipo === "monitoramento" ? (
           <form
             action={verificar}
@@ -382,9 +392,9 @@ export default async function PaginaDetalheAtividade({
             Reativar
           </BotaoEnviar>
         </form>
-      )}
+        ))}
 
-      {aberta && (
+      {podeTrabalhar && aberta && (
         <details className="text-sm">
           <summary className="cursor-pointer text-texto-secundario">
             Cancelar esta atividade

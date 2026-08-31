@@ -2,12 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarPasta } from "@/lib/db/pastas";
 import { lerRetorno, anexarId } from "@/lib/navegacao";
 
 export async function criarPastaAction(formData: FormData) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "pastas.criar");
 
   const clienteId = String(formData.get("cliente_id") ?? "").trim();
   const nome = String(formData.get("nome") ?? "").trim() || null;

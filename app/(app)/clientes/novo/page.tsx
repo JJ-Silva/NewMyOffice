@@ -1,12 +1,15 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { lerRetorno } from "@/lib/navegacao";
 import { criarClienteESeguir } from "./acoes";
 
 export default async function PaginaNovoCliente({
   searchParams,
 }: PageProps<"/clientes/novo">) {
+  const sessao = await exigirSessao();
+  exigirPermissao(sessao, "clientes.criar");
   const params = await searchParams;
   const erro = typeof params.erro === "string" ? params.erro : null;
   const retorno = lerRetorno(params.retorno);

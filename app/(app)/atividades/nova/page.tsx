@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { exigirSessao } from "@/lib/supabase/sessao";
+import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { listarPastas } from "@/lib/db/pastas";
@@ -27,6 +27,7 @@ export default async function PaginaNovaAtividade({
   searchParams,
 }: PageProps<"/atividades/nova">) {
   const sessao = await exigirSessao();
+  exigirPermissao(sessao, "atividades.criar");
   const supabase = await criarClienteServidor();
   const params = await searchParams;
 

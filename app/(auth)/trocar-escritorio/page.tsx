@@ -47,7 +47,7 @@ export default async function PaginaTrocarEscritorio() {
                   <span>
                     {m.escritorio_nome}
                     <span className="ml-2 text-xs text-texto-secundario">
-                      {m.papel}
+                      {m.fundador ? "sócio fundador" : (m.rotulo_nome ?? "—")}
                     </span>
                   </span>
                   {ehAtivo && <span className="text-xs text-teal">ativo</span>}

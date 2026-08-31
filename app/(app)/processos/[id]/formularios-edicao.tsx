@@ -64,18 +64,24 @@ function BlocoExcluir({ id }: { id: string }) {
 export function FormularioJudicial({
   processo,
   tribunais,
+  podeEditar,
+  podeExcluir,
 }: {
   processo: ProcessoEdicao;
   tribunais: Tribunal[];
+  podeEditar: boolean;
+  podeExcluir: boolean;
 }) {
   const j = processo.judicial;
   return (
     <div className="flex flex-col gap-4">
+      {!podeEditar && <AvisoSomenteLeitura />}
       <form
         action={salvarJudicial}
         className="card grid gap-4 p-6 [grid-template-columns:1fr] sm:[grid-template-columns:1fr_1fr]"
       >
         <input type="hidden" name="id" value={processo.id} />
+        <fieldset disabled={!podeEditar} className="contents">
 
         <Campo rotulo="Número do processo (CNJ)" full>
           <input
@@ -196,36 +202,53 @@ export function FormularioJudicial({
         </Campo>
 
         <div className="flex gap-3 pt-1 sm:col-span-2">
-          <BotaoEnviar className="botao-primario h-[42px]">
-            Salvar processo
-          </BotaoEnviar>
+          {podeEditar && (
+            <BotaoEnviar className="botao-primario h-[42px]">
+              Salvar processo
+            </BotaoEnviar>
+          )}
           <Link
             href="/processos"
             className="flex h-[42px] items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
           >
-            Cancelar
+            {podeEditar ? "Cancelar" : "Voltar"}
           </Link>
         </div>
+        </fieldset>
       </form>
 
-      <BlocoExcluir id={processo.id} />
+      {podeExcluir && <BlocoExcluir id={processo.id} />}
     </div>
+  );
+}
+
+function AvisoSomenteLeitura() {
+  return (
+    <p className="rounded-lg border border-tint-2 bg-tint-1 px-3 py-2 text-[13px] text-texto-secundario">
+      Você pode ver este processo, mas seu rótulo não permite editar.
+    </p>
   );
 }
 
 export function FormularioAdministrativo({
   processo,
+  podeEditar,
+  podeExcluir,
 }: {
   processo: ProcessoEdicao;
+  podeEditar: boolean;
+  podeExcluir: boolean;
 }) {
   const a = processo.administrativo;
   return (
     <div className="flex flex-col gap-4">
+      {!podeEditar && <AvisoSomenteLeitura />}
       <form
         action={salvarAdministrativo}
         className="card grid gap-4 p-6 [grid-template-columns:1fr] sm:[grid-template-columns:1fr_1fr]"
       >
         <input type="hidden" name="id" value={processo.id} />
+        <fieldset disabled={!podeEditar} className="contents">
 
         <Campo rotulo="Número do processo administrativo">
           <input
@@ -343,19 +366,22 @@ export function FormularioAdministrativo({
         </Campo>
 
         <div className="flex gap-3 pt-1 sm:col-span-2">
-          <BotaoEnviar className="botao-primario h-[42px]">
-            Salvar processo
-          </BotaoEnviar>
+          {podeEditar && (
+            <BotaoEnviar className="botao-primario h-[42px]">
+              Salvar processo
+            </BotaoEnviar>
+          )}
           <Link
             href="/processos"
             className="flex h-[42px] items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
           >
-            Cancelar
+            {podeEditar ? "Cancelar" : "Voltar"}
           </Link>
         </div>
+        </fieldset>
       </form>
 
-      <BlocoExcluir id={processo.id} />
+      {podeExcluir && <BlocoExcluir id={processo.id} />}
     </div>
   );
 }
