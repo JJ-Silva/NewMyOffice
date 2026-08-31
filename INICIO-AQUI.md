@@ -37,7 +37,7 @@ Fluxo: cadastro/login → cria escritório (seed de `area` e `tipo_atividade`) �
 ## Depois da fatia vertical
 Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a base). Depois, roadmap §2 do plano.
 
-**Estado (2026-08-30): Etapas 1, 2, 3a, 3c e 5 feitas e DEPLOYADAS.**
+**Estado (2026-08-31): Etapas 1, 2, 3a, 3c, 5 DEPLOYADAS; Etapa 6 pronta (aguardando push).**
 - App no ar: https://new-my-office.vercel.app · repo github.com/JJ-Silva/NewMyOffice
   (auto-deploy no push da `master`).
 - **Etapa 1**: 3 tipos de atividade (prazo/compromisso/monitoramento) + motor de prazo
@@ -64,5 +64,12 @@ Semanas 3–4 da Etapa 1: tipos `compromisso` e `monitoramento` (reusam toda a b
   **Cron diário** (`vercel.json` + `/api/cron/buscar-djen`, 10h UTC = 7h BRT): busca só o
   dia atual para todos os escritórios com OAB ativa. Exige na Vercel as envs
   `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` (o cron não tem sessão de usuário).
-- **Próximo (roadmap §2 do plano)**: 4 documentos · 6 papéis/convites · 7 relatórios ·
-  3b alertas por e-mail (adiado para o final).
+- **Etapa 6** (papéis e permissões + convites): rótulos criados pelo escritório
+  (`rotulo`/`rotulo_permissao`, catálogo em `lib/domain/permissoes.ts`), override por pessoa
+  (`membro_permissao`), `membro.fundador`. `tem_permissao()` no RLS (`<grupo>.ver` no SELECT)
+  + `exigirPermissao` em toda página/ação. Telas "Rótulos" e "Equipe" em Configurações.
+  Convites: `convite` + `/convite/<token>` (cria conta + aceita) + link copiável; envio
+  de e-mail fica para a 3b. Migrations 13–15 aplicadas. Cadastro tem nome + senha em 2
+  etapas (`components/CampoSenha.tsx`).
+- **Próximo (roadmap §2 do plano)**: 4 documentos · 7 relatórios · 3b alertas por e-mail
+  (adiado para o final).

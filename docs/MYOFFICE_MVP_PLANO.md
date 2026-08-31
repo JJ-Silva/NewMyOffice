@@ -1,9 +1,9 @@
 # MYOFFICE — PLANO DO MVP (reinício)
 
 **Documento vivo.** Base para recomeçar o desenvolvimento. Contexto histórico: `MYOFFICE_AUDITORIA.md` (congelado).
-Última atualização: 2026-08-30.
+Última atualização: 2026-08-31.
 
-> **Estado (2026-08-30):** Etapas 1, 2, **3a**, **3c** e **5** feitas e **deployadas** — https://new-my-office.vercel.app
+> **Estado (2026-08-31):** Etapas 1, 2, **3a**, **3c**, **5** deployadas + **Etapa 6** (papéis/permissões/convites) pronta, aguardando push — https://new-my-office.vercel.app
 > (Vercel, projeto `new-my-office` / time JefersonSilvaAdv, auto-deploy no push da `master`).
 > Repo: github.com/JJ-Silva/NewMyOffice.
 > **Etapa 1**: 3 tipos de atividade + motor de prazo (T1–T13) + agenda + auth + multi-tenant.
@@ -20,8 +20,17 @@
 > triagem) e `/publicacoes/[id]` (cadastra processo na hora / vincula / vira prazo).
 > **Cron diário** (Vercel Cron `0 10 * * *` → `/api/cron/buscar-djen`, service_role +
 > CRON_SECRET) busca o dia; janelas maiores são manuais.
+> **Etapa 6 (papéis e permissões + convites)** feita (2026-08-31): sem papel fixo —
+> o escritório cria **rótulos** (`rotulo`/`rotulo_permissao`) com um catálogo de 28
+> permissões (`lib/domain/permissoes.ts`); override por pessoa (`membro_permissao`);
+> `membro.fundador` (criador, passa por cima de tudo). `tem_permissao()` no RLS: as
+> tabelas de domínio exigem `<grupo>.ver` no SELECT. Gate no app: `exigirPermissao` em
+> toda página e Server Action; UI esconde o que o rótulo não pode. Tela "Rótulos" e
+> "Equipe" em Configurações. Convite por e-mail: `convite` + `ver_convite`/`aceitar_convite`,
+> `/convite/<token>` (cria conta + aceita) + link copiável. Envio automático do
+> e-mail fica para a Etapa 3b (Resend).
 > **3b (alertas por e-mail) adiado para o final** (decisão 2026-08-30).
-> Próximo: Etapa 4 (documentos) · 6 (papéis/convites) · 7 (relatórios).
+> Próximo: Etapa 4 (documentos) · 7 (relatórios). Por último: 3b.
 
 ---
 
@@ -97,7 +106,7 @@ Cada etapa termina com algo **usável e deployado**.
 | ~~3c~~ | ✅ **Visão calendário** (`/agenda/calendario`) — grade mês/semana, nav ‹ Hoje ›, filtros, toggle Lista⇄Calendário. Sync com calendário externo: descartado | 1 |
 | 4 | Documentos: modelos, geração, Storage (Word → pasta de modelos / PDF → pasta do cliente; API Google Drive) | 2 |
 | ~~5~~ | ✅ Import de publicações do **DJEN** — `oab_monitorada` + `publicacao` · `lib/djen/comunica-api.ts` (API pública do CNJ) · `lib/domain/publicacao.ts` (limpa HTML, normaliza CNJ, sugere tipo/dias) · tela `/publicacoes` (busca + triagem, auto-match CNJ) · triar → cadastra processo na hora ou vincula → vira prazo (reusa o form + motor). Feito antes da 3b — o alerta é plus, não bloqueio | 2 |
-| 6 | Papéis e permissões refinados (dono / advogado / secretaria — o que cada um vê e faz); convites de membro | 1 |
+| ~~6~~ | ✅ **Papéis e permissões** — sem papel fixo: o escritório cria **rótulos** com um catálogo de 28 permissões (`lib/domain/permissoes.ts`); override por pessoa; `membro.fundador`. `tem_permissao()` no RLS (`<grupo>.ver` obrigatório no SELECT) + `exigirPermissao` em toda página/ação. Tela "Rótulos" e "Equipe" em Configurações. **Convites** por link (`convite` + `/convite/<token>`: cria conta + aceita; link copiável). Envio de e-mail → Etapa 3b | 1 |
 | 7 | Relatórios e produtividade | 2 |
 
 **Notas:**
@@ -131,10 +140,14 @@ usuario                       -- perfil; id espelha auth.users.id do Supabase
 
 membro                        -- usuário 1:N escritório
   id, usuario_id (fk usuario), escritorio_id (fk escritorio),
-  papel (text check in: 'dono' | 'advogado' | 'secretaria'),   -- Etapa 1 usa dono/advogado; Etapa 6 refina
+  papel (text),                 -- LEGADO (não usado no código desde a Etapa 6)
+  fundador (bool default false), -- Etapa 6: o criador; passa por cima de tudo
+  rotulo_id (fk rotulo, null),   -- Etapa 6: a "função" da pessoa
   ativo (bool default true),
   criado_em, deletado_em,
   unique (usuario_id, escritorio_id)
+
+rotulo / rotulo_permissao / membro_permissao / convite   -- Etapa 6 (ver migration 13–15)
 ```
 
 ```
@@ -541,7 +554,7 @@ prazo_historico               -- auditoria SÓ do prazo (parte legalmente sensí
 **Tenancy / identidade**
 - Multi-escritório (SaaS). Usuário **1:N** escritório via tabela `membro` (papel: dono/advogado/secretaria).
 - `escritorio_id` + RLS em toda tabela de domínio. Catálogos copiados por tenant no onboarding.
-- **Autorização (P6):** o `dono`/administrador concede permissões aos demais membros. **Etapa 1:** toda ação de negócio (prazos, pastas, clientes) liberada a qualquer membro ativo; **só o `dono` acessa Configurações** (feriados, tribunais, catálogos, membros). O código chama `podeFazer(membro, acao)` desde já (hoje quase sempre `true`) — o gate fino é a Etapa 6.
+- **Autorização (P6) — Etapa 6, FEITA:** sem papel fixo. O escritório cria **rótulos** (tabela `rotulo` + `rotulo_permissao`), cada um com um conjunto do catálogo de 28 permissões `grupo.acao` (`lib/domain/permissoes.ts`); cada pessoa tem um rótulo e pode ter **overrides** (`membro_permissao`). `membro.fundador` = o criador do escritório, passa por cima de tudo, nunca perde acesso. Regra em `lib/domain/autorizacao.ts` (`podeFazer`) e replicada no RLS (`tem_permissao()`): as tabelas de domínio exigem `<grupo>.ver` no SELECT. No app, `exigirPermissao(sessao, permissao)` em toda página e Server Action; a UI esconde o que o rótulo não pode. Convites: `convite` + `/convite/<token>`.
 - `cliente.cpf_cnpj` é **obrigatório** (não é PK), único por escritório.
 
 **Pastas / Processos** (schema em §3.4–§3.5; justificativa dos 3 conflitos resolvidos em `MYOFFICE_AUDITORIA.md` — histórico)
