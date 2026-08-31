@@ -94,7 +94,11 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-[18px]">
-        <div className="flex items-center gap-2.5">
+        <Link
+          href="/perfil"
+          className="flex items-center gap-2.5 rounded-lg p-1 -m-1 hover:bg-white/10 hover:no-underline"
+          data-ativo={caminho === "/perfil"}
+        >
           <span className="flex h-[30px] w-[30px] flex-none items-center justify-center rounded-full bg-white/15 text-xs font-semibold text-white">
             {iniciais(usuarioNome)}
           </span>
@@ -104,7 +108,7 @@ export function Sidebar({
             </span>
             <span className="text-[11px] text-white/50">{escritorioNome}</span>
           </div>
-        </div>
+        </Link>
         <div className="flex gap-2">
           <Link
             href="/trocar-escritorio"
