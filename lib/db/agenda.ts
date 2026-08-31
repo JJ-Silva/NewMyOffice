@@ -15,7 +15,7 @@ export type FiltrosAgenda = {
 
 export type ItemAgenda = {
   id: string;
-  titulo: string;
+  titulo: string | null;
   tipo: "prazo" | "compromisso" | "monitoramento";
   data: string; // 'AAAA-MM-DD' (= prazo fatal adotado, para prazo)
   status: StatusAtividade;
@@ -96,7 +96,7 @@ export async function listarAgenda(
 
     return {
       id: linha.id as string,
-      titulo: linha.titulo as string,
+      titulo: (linha.titulo as string | null) ?? null,
       tipo: linha.tipo as ItemAgenda["tipo"],
       data: linha.data as string,
       status: linha.status as StatusAtividade,

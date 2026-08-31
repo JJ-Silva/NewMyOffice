@@ -29,7 +29,7 @@ export type NovaRecorrencia = {
   atividadeTipo: AtividadeTipoRecorrente;
   processoId: string;
   tipoAtividadeId: string;
-  titulo: string;
+  titulo: string | null;
   descricao: string | null;
   responsavelId: string | null;
   prioridadeManual: Prioridade;
@@ -205,7 +205,7 @@ export async function gerarProximaInstancia(
 export type RecorrenciaResumo = {
   id: string;
   atividadeTipo: AtividadeTipoRecorrente;
-  titulo: string;
+  titulo: string | null;
   tipoAtividadeNome: string | null;
   pastaId: string;
   pastaCodigo: string;
@@ -288,7 +288,7 @@ export async function listarRecorrencias(
     return {
       id: l.id as string,
       atividadeTipo: l.atividade_tipo as AtividadeTipoRecorrente,
-      titulo: l.titulo as string,
+      titulo: (l.titulo as string | null) ?? null,
       tipoAtividadeNome: um<{ nome: string }>(l.tipo_atividade)?.nome ?? null,
       pastaId: processo?.pasta_id ?? "",
       pastaCodigo: pasta?.codigo ?? "—",

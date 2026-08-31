@@ -87,7 +87,7 @@ export default async function PaginaDetalheAtividade({
           {d.processoNumero ?? d.pastaCodigo} · {d.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
-          {TIPO_LABEL[d.tipo]}: {d.titulo}
+          {TIPO_LABEL[d.tipo]}: {d.titulo ?? d.tipoAtividadeNome ?? "—"}
         </h1>
         {d.recorrenciaId && (
           <span className="text-xs text-teal">

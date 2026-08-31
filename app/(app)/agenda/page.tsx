@@ -289,10 +289,14 @@ export default async function PaginaAgenda({
                     {item.recorrente && (
                       <span title="Instância de uma recorrência">↻ </span>
                     )}
-                    {item.tipoAtividadeNome ?? item.titulo}
+                    {item.titulo ?? item.tipoAtividadeNome ?? "atividade"}
                   </span>
                   <span className="text-xs text-texto-secundario">
-                    {TIPO_LABEL[item.tipo]} · {item.responsavelNome ?? "—"}
+                    {TIPO_LABEL[item.tipo]}
+                    {item.titulo && item.tipoAtividadeNome
+                      ? ` · ${item.tipoAtividadeNome}`
+                      : ""}{" "}
+                    · {item.responsavelNome ?? "—"}
                   </span>
                 </div>
 

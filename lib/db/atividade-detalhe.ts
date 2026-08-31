@@ -23,7 +23,7 @@ export type HistoricoItem = {
 
 export type DetalheAtividade = {
   id: string;
-  titulo: string;
+  titulo: string | null;
   descricao: string | null;
   tipo: "prazo" | "compromisso" | "monitoramento";
   data: string;
@@ -141,7 +141,7 @@ export async function carregarDetalheAtividade(
 
   return {
     id: data.id as string,
-    titulo: data.titulo as string,
+    titulo: (data.titulo as string | null) ?? null,
     descricao: (data.descricao as string | null) ?? null,
     tipo: data.tipo as DetalheAtividade["tipo"],
     data: data.data as string,

@@ -12,7 +12,7 @@ export type NovoPrazo = {
   escritorioId: string;
   processoId: string;
   tipoAtividadeId: string;
-  titulo: string;
+  titulo: string | null;
   responsavelId: string | null;
   tribunalId: string | null;
   // configuração da contagem
@@ -104,7 +104,7 @@ export type NovoCompromisso = {
   escritorioId: string;
   processoId: string;
   tipoAtividadeId: string;
-  titulo: string;
+  titulo: string | null;
   responsavelId: string | null;
   data: string; // 'AAAA-MM-DD'
   hora: string | null; // 'HH:MM'
@@ -154,7 +154,7 @@ export type NovoMonitoramento = {
   escritorioId: string;
   processoId: string;
   tipoAtividadeId: string;
-  titulo: string;
+  titulo: string | null;
   responsavelId: string | null;
   data: string; // 'AAAA-MM-DD' (dia da verificação)
   alvo: string | null;

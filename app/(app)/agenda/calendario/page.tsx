@@ -341,7 +341,7 @@ function Celula({
           <span className="truncate font-medium text-texto">
             {item.status === "concluida" ? "✓ " : ""}
             {item.recorrente ? "↻ " : ""}
-            {item.tipoAtividadeNome ?? item.titulo}
+            {item.titulo ?? item.tipoAtividadeNome ?? "atividade"}
           </span>
           <span className="truncate text-texto-secundario">
             {item.pastaNome ?? item.pastaCodigo}

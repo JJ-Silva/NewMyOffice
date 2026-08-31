@@ -116,7 +116,7 @@ function Cartao({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">
-            ↻ {r.tipoAtividadeNome ?? r.titulo}
+            ↻ {r.titulo ?? r.tipoAtividadeNome ?? "atividade"}
             <span className="ml-2 text-xs font-normal text-texto-secundario">
               {TIPO_LABEL[r.atividadeTipo]}
             </span>

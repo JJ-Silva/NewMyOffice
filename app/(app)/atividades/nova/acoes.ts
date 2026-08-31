@@ -57,7 +57,7 @@ export async function salvarPrazo(formData: FormData) {
   }
 
   const { processoId, tipo, natureza, dias, resultado } = calc.dados;
-  const titulo = campos.titulo.trim() || tipo.nome;
+  const titulo = campos.titulo.trim() || null;
 
   let atividadeId: string;
   try {
@@ -222,7 +222,7 @@ export async function salvarCompromisso(formData: FormData) {
           atividadeTipo: "compromisso",
           processoId,
           tipoAtividadeId: tipo.id,
-          titulo: texto(formData, "titulo") || tipo.nome,
+          titulo: texto(formData, "titulo") || null,
           descricao: null,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
@@ -252,7 +252,7 @@ export async function salvarCompromisso(formData: FormData) {
       escritorioId: sessao.escritorioId,
       processoId,
       tipoAtividadeId: tipo.id,
-      titulo: texto(formData, "titulo") || tipo.nome,
+      titulo: texto(formData, "titulo") || null,
       responsavelId: sessao.membro.id,
       data,
       hora: texto(formData, "hora") || null,
@@ -313,7 +313,7 @@ export async function salvarMonitoramento(formData: FormData) {
           atividadeTipo: "monitoramento",
           processoId,
           tipoAtividadeId: tipo.id,
-          titulo: texto(formData, "titulo") || tipo.nome,
+          titulo: texto(formData, "titulo") || null,
           descricao: null,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
@@ -341,7 +341,7 @@ export async function salvarMonitoramento(formData: FormData) {
       escritorioId: sessao.escritorioId,
       processoId,
       tipoAtividadeId: tipo.id,
-      titulo: texto(formData, "titulo") || tipo.nome,
+      titulo: texto(formData, "titulo") || null,
       responsavelId: sessao.membro.id,
       data,
       alvo: texto(formData, "alvo") || null,
