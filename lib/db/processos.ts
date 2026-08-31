@@ -27,6 +27,72 @@ export async function listarProcessosDaPasta(
   return (data ?? []) as ProcessoResumo[];
 }
 
+// Todos os processos do escritório, para os seletores "onde cadastrar a
+// atividade" (agrupados por pasta na tela). Toda atividade vai num processo.
+export type ProcessoParaSelecao = {
+  id: string;
+  tipo: "geral" | "judicial" | "administrativo";
+  numero: string | null;
+  pastaId: string;
+  pastaCodigo: string;
+  pastaNome: string | null;
+  clienteNome: string | null;
+};
+
+export async function listarProcessosParaSelecao(
+  supabase: SupabaseClient,
+  escritorioId: string,
+): Promise<ProcessoParaSelecao[]> {
+  const { data, error } = await supabase
+    .from("processo")
+    .select(
+      `id, tipo, numero, pasta_id,
+       pasta:pasta_id ( codigo, nome, ano, sequencial,
+                        pasta_cliente ( cliente:cliente_id ( nome ) ) )`,
+    )
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null);
+
+  if (error) {
+    throw new Error(`Falha ao listar processos: ${error.message}`);
+  }
+
+  const ordemTipo = { geral: 0, judicial: 1, administrativo: 2 };
+
+  const itens = (data ?? []).map((linha) => {
+    const pasta = um<{
+      codigo: string;
+      nome: string | null;
+      ano: number;
+      sequencial: number;
+      pasta_cliente: unknown;
+    }>(linha.pasta);
+    const cliente = um<{ nome: string }>(
+      um<{ cliente: unknown }>(arr(pasta?.pasta_cliente)[0])?.cliente,
+    );
+    const tipo = linha.tipo as ProcessoParaSelecao["tipo"];
+    return {
+      processo: {
+        id: linha.id as string,
+        tipo,
+        numero: (linha.numero as string | null) ?? null,
+        pastaId: linha.pasta_id as string,
+        pastaCodigo: pasta?.codigo ?? "—",
+        pastaNome: pasta?.nome ?? null,
+        clienteNome: cliente?.nome ?? null,
+      } satisfies ProcessoParaSelecao,
+      // chave de ordenação: pasta mais nova primeiro; geral antes dos outros
+      ordem:
+        -(pasta?.ano ?? 0) * 1e9 -
+        (pasta?.sequencial ?? 0) * 10 +
+        ordemTipo[tipo],
+    };
+  });
+
+  itens.sort((a, b) => a.ordem - b.ordem);
+  return itens.map((x) => x.processo);
+}
+
 // ── Lista geral de processos (judicial + administrativo) ───────────────────
 export type ProcessoLista = {
   id: string;

@@ -242,7 +242,7 @@ export default async function PaginaAgenda({
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
           <div className="grid min-w-[880px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]">
-            <span className="rotulo">Pasta / cliente</span>
+            <span className="rotulo">Processo / pasta</span>
             <span className="rotulo">Atividade</span>
             <span className="rotulo">Quando</span>
             <span className="rotulo text-center">Ação</span>
@@ -268,23 +268,22 @@ export default async function PaginaAgenda({
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <Link
                     href={`/agenda/${item.id}`}
-                    className="truncate text-sm font-semibold text-texto hover:text-teal hover:no-underline"
+                    className="truncate text-sm font-semibold tabular-nums text-texto hover:text-teal hover:no-underline"
                   >
-                    {item.pastaNome ?? item.pastaCodigo}
+                    {item.processoTipo !== "geral" && "⚖ "}
+                    {item.processoNumero ?? item.pastaCodigo}
                   </Link>
                   <span className="truncate text-xs text-texto-secundario">
-                    {item.pastaNome ? `${item.pastaCodigo} · ` : ""}
+                    {item.pastaNome ?? item.pastaCodigo} ·{" "}
                     {item.clienteNome ?? "sem cliente"}
                   </span>
-                  {item.processoTipo === "geral" ? (
-                    <span className="truncate text-[11px] text-texto-secundario">
-                      geral da pasta
-                    </span>
-                  ) : (
-                    <span className="truncate text-[11px] font-medium tabular-nums text-teal">
-                      ⚖ {item.processoNumero ?? "processo sem número"}
-                    </span>
-                  )}
+                  <span className="truncate text-[11px] text-texto-secundario">
+                    {item.processoTipo === "geral"
+                      ? "geral da pasta"
+                      : item.processoTipo === "judicial"
+                        ? "processo judicial"
+                        : "processo administrativo"}
+                  </span>
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-0.5">

@@ -80,14 +80,15 @@ export default async function PaginaDetalheAtividade({
           ← Voltar para a agenda
         </Link>
         <span className="text-xs text-texto-secundario">
-          {TIPO_LABEL[d.tipo]} · {d.pastaCodigo} ·{" "}
-          {d.clienteNome ?? "sem cliente"} ·{" "}
           {d.processoTipo === "geral"
-            ? "geral da pasta"
-            : `⚖ ${d.processoNumero ?? "processo sem número"}`}
+            ? `${d.processoNumero ?? d.pastaCodigo} · geral da pasta`
+            : `⚖ ${d.processoNumero ?? "processo sem número"} · processo ${
+                d.processoTipo === "judicial" ? "judicial" : "administrativo"
+              }`}{" "}
+          · {d.pastaNome ?? d.pastaCodigo} · {d.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
-          {d.titulo} — {d.pastaNome ?? d.pastaCodigo}
+          {TIPO_LABEL[d.tipo]}: {d.titulo}
         </h1>
         {d.recorrenciaId && (
           <span className="text-xs text-teal">

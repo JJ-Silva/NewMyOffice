@@ -14,9 +14,11 @@ import {
 import { salvarPrazo } from "./acoes";
 
 function rotuloProcesso(p: ProcessoResumo): string {
-  if (p.tipo === "geral") return "Geral da pasta (sem processo)";
-  const t = p.tipo === "judicial" ? "Judicial" : "Administrativo";
-  return `${p.numero ?? "sem número"} — ${t}`;
+  if (p.tipo === "geral") {
+    return `${p.numero ?? "geral"} · geral da pasta`;
+  }
+  const t = p.tipo === "judicial" ? "judicial" : "administrativo";
+  return `${p.numero ?? "sem número"} · ${t}`;
 }
 
 export function FormularioPrazo({
@@ -102,7 +104,7 @@ export function FormularioPrazo({
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Nível da atividade</span>
+          <span className="rotulo">Processo</span>
           <select
             name="nivel"
             defaultValue={nivelAtual}
@@ -119,8 +121,8 @@ export function FormularioPrazo({
             ))}
           </select>
           <span className="text-xs text-texto-secundario">
-            O prazo se liga a um processo específico da pasta, ou ao “geral”
-            (trabalho da pasta sem número de processo).
+            O prazo pertence a um processo. O “geral da pasta” é o trabalho da
+            pasta sem processo formal.
           </span>
         </label>
 

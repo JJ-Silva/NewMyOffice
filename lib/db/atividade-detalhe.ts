@@ -153,10 +153,7 @@ export async function carregarDetalheAtividade(
     pastaNome: pasta?.nome ?? null,
     clienteNome: cliente?.nome ?? null,
     processoTipo: processo?.tipo ?? "geral",
-    processoNumero:
-      processo?.tipo && processo.tipo !== "geral"
-        ? (processo.numero ?? null)
-        : null,
+    processoNumero: (processo?.numero as string | null) ?? null,
     tipoAtividadeNome: um<{ nome: string }>(data.tipo_atividade)?.nome ?? null,
     recorrenciaId: (data.recorrencia_id as string | null) ?? null,
     compromisso: c

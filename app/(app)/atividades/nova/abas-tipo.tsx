@@ -15,15 +15,18 @@ export type AbaTipo = (typeof ABAS)[number]["valor"];
 export function AbasTipo({
   aba,
   pastaId,
+  processoId,
 }: {
   aba: AbaTipo;
   pastaId: string;
+  processoId?: string;
 }) {
   return (
     <div className="abas">
       {ABAS.map((a) => {
         const href = (`/atividades/nova?aba=${a.valor}` +
-          (pastaId ? `&pasta=${pastaId}` : "")) as Route;
+          (pastaId ? `&pasta=${pastaId}` : "") +
+          (processoId ? `&processo=${processoId}` : "")) as Route;
         return (
           <Link
             key={a.valor}

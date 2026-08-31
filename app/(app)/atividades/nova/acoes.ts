@@ -9,7 +9,6 @@ import {
   criarCompromisso,
   criarMonitoramento,
 } from "@/lib/db/atividades";
-import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { criarRecorrencia } from "@/lib/db/recorrencias";
 import { marcarPublicacaoVirouPrazo } from "@/lib/db/publicacoes";
@@ -107,25 +106,30 @@ function texto(fd: FormData, campo: string): string {
   return String(fd.get(campo) ?? "").trim();
 }
 
-async function resolverNivel(
+// O processo existe e é deste escritório?
+async function processoValido(
   supabase: Awaited<ReturnType<typeof criarClienteServidor>>,
-  pastaId: string,
-  nivel: string,
-): Promise<string | null> {
-  const processos = await listarProcessosDaPasta(supabase, pastaId);
-  return (
-    processos.find((p) => p.id === nivel)?.id ??
-    processos.find((p) => p.tipo === "geral")?.id ??
-    null
-  );
+  escritorioId: string,
+  processoId: string,
+): Promise<boolean> {
+  if (!processoId) return false;
+  const { data } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("id", processoId)
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .maybeSingle();
+  return Boolean(data);
 }
 
 function voltarComErro(
   aba: "compromisso" | "monitoramento",
-  pastaId: string,
+  processoId: string,
   mensagem: string,
 ): never {
-  const p = new URLSearchParams({ aba, pasta: pastaId, erro: mensagem });
+  const p = new URLSearchParams({ aba, erro: mensagem });
+  if (processoId) p.set("processo", processoId);
   redirect(`/atividades/nova?${p.toString()}`);
 }
 
@@ -181,16 +185,15 @@ export async function salvarCompromisso(formData: FormData) {
   const sessao = await exigirSessao();
   const supabase = await criarClienteServidor();
 
-  const pastaId = texto(formData, "pasta");
+  const processoId = texto(formData, "processo_id");
   const tipoId = texto(formData, "tipo");
   const data = texto(formData, "data");
-  if (!pastaId || !tipoId || !data) {
-    voltarComErro("compromisso", pastaId, "Preencha pasta, tipo e data.");
+  if (!processoId || !tipoId || !data) {
+    voltarComErro("compromisso", processoId, "Preencha processo, tipo e data.");
   }
 
-  const processoId = await resolverNivel(supabase, pastaId, texto(formData, "nivel"));
-  if (!processoId) {
-    voltarComErro("compromisso", pastaId, "Pasta inválida.");
+  if (!(await processoValido(supabase, sessao.escritorioId, processoId))) {
+    voltarComErro("compromisso", "", "Processo inválido.");
   }
 
   const tipos = await listarTiposDeAtividade(
@@ -200,7 +203,7 @@ export async function salvarCompromisso(formData: FormData) {
   );
   const tipo = tipos.find((t) => t.id === tipoId);
   if (!tipo) {
-    voltarComErro("compromisso", pastaId, "Tipo de compromisso inválido.");
+    voltarComErro("compromisso", processoId, "Tipo de compromisso inválido.");
   }
 
   const duracaoRaw = texto(formData, "duracao");
@@ -209,7 +212,7 @@ export async function salvarCompromisso(formData: FormData) {
   if (texto(formData, "repetir") === "1") {
     const r = lerRegraDoFormulario(formData, data);
     if (!r.ok) {
-      voltarComErro("compromisso", pastaId, r.erro);
+      voltarComErro("compromisso", processoId, r.erro);
     }
     try {
       await criarRecorrencia(
@@ -237,7 +240,7 @@ export async function salvarCompromisso(formData: FormData) {
     } catch (e) {
       voltarComErro(
         "compromisso",
-        pastaId,
+        processoId,
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
     }
@@ -259,7 +262,7 @@ export async function salvarCompromisso(formData: FormData) {
   } catch (e) {
     voltarComErro(
       "compromisso",
-      pastaId,
+      processoId,
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
   }
@@ -271,16 +274,15 @@ export async function salvarMonitoramento(formData: FormData) {
   const sessao = await exigirSessao();
   const supabase = await criarClienteServidor();
 
-  const pastaId = texto(formData, "pasta");
+  const processoId = texto(formData, "processo_id");
   const tipoId = texto(formData, "tipo");
   const data = texto(formData, "data") || hojeNoBrasil();
-  if (!pastaId || !tipoId) {
-    voltarComErro("monitoramento", pastaId, "Preencha pasta e tipo.");
+  if (!processoId || !tipoId) {
+    voltarComErro("monitoramento", processoId, "Preencha processo e tipo.");
   }
 
-  const processoId = await resolverNivel(supabase, pastaId, texto(formData, "nivel"));
-  if (!processoId) {
-    voltarComErro("monitoramento", pastaId, "Pasta inválida.");
+  if (!(await processoValido(supabase, sessao.escritorioId, processoId))) {
+    voltarComErro("monitoramento", "", "Processo inválido.");
   }
 
   const tipos = await listarTiposDeAtividade(
@@ -290,14 +292,18 @@ export async function salvarMonitoramento(formData: FormData) {
   );
   const tipo = tipos.find((t) => t.id === tipoId);
   if (!tipo) {
-    voltarComErro("monitoramento", pastaId, "Tipo de monitoramento inválido.");
+    voltarComErro(
+      "monitoramento",
+      processoId,
+      "Tipo de monitoramento inválido.",
+    );
   }
 
   // Recorrência (Etapa 3a).
   if (texto(formData, "repetir") === "1") {
     const r = lerRegraDoFormulario(formData, data);
     if (!r.ok) {
-      voltarComErro("monitoramento", pastaId, r.erro);
+      voltarComErro("monitoramento", processoId, r.erro);
     }
     try {
       await criarRecorrencia(
@@ -323,7 +329,7 @@ export async function salvarMonitoramento(formData: FormData) {
     } catch (e) {
       voltarComErro(
         "monitoramento",
-        pastaId,
+        processoId,
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
     }
@@ -342,8 +348,8 @@ export async function salvarMonitoramento(formData: FormData) {
     });
   } catch (e) {
     voltarComErro(
-      "monitoramento",
-      pastaId,
+        "monitoramento",
+        processoId,
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
   }

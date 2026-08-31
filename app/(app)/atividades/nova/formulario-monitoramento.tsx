@@ -1,23 +1,24 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { formatarDataBR } from "@/lib/domain/datas";
-import type { PastaResumo } from "@/lib/db/pastas";
+import type { ProcessoParaSelecao } from "@/lib/db/processos";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { SelecaoProcesso } from "@/components/SelecaoProcesso";
 import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarMonitoramento } from "./acoes";
 
 export function FormularioMonitoramento({
-  pastas,
+  processos,
   tipos,
-  pastaSelecionada,
+  processoSelecionado,
   data,
   erro,
   hrefCriarPasta,
 }: {
-  pastas: PastaResumo[];
+  processos: ProcessoParaSelecao[];
   tipos: TipoAtividadeCatalogo[];
-  pastaSelecionada: string;
+  processoSelecionado: string;
   data: string; // hoje, como default
   erro: string | null;
   hrefCriarPasta: string;
@@ -38,30 +39,21 @@ export function FormularioMonitoramento({
 
         <label className="flex flex-col gap-1.5">
           <span className="flex items-center justify-between">
-            <span className="rotulo">Pasta vinculada</span>
+            <span className="rotulo">Processo</span>
             <Link
               href={hrefCriarPasta as Route}
               className="text-xs font-medium text-teal hover:underline"
             >
-              + criar pasta
+              + nova pasta
             </Link>
           </span>
-          <select
-            name="pasta"
-            required
-            defaultValue={pastaSelecionada}
-            className="campo"
-          >
-            <option value="" disabled>
-              Selecione a pasta…
-            </option>
-            {pastas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {(p.nome ?? p.codigo) +
-                  (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
-              </option>
-            ))}
-          </select>
+          <SelecaoProcesso
+            processos={processos}
+            value={processoSelecionado}
+          />
+          <span className="text-xs text-texto-secundario">
+            O “geral da pasta” é o trabalho da pasta sem processo formal.
+          </span>
         </label>
 
         <label className="flex flex-col gap-1.5">

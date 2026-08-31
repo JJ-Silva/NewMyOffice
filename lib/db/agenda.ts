@@ -25,9 +25,10 @@ export type ItemAgenda = {
   pastaCodigo: string;
   pastaNome: string | null;
   clienteNome: string | null;
-  // processo ao qual a atividade está ligada
+  // processo ao qual a atividade está ligada (todo processo tem número:
+  // geral = código da pasta, judicial = CNJ, administrativo = nº do órgão)
   processoTipo: "geral" | "judicial" | "administrativo";
-  processoNumero: string | null; // null quando geral
+  processoNumero: string | null;
   tipoAtividadeNome: string | null;
   responsavelNome: string | null;
   // só prazo:
@@ -109,10 +110,7 @@ export async function listarAgenda(
       clienteNome: cliente?.nome ?? null,
       processoTipo:
         (processo?.tipo as ItemAgenda["processoTipo"]) ?? "geral",
-      processoNumero:
-        processo?.tipo && processo.tipo !== "geral"
-          ? (processo.numero ?? null)
-          : null,
+      processoNumero: (processo?.numero as string | null) ?? null,
       tipoAtividadeNome:
         um<{ nome: string }>(linha.tipo_atividade)?.nome ?? null,
       responsavelNome: um<{ nome: string }>(resp?.usuario)?.nome ?? null,

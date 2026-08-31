@@ -90,11 +90,13 @@ suite("Etapa 5 — integração (DJEN / publicação)", () => {
 
   it("oab_monitorada: mesma OAB duas vezes no escritório é bloqueada (índice parcial)", async () => {
     await comRollback(async () => {
+      // número aleatório para não colidir com OABs reais já cadastradas
+      const numero = String(900000 + Math.floor(Math.random() * 99999));
       const insere = () =>
         cli.query(
           `insert into oab_monitorada (escritorio_id, numero, uf)
-           values ($1, '515392', 'SP')`,
-          [escritorioId],
+           values ($1, $2, 'ZZ')`,
+          [escritorioId, numero],
         );
       await insere();
       await expect(insere()).rejects.toMatchObject({ code: "23505" });

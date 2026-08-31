@@ -22,6 +22,7 @@ Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string d
 | `..._processo_judicial_administrativo_parte.sql` | **Etapa 2** — `processo_judicial` (CNJ + componentes), `processo_administrativo`, `parte` · RLS |
 | `..._recorrencia.sql` | **Etapa 3a** — `atividade_recorrencia` (template + regra de repetição + fim) · FK e índice único de `atividade.recorrencia_id` · RLS |
 | `..._djen_publicacao.sql` | **Etapa 5** — `oab_monitorada` (OABs a buscar no DJEN) · `publicacao` (comunicações trazidas + triagem nova/descartada/virou_prazo) · RLS |
+| `..._processo_geral_numero.sql` | O processo `geral` passa a gravar o código da pasta em `numero` (trigger + backfill) — todo processo tem número identificador |
 
 ## Regras
 - Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.
