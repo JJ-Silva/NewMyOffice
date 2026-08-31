@@ -1,5 +1,6 @@
 import { AbasAuth } from "../abas";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { CampoSenha } from "@/components/CampoSenha";
 import { criarConta } from "./acoes";
 
 export default async function PaginaCadastro({
@@ -27,6 +28,18 @@ export default async function PaginaCadastro({
 
       <form action={criarConta} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Como devo te chamar?</span>
+          <input
+            type="text"
+            name="nome"
+            required
+            autoComplete="name"
+            placeholder="Seu nome"
+            className="campo h-10"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
           <span className="rotulo">Nome do escritório</span>
           <input
             type="text"
@@ -49,22 +62,17 @@ export default async function PaginaCadastro({
           />
         </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Senha</span>
-          <input
-            type="password"
-            name="senha"
-            required
-            minLength={6}
-            autoComplete="new-password"
-            placeholder="••••••••"
-            className="campo h-10"
-          />
-        </label>
+        <CampoSenha
+          name="senha"
+          label="Senha"
+          minLength={6}
+          placeholder="pelo menos 6 caracteres"
+        />
+        <CampoSenha name="confirmar" label="Repita a senha" minLength={6} />
 
         <p className="-mt-0.5 text-xs leading-[1.5] text-texto-secundario">
-          O escritório é criado automaticamente com sua conta como
-          administradora.
+          O escritório é criado automaticamente com sua conta como sócio
+          fundador.
         </p>
 
         <BotaoEnviar
