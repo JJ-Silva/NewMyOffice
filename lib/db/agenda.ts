@@ -25,6 +25,9 @@ export type ItemAgenda = {
   pastaCodigo: string;
   pastaNome: string | null;
   clienteNome: string | null;
+  // processo ao qual a atividade está ligada
+  processoTipo: "geral" | "judicial" | "administrativo";
+  processoNumero: string | null; // null quando geral
   tipoAtividadeNome: string | null;
   responsavelNome: string | null;
   // só prazo:
@@ -47,7 +50,7 @@ export async function listarAgenda(
        tipo_atividade:tipo_atividade_id ( nome ),
        responsavel:responsavel_id ( usuario:usuario_id ( nome ) ),
        processo:processo_id (
-         pasta_id,
+         tipo, numero, pasta_id,
          pasta:pasta_id ( codigo, nome, pasta_cliente ( cliente:cliente_id ( nome ) ) )
        ),
        atividade_prazo ( prazo_interno, prazo_apertado, calculo_desatualizado )`,
@@ -69,7 +72,12 @@ export async function listarAgenda(
   }
 
   let itens = (data ?? []).map((linha): ItemAgenda => {
-    const processo = um<{ pasta_id: string; pasta: unknown }>(linha.processo);
+    const processo = um<{
+      tipo: string;
+      numero: string | null;
+      pasta_id: string;
+      pasta: unknown;
+    }>(linha.processo);
     const pasta = um<{
       codigo: string;
       nome: string | null;
@@ -99,6 +107,12 @@ export async function listarAgenda(
       pastaCodigo: pasta?.codigo ?? "—",
       pastaNome: pasta?.nome ?? null,
       clienteNome: cliente?.nome ?? null,
+      processoTipo:
+        (processo?.tipo as ItemAgenda["processoTipo"]) ?? "geral",
+      processoNumero:
+        processo?.tipo && processo.tipo !== "geral"
+          ? (processo.numero ?? null)
+          : null,
       tipoAtividadeNome:
         um<{ nome: string }>(linha.tipo_atividade)?.nome ?? null,
       responsavelNome: um<{ nome: string }>(resp?.usuario)?.nome ?? null,

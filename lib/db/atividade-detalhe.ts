@@ -35,6 +35,7 @@ export type DetalheAtividade = {
   pastaNome: string | null;
   clienteNome: string | null;
   processoTipo: string;
+  processoNumero: string | null;
   tipoAtividadeNome: string | null;
   recorrenciaId: string | null;
   // atividade_compromisso (quando tipo='compromisso')
@@ -79,7 +80,7 @@ export async function carregarDetalheAtividade(
       `id, titulo, descricao, tipo, data, status, data_conclusao, observacao_conclusao, recorrencia_id,
        tipo_atividade:tipo_atividade_id ( nome ),
        processo:processo_id (
-         tipo,
+         tipo, numero,
          pasta_id,
          pasta:pasta_id ( codigo, nome, pasta_cliente ( cliente:cliente_id ( nome ) ) )
        ),
@@ -120,9 +121,12 @@ export async function carregarDetalheAtividade(
       .order("alterado_em", { ascending: false }),
   ]);
 
-  const processo = um<{ tipo: string; pasta_id: string; pasta: unknown }>(
-    data.processo,
-  );
+  const processo = um<{
+    tipo: string;
+    numero: string | null;
+    pasta_id: string;
+    pasta: unknown;
+  }>(data.processo);
   const pasta = um<{
     codigo: string;
     nome: string | null;
@@ -149,6 +153,10 @@ export async function carregarDetalheAtividade(
     pastaNome: pasta?.nome ?? null,
     clienteNome: cliente?.nome ?? null,
     processoTipo: processo?.tipo ?? "geral",
+    processoNumero:
+      processo?.tipo && processo.tipo !== "geral"
+        ? (processo.numero ?? null)
+        : null,
     tipoAtividadeNome: um<{ nome: string }>(data.tipo_atividade)?.nome ?? null,
     recorrenciaId: (data.recorrencia_id as string | null) ?? null,
     compromisso: c

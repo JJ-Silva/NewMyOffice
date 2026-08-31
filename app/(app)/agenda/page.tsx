@@ -276,6 +276,15 @@ export default async function PaginaAgenda({
                     {item.pastaNome ? `${item.pastaCodigo} · ` : ""}
                     {item.clienteNome ?? "sem cliente"}
                   </span>
+                  {item.processoTipo === "geral" ? (
+                    <span className="truncate text-[11px] text-texto-secundario">
+                      geral da pasta
+                    </span>
+                  ) : (
+                    <span className="truncate text-[11px] font-medium tabular-nums text-teal">
+                      ⚖ {item.processoNumero ?? "processo sem número"}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-0.5">

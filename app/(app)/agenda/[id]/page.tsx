@@ -81,7 +81,10 @@ export default async function PaginaDetalheAtividade({
         </Link>
         <span className="text-xs text-texto-secundario">
           {TIPO_LABEL[d.tipo]} · {d.pastaCodigo} ·{" "}
-          {d.clienteNome ?? "sem cliente"} · Geral da pasta
+          {d.clienteNome ?? "sem cliente"} ·{" "}
+          {d.processoTipo === "geral"
+            ? "geral da pasta"
+            : `⚖ ${d.processoNumero ?? "processo sem número"}`}
         </span>
         <h1 className="titulo-pagina">
           {d.titulo} — {d.pastaNome ?? d.pastaCodigo}
