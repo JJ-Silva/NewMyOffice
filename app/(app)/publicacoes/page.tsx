@@ -39,13 +39,8 @@ export default async function PaginaPublicacoes({
     typeof params.repetidas === "string" ? Number(params.repetidas) : null;
   const virou = params.virou === "1";
 
-  // Presets de janela para a busca manual (o cron diário busca só o dia).
-  const diasPreset = [1, 7, 15, 30];
-  const diasEscolhido =
-    typeof params.dias === "string" && diasPreset.includes(Number(params.dias))
-      ? Number(params.dias)
-      : 7;
-  const inicioPadrao = somarDias(hoje, -(diasEscolhido - 1));
+  // Busca manual: padrão é a última semana. O cron diário busca só o dia.
+  const inicioPadrao = somarDias(hoje, -7);
 
   const [oabs, publicacoes] = await Promise.all([
     listarOabs(supabase, sessao.escritorioId),
@@ -68,32 +63,8 @@ export default async function PaginaPublicacoes({
       </div>
 
       {/* Buscar */}
-      <div className="card flex flex-col gap-3 p-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-texto-secundario">Janela:</span>
-          {diasPreset.map((d) => (
-            <Link
-              key={d}
-              href={`/publicacoes?status=${aba}&dias=${d}` as Route}
-              className="rounded-full border px-2.5 py-1 font-medium"
-              style={{
-                borderColor:
-                  d === diasEscolhido ? "var(--teal)" : "var(--tint-3)",
-                color: d === diasEscolhido ? "var(--teal)" : "var(--texto-secundario)",
-              }}
-            >
-              {d === 1 ? "hoje" : `${d} dias`}
-            </Link>
-          ))}
-          <span className="text-texto-secundario">
-            (a busca automática diária pega só o dia)
-          </span>
-        </div>
-
-        <form
-          action={buscarNoDjen}
-          className="flex flex-wrap items-end gap-3"
-        >
+      <div className="card flex flex-col gap-2 p-4">
+        <form action={buscarNoDjen} className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1.5">
             <span className="rotulo">De</span>
             <input
@@ -133,6 +104,10 @@ export default async function PaginaPublicacoes({
             )}
           </span>
         </form>
+        <span className="text-xs text-texto-secundario">
+          A busca automática roda todo dia às 7h e pega só o dia. Aqui você
+          escolhe o período que precisar.
+        </span>
       </div>
 
       {erro && (
