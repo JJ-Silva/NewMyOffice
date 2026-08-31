@@ -242,7 +242,7 @@ export default async function PaginaAgenda({
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
           <div className="grid min-w-[880px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(200px,1.4fr)_minmax(160px,1fr)_minmax(120px,150px)_120px]">
-            <span className="rotulo">Processo / pasta</span>
+            <span className="rotulo">Caso</span>
             <span className="rotulo">Atividade</span>
             <span className="rotulo">Quando</span>
             <span className="rotulo text-center">Ação</span>
@@ -266,23 +266,26 @@ export default async function PaginaAgenda({
                 }}
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
+                  {/* 1 · nome do caso */}
                   <Link
                     href={`/agenda/${item.id}`}
-                    className="truncate text-sm font-semibold tabular-nums text-texto hover:text-teal hover:no-underline"
+                    className="truncate text-sm font-semibold text-texto hover:text-teal hover:no-underline"
                   >
+                    {item.pastaNome ?? item.pastaCodigo}
+                  </Link>
+                  {/* 2 · número do processo */}
+                  <span className="truncate text-xs tabular-nums text-texto-secundario">
                     {item.processoTipo !== "geral" && "⚖ "}
                     {item.processoNumero ?? item.pastaCodigo}
-                  </Link>
-                  <span className="truncate text-xs text-texto-secundario">
-                    {item.pastaNome ?? item.pastaCodigo} ·{" "}
-                    {item.clienteNome ?? "sem cliente"}
+                    {item.processoTipo === "judicial"
+                      ? " · judicial"
+                      : item.processoTipo === "administrativo"
+                        ? " · administrativo"
+                        : " · geral da pasta"}
                   </span>
+                  {/* 3 · nome da parte */}
                   <span className="truncate text-[11px] text-texto-secundario">
-                    {item.processoTipo === "geral"
-                      ? "geral da pasta"
-                      : item.processoTipo === "judicial"
-                        ? "processo judicial"
-                        : "processo administrativo"}
+                    {item.clienteNome ?? "sem cliente"}
                   </span>
                 </div>
 

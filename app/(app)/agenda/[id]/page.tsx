@@ -79,13 +79,18 @@ export default async function PaginaDetalheAtividade({
         <Link href="/agenda" className="link-acao self-start">
           ← Voltar para a agenda
         </Link>
-        <span className="text-xs text-texto-secundario">
-          {d.processoTipo === "geral"
-            ? `${d.processoNumero ?? d.pastaCodigo} · geral da pasta`
-            : `⚖ ${d.processoNumero ?? "processo sem número"} · processo ${
-                d.processoTipo === "judicial" ? "judicial" : "administrativo"
-              }`}{" "}
-          · {d.pastaNome ?? d.pastaCodigo} · {d.clienteNome ?? "sem cliente"}
+        <span className="text-sm font-semibold text-texto">
+          {d.pastaNome ?? d.pastaCodigo}
+        </span>
+        <span className="text-xs tabular-nums text-texto-secundario">
+          {d.processoTipo !== "geral" && "⚖ "}
+          {d.processoNumero ?? d.pastaCodigo}
+          {d.processoTipo === "judicial"
+            ? " · judicial"
+            : d.processoTipo === "administrativo"
+              ? " · administrativo"
+              : " · geral da pasta"}{" "}
+          · {d.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
           {TIPO_LABEL[d.tipo]}: {d.titulo}
