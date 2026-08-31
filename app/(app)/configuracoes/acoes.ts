@@ -190,6 +190,7 @@ export async function adicionarTipoAtividadeAction(formData: FormData) {
     );
   }
   revalidatePath("/configuracoes");
+  revalidatePath("/", "layout"); // o nome do tipo aparece na agenda, no lançamento, etc.
 }
 
 export async function editarTipoAtividadeAction(formData: FormData) {
@@ -208,6 +209,7 @@ export async function editarTipoAtividadeAction(formData: FormData) {
     );
   }
   revalidatePath("/configuracoes");
+  revalidatePath("/", "layout"); // o nome do tipo aparece na agenda, no lançamento, etc.
 }
 
 export async function removerTipoAtividadeAction(formData: FormData) {
@@ -216,5 +218,6 @@ export async function removerTipoAtividadeAction(formData: FormData) {
   if (id) {
     await excluirTipoDeAtividade(supabase, id);
     revalidatePath("/configuracoes");
+  revalidatePath("/", "layout"); // o nome do tipo aparece na agenda, no lançamento, etc.
   }
 }
