@@ -277,11 +277,6 @@ export default async function PaginaAgenda({
                   <span className="truncate text-xs tabular-nums text-texto-secundario">
                     {item.processoTipo !== "geral" && "⚖ "}
                     {item.processoNumero ?? item.pastaCodigo}
-                    {item.processoTipo === "judicial"
-                      ? " · judicial"
-                      : item.processoTipo === "administrativo"
-                        ? " · administrativo"
-                        : " · geral da pasta"}
                   </span>
                   {/* 3 · nome da parte */}
                   <span className="truncate text-[11px] text-texto-secundario">

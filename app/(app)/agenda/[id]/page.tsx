@@ -84,13 +84,7 @@ export default async function PaginaDetalheAtividade({
         </span>
         <span className="text-xs tabular-nums text-texto-secundario">
           {d.processoTipo !== "geral" && "⚖ "}
-          {d.processoNumero ?? d.pastaCodigo}
-          {d.processoTipo === "judicial"
-            ? " · judicial"
-            : d.processoTipo === "administrativo"
-              ? " · administrativo"
-              : " · geral da pasta"}{" "}
-          · {d.clienteNome ?? "sem cliente"}
+          {d.processoNumero ?? d.pastaCodigo} · {d.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
           {TIPO_LABEL[d.tipo]}: {d.titulo}
