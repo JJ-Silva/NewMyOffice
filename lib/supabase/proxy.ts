@@ -13,7 +13,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Rotas que NÃO exigem login.
-const ROTAS_PUBLICAS = ["/login", "/cadastro", "/esqueci-senha"];
+const ROTAS_PUBLICAS = ["/login", "/cadastro", "/esqueci-senha", "/convite"];
 
 export async function atualizarSessao(request: NextRequest) {
   // Rotas de API (ex.: o cron do DJEN) não usam sessão de usuário — elas se

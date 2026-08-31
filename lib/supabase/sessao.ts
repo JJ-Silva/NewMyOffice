@@ -1,5 +1,5 @@
-// Helpers de sessão: quem está logado, qual é o escritório ativo, e o
-// vínculo (membro) do usuário com esse escritório.
+// Helpers de sessão: quem está logado, qual é o escritório ativo, o vínculo
+// (membro) do usuário com esse escritório e as permissões efetivas dele.
 //
 // "Escritório ativo": um usuário pode ser membro de vários escritórios. A
 // escolha atual fica num cookie. Toda query de dados usa esse escritorio_id.
@@ -7,7 +7,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { listarMembrosDoUsuario, type Membro } from "@/lib/db/membros";
+import {
+  listarMembrosDoUsuario,
+  carregarPermissoesDoMembro,
+  type Membro,
+} from "@/lib/db/membros";
+import type { Permissao } from "@/lib/domain/permissoes";
 
 export const COOKIE_ESCRITORIO_ATIVO = "myoffice_escritorio_ativo";
 
@@ -24,6 +29,9 @@ export type Sessao = {
   escritorioId: string;
   escritorioNome: string;
   membro: Membro;
+  fundador: boolean;
+  // permissões já resolvidas (rótulo + overrides) — para a UI decidir o que mostrar
+  permissoes: Set<Permissao>;
 };
 
 // O usuário autenticado (ou null). Usa getUser() — valida o token no servidor.
@@ -58,7 +66,7 @@ export async function definirEscritorioAtivo(escritorioId: string): Promise<void
   });
 }
 
-// Resolve a sessão completa: usuário + escritório ativo + membro.
+// Resolve a sessão completa: usuário + escritório ativo + membro + permissões.
 // Regra de escolha do escritório:
 //   1. o do cookie, se o usuário ainda for membro ativo dele;
 //   2. senão, o primeiro escritório do usuário;
@@ -85,16 +93,24 @@ export async function sessaoAtual(): Promise<Sessao | null> {
       membros.find((m) => m.escritorio_id === escritorioDoCookie)) ||
     membros[0];
 
+  const membro: Membro = {
+    id: escolhido.id,
+    escritorio_id: escolhido.escritorio_id,
+    ativo: escolhido.ativo,
+    fundador: escolhido.fundador,
+    rotulo_id: escolhido.rotulo_id,
+    rotulo_nome: escolhido.rotulo_nome,
+  };
+
+  const permissoes = await carregarPermissoesDoMembro(supabase, membro);
+
   return {
     usuario,
     escritorioId: escolhido.escritorio_id,
     escritorioNome: escolhido.escritorio_nome,
-    membro: {
-      id: escolhido.id,
-      escritorio_id: escolhido.escritorio_id,
-      papel: escolhido.papel,
-      ativo: escolhido.ativo,
-    },
+    membro,
+    fundador: membro.fundador,
+    permissoes,
   };
 }
 
@@ -113,4 +129,36 @@ export async function exigirSessao(): Promise<Sessao> {
   }
 
   return sessao;
+}
+
+// ── Checagem de permissão a partir da sessão ────────────────────────────────
+// Fundador pode tudo; senão, olha o conjunto já resolvido.
+export function sessaoPode(sessao: Sessao, permissao: Permissao): boolean {
+  return sessao.fundador || sessao.permissoes.has(permissao);
+}
+
+// Para guards de página / Server Action: aborta (redirect) se não puder.
+// Manda para /sem-acesso (rota neutra — não tem guard, evita loop de redirect).
+export function exigirPermissao(sessao: Sessao, permissao: Permissao): void {
+  if (!sessaoPode(sessao, permissao)) {
+    redirect("/sem-acesso");
+  }
+}
+
+// Configurações agrupa várias áreas com permissões distintas. Aparece no menu
+// (e a rota abre) se o membro puder mexer em qualquer uma delas.
+const PERMISSOES_DE_CONFIGURACAO: Permissao[] = [
+  "config.tribunais",
+  "config.catalogos",
+  "config.escritorio",
+  "membros.gerenciar",
+  "rotulos.gerenciar",
+  "oab.gerenciar",
+];
+
+export function podeAbrirConfiguracoes(sessao: Sessao): boolean {
+  return (
+    sessao.fundador ||
+    PERMISSOES_DE_CONFIGURACAO.some((p) => sessao.permissoes.has(p))
+  );
 }
