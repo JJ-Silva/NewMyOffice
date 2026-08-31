@@ -15,6 +15,12 @@ import {
   excluirPeriodoNaoUtil,
 } from "@/lib/db/periodos-nao-uteis";
 import { adicionarOab, excluirOab } from "@/lib/db/oab";
+import {
+  criarTipoDeAtividade,
+  atualizarTipoDeAtividade,
+  excluirTipoDeAtividade,
+  type CamposTipoAtividade,
+} from "@/lib/db/tipos-atividade";
 
 // Todas as ações de Configurações passam por aqui: exigem sessão e o papel
 // `dono` (decisão P6 — só o administrador mexe em tribunais/feriados).
@@ -143,6 +149,72 @@ export async function removerOabAction(formData: FormData) {
   const id = texto(formData, "id");
   if (id) {
     await excluirOab(supabase, id);
+    revalidatePath("/configuracoes");
+  }
+}
+
+// ── Catálogo: tipos de atividade (prazo / compromisso / monitoramento) ──────
+function lerCamposTipo(formData: FormData): CamposTipoAtividade {
+  const aplicaARaw = texto(formData, "aplica_a");
+  const aplicaA =
+    aplicaARaw === "compromisso" || aplicaARaw === "monitoramento"
+      ? aplicaARaw
+      : "prazo";
+  const naturezaRaw = texto(formData, "natureza");
+  const dias = parseInt(texto(formData, "dias_padrao"), 10);
+  return {
+    nome: texto(formData, "nome"),
+    aplicaA,
+    diasPadrao: Number.isFinite(dias) && dias > 0 ? dias : null,
+    natureza:
+      naturezaRaw === "processual" ||
+      naturezaRaw === "material" ||
+      naturezaRaw === "interna"
+        ? naturezaRaw
+        : null,
+    exigePeca: formData.get("exige_peca") === "1",
+    categoria: texto(formData, "categoria") || null,
+  };
+}
+
+export async function adicionarTipoAtividadeAction(formData: FormData) {
+  const { sessao, supabase } = await contextoAutorizado();
+  const campos = lerCamposTipo(formData);
+  if (!campos.nome) return;
+  try {
+    await criarTipoDeAtividade(supabase, sessao.escritorioId, campos);
+  } catch (e) {
+    redirect(
+      "/configuracoes?erro=" +
+        encodeURIComponent(e instanceof Error ? e.message : "Falha ao criar."),
+    );
+  }
+  revalidatePath("/configuracoes");
+}
+
+export async function editarTipoAtividadeAction(formData: FormData) {
+  const { supabase } = await contextoAutorizado();
+  const id = texto(formData, "id");
+  const campos = lerCamposTipo(formData);
+  if (!id || !campos.nome) return;
+  try {
+    await atualizarTipoDeAtividade(supabase, id, campos);
+  } catch (e) {
+    redirect(
+      "/configuracoes?erro=" +
+        encodeURIComponent(
+          e instanceof Error ? e.message : "Falha ao atualizar.",
+        ),
+    );
+  }
+  revalidatePath("/configuracoes");
+}
+
+export async function removerTipoAtividadeAction(formData: FormData) {
+  const { supabase } = await contextoAutorizado();
+  const id = texto(formData, "id");
+  if (id) {
+    await excluirTipoDeAtividade(supabase, id);
     revalidatePath("/configuracoes");
   }
 }

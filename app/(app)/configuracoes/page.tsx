@@ -3,10 +3,15 @@ import { exigirSessao } from "@/lib/supabase/sessao";
 import { podeFazer } from "@/lib/domain/autorizacao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { CamposTipoAtividade } from "@/components/CamposTipoAtividade";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { listarFeriados } from "@/lib/db/feriados";
 import { listarPeriodosNaoUteis } from "@/lib/db/periodos-nao-uteis";
 import { listarOabs } from "@/lib/db/oab";
+import {
+  listarTiposParaGestao,
+  type TipoAtividadeGestao,
+} from "@/lib/db/tipos-atividade";
 import { formatarDataBR, nomeDoDiaDaSemana } from "@/lib/domain/datas";
 import {
   adicionarTribunal,
@@ -17,7 +22,28 @@ import {
   removerPeriodoNaoUtil,
   adicionarOabAction,
   removerOabAction,
+  adicionarTipoAtividadeAction,
+  editarTipoAtividadeAction,
+  removerTipoAtividadeAction,
 } from "./acoes";
+
+const APLICA_A_LABEL = {
+  prazo: "Prazos",
+  compromisso: "Compromissos",
+  monitoramento: "Monitoramentos",
+} as const;
+
+function resumoTipo(t: TipoAtividadeGestao): string {
+  if (t.aplica_a !== "prazo") return "";
+  return [
+    t.dias_padrao != null ? `${t.dias_padrao} dias` : "dias informados no prazo",
+    t.natureza,
+    t.categoria,
+    t.exige_peca ? "exige peça" : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 // 'AAAA-MM-DD' → "25/12/2026 · sexta-feira"
 function formatarData(iso: string): string {
@@ -66,12 +92,17 @@ export default async function PaginaConfiguracoes({
   const erro = typeof params.erro === "string" ? params.erro : null;
 
   const supabase = await criarClienteServidor();
-  const [tribunais, feriados, periodos, oabs] = await Promise.all([
-    listarTribunais(supabase, sessao.escritorioId),
-    listarFeriados(supabase, sessao.escritorioId),
-    listarPeriodosNaoUteis(supabase, sessao.escritorioId),
-    listarOabs(supabase, sessao.escritorioId),
-  ]);
+  const [tribunais, feriados, periodos, oabs, tiposAtividade] =
+    await Promise.all([
+      listarTribunais(supabase, sessao.escritorioId),
+      listarFeriados(supabase, sessao.escritorioId),
+      listarPeriodosNaoUteis(supabase, sessao.escritorioId),
+      listarOabs(supabase, sessao.escritorioId),
+      listarTiposParaGestao(supabase, sessao.escritorioId),
+    ]);
+  const tiposPorAplicaA = (["prazo", "compromisso", "monitoramento"] as const).map(
+    (a) => ({ aplicaA: a, itens: tiposAtividade.filter((t) => t.aplica_a === a) }),
+  );
 
   const semTribunais = tribunais.length === 0;
   const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? "" : "s"}`;
@@ -417,6 +448,85 @@ export default async function PaginaConfiguracoes({
             ))}
           </div>
         )}
+      </SecaoRecolhivel>
+
+      {/* ── Tipos de atividade (catálogo) ──────────────────────── */}
+      <SecaoRecolhivel
+        titulo="Tipos de atividade"
+        resumo={plural(tiposAtividade.length, "tipo")}
+      >
+        <details className="rounded-lg border border-tint-2 p-3.5">
+          <summary className="cursor-pointer text-sm font-semibold">
+            + Novo tipo
+          </summary>
+          <form
+            action={adicionarTipoAtividadeAction}
+            className="mt-3 flex flex-col gap-3"
+          >
+            <CamposTipoAtividade idDatalist="cat-novo-tipo" />
+            <BotaoEnviar className="botao-primario h-[38px] self-start">
+              Adicionar tipo
+            </BotaoEnviar>
+          </form>
+        </details>
+
+        {tiposPorAplicaA.map(({ aplicaA, itens }) => (
+          <div key={aplicaA} className="flex flex-col gap-2">
+            <span className="rotulo">
+              {APLICA_A_LABEL[aplicaA]} ({itens.length})
+            </span>
+            {itens.length === 0 ? (
+              <span className="text-xs text-texto-secundario">Nenhum.</span>
+            ) : (
+              itens.map((t) => (
+                <details
+                  key={t.id}
+                  className="rounded-lg border border-tint-2"
+                >
+                  <summary className="flex cursor-pointer items-center gap-2 p-2.5">
+                    <div className="flex min-w-0 flex-1 flex-col gap-px">
+                      <span className="truncate text-[13.5px]">{t.nome}</span>
+                      {resumoTipo(t) && (
+                        <span className="truncate text-xs text-texto-secundario">
+                          {resumoTipo(t)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-teal">editar</span>
+                  </summary>
+                  <div className="flex flex-col gap-3 border-t border-tint-2 p-3">
+                    <form
+                      action={editarTipoAtividadeAction}
+                      className="flex flex-col gap-3"
+                    >
+                      <input type="hidden" name="id" value={t.id} />
+                      <CamposTipoAtividade
+                        idDatalist={`cat-${t.id}`}
+                        nome={t.nome}
+                        aplicaA={t.aplica_a}
+                        diasPadrao={t.dias_padrao}
+                        natureza={t.natureza}
+                        exigePeca={t.exige_peca}
+                        categoria={t.categoria}
+                      />
+                      <div className="flex items-center gap-3">
+                        <BotaoEnviar className="botao-primario h-[36px]">
+                          Salvar
+                        </BotaoEnviar>
+                      </div>
+                    </form>
+                    <form action={removerTipoAtividadeAction}>
+                      <input type="hidden" name="id" value={t.id} />
+                      <button type="submit" className="botao-perigo">
+                        Excluir tipo
+                      </button>
+                    </form>
+                  </div>
+                </details>
+              ))
+            )}
+          </div>
+        ))}
       </SecaoRecolhivel>
     </div>
   );
