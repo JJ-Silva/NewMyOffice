@@ -17,6 +17,8 @@ export default async function PaginaProcessos({
   const supabase = await criarClienteServidor();
   const params = await searchParams;
   const fPasta = typeof params.pasta === "string" ? params.pasta : "";
+  const salvo = params.salvo === "1";
+  const excluido = params.excluido === "1";
 
   const [processos, pastas] = await Promise.all([
     listarProcessos(supabase, sessao.escritorioId, {
@@ -39,6 +41,12 @@ export default async function PaginaProcessos({
           + Cadastrar processo
         </Link>
       </div>
+
+      {(salvo || excluido) && (
+        <div className="rounded-lg border border-cumprido bg-[#F0FDF4] px-3.5 py-2.5 text-sm text-[#166534]">
+          {salvo ? "Processo salvo." : "Processo excluído."}
+        </div>
+      )}
 
       <form
         method="get"
@@ -74,7 +82,7 @@ export default async function PaginaProcessos({
         </div>
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
-          <div className="grid min-w-[940px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(190px,220px)_minmax(170px,1.4fr)_minmax(130px,1fr)_minmax(110px,auto)_120px]">
+          <div className="grid min-w-[970px] gap-4 px-[18px] pb-0.5 [grid-template-columns:minmax(190px,220px)_minmax(170px,1.4fr)_minmax(130px,1fr)_minmax(110px,auto)_150px]">
             <span className="rotulo">Número</span>
             <span className="rotulo">Pasta / cliente</span>
             <span className="rotulo">Juízo / órgão</span>
@@ -85,12 +93,15 @@ export default async function PaginaProcessos({
           {processos.map((x) => (
             <div
               key={x.id}
-              className="card grid min-w-[940px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(190px,220px)_minmax(170px,1.4fr)_minmax(130px,1fr)_minmax(110px,auto)_120px]"
+              className="card grid min-w-[970px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(190px,220px)_minmax(170px,1.4fr)_minmax(130px,1fr)_minmax(110px,auto)_150px]"
             >
               <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-[13.5px] font-semibold tabular-nums">
+                <Link
+                  href={`/processos/${x.id}`}
+                  className="text-[13.5px] font-semibold tabular-nums text-texto hover:text-teal hover:no-underline"
+                >
                   {x.numero ?? (x.tipo === "judicial" ? "sem número" : "adm.")}
-                </span>
+                </Link>
                 <span className="text-xs text-texto-secundario">
                   {x.tipo === "judicial" ? "Judicial" : "Administrativo"}
                   {x.dataDistribuicao
@@ -136,7 +147,13 @@ export default async function PaginaProcessos({
                 )}
               </span>
 
-              <div className="flex justify-center">
+              <div className="flex items-center justify-center gap-3">
+                <Link
+                  href={`/processos/${x.id}`}
+                  className="text-xs font-medium text-teal hover:underline"
+                >
+                  Editar
+                </Link>
                 <Link
                   href={`/atividades/nova?pasta=${x.pastaId}`}
                   className="botao-secundario"

@@ -226,9 +226,12 @@ export default async function PaginaPasta({
                 className="flex flex-col gap-2 rounded-lg border border-tint-2 p-3"
               >
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="text-[13.5px] font-semibold tabular-nums">
+                  <Link
+                    href={`/processos/${p.id}`}
+                    className="text-[13.5px] font-semibold tabular-nums text-texto hover:text-teal hover:no-underline"
+                  >
                     {p.numero ?? "sem número"}
-                  </span>
+                  </Link>
                   <span className="text-xs text-texto-secundario">
                     {p.tipo === "judicial" ? "Judicial" : "Administrativo"}
                     {p.tipo === "judicial" && p.tribunalSigla
@@ -242,6 +245,12 @@ export default async function PaginaPasta({
                     {p.fase ? ` · ${p.fase}` : ""}
                     {p.digitoConfere === false ? " · ⚠ DV não confere" : ""}
                   </span>
+                  <Link
+                    href={`/processos/${p.id}`}
+                    className="text-xs font-medium text-teal hover:underline"
+                  >
+                    editar
+                  </Link>
                 </div>
 
                 {/* Partes */}
