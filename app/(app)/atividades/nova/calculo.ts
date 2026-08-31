@@ -12,7 +12,6 @@ import {
   type TipoAtividadeCatalogo,
 } from "@/lib/db/tipos-atividade";
 import { carregarCalendarioDoTribunal } from "@/lib/db/calendario";
-import { listarProcessosDaPasta } from "@/lib/db/processos";
 
 export type EventoTipo =
   | "disponibilizacao_djen"
@@ -30,9 +29,8 @@ export const EVENTOS: { valor: EventoTipo; label: string }[] = [
 ];
 
 export type CamposPrazo = {
-  pastaId: string;
-  // "nível da atividade": id do processo (o `geral` da pasta ou um judicial/adm).
-  nivel: string;
+  // O prazo pertence a um processo (o `geral` da pasta, ou um judicial/adm).
+  processoId: string;
   tipoAtividadeId: string;
   tribunalId: string | null;
   eventoTipo: EventoTipo;
@@ -49,8 +47,7 @@ export function lerCampos(get: (chave: string) => string | null): CamposPrazo {
   const diasRaw = s("dias");
   const dias = diasRaw ? Math.max(1, Math.trunc(Number(diasRaw))) : null;
   return {
-    pastaId: s("pasta"),
-    nivel: s("nivel"),
+    processoId: s("processo_id") || s("processo"),
     tipoAtividadeId: s("tipo"),
     tribunalId: s("tribunal") || null,
     eventoTipo: (s("evento_tipo") || "disponibilizacao_djen") as EventoTipo,
@@ -63,7 +60,7 @@ export function lerCampos(get: (chave: string) => string | null): CamposPrazo {
 }
 
 export type CalculoPronto = {
-  processoId: string; // resolvido a partir do nível (default: o `geral` da pasta)
+  processoId: string;
   tipo: TipoAtividadeCatalogo;
   natureza: "processual" | "interna";
   dias: number;
@@ -78,21 +75,24 @@ export async function calcular(
   campos: CamposPrazo,
   hoje: string,
 ): Promise<{ ok: true; dados: CalculoPronto } | { ok: false; erro: string }> {
-  if (!campos.pastaId) {
-    return { ok: false, erro: "Escolha a pasta." };
+  if (!campos.processoId) {
+    return { ok: false, erro: "Escolha o processo." };
   }
   if (!campos.tipoAtividadeId) {
     return { ok: false, erro: "Escolha o tipo de prazo." };
   }
 
-  // Resolve o nível: o processo escolhido tem de ser da pasta. Sem escolha,
-  // usa o `geral`.
-  const processosDaPasta = await listarProcessosDaPasta(supabase, campos.pastaId);
-  const geral = processosDaPasta.find((p) => p.tipo === "geral");
-  const processoId =
-    processosDaPasta.find((p) => p.id === campos.nivel)?.id ?? geral?.id ?? "";
+  // O processo tem de ser deste escritório.
+  const { data: proc } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("id", campos.processoId)
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .maybeSingle();
+  const processoId = (proc?.id as string | undefined) ?? "";
   if (!processoId) {
-    return { ok: false, erro: "Pasta sem processo — recarregue a página." };
+    return { ok: false, erro: "Processo inválido — recarregue a página." };
   }
 
   const tipo = await buscarTipoDeAtividade(supabase, campos.tipoAtividadeId);

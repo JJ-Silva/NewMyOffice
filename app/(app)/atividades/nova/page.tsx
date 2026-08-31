@@ -3,11 +3,7 @@ import { redirect } from "next/navigation";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
-import { listarPastas } from "@/lib/db/pastas";
-import {
-  listarProcessosDaPasta,
-  listarProcessosParaSelecao,
-} from "@/lib/db/processos";
+import { listarProcessosParaSelecao } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { urlDaTela, comRetorno } from "@/lib/navegacao";
@@ -47,30 +43,27 @@ export default async function PaginaNovaAtividade({
     urlDaTela("/atividades/nova", params),
   );
 
-  const [pastas, todosProcessos] = await Promise.all([
-    listarPastas(supabase, sessao.escritorioId),
-    listarProcessosParaSelecao(supabase, sessao.escritorioId),
-  ]);
-  if (pastas.length === 0) {
+  const todosProcessos = await listarProcessosParaSelecao(
+    supabase,
+    sessao.escritorioId,
+  );
+  // Toda pasta nasce com um processo 'geral' → sem processos = sem pastas.
+  if (todosProcessos.length === 0) {
     redirect(hrefCriarPasta);
   }
 
-  // Processo em foco (compartilhado entre as abas):
-  //  - ?processo=…  → direto
-  //  - ?pasta=…     → o "geral" dessa pasta
-  let processoSelecionado = get("processo") ?? "";
-  if (!processoSelecionado && campos.pastaId) {
+  // Processo em foco (compartilhado entre as 3 abas):
+  //  - ?processo=… / ?processo_id=…  → direto
+  //  - ?pasta=…                      → o "geral" dessa pasta
+  const pastaParam = get("pasta") ?? "";
+  let processoSelecionado = campos.processoId || (get("processo") ?? "");
+  if (!processoSelecionado && pastaParam) {
     processoSelecionado =
       todosProcessos.find(
-        (p) => p.pastaId === campos.pastaId && p.tipo === "geral",
+        (p) => p.pastaId === pastaParam && p.tipo === "geral",
       )?.id ?? "";
   }
-  // e a pasta desse processo, para a aba Prazo (que trabalha com pasta+nível)
-  const processoEmFoco = todosProcessos.find((p) => p.id === processoSelecionado);
-  if (processoEmFoco && !campos.pastaId) {
-    campos.pastaId = processoEmFoco.pastaId;
-    if (!campos.nivel) campos.nivel = processoEmFoco.id;
-  }
+  campos.processoId = processoSelecionado;
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,17 +75,13 @@ export default async function PaginaNovaAtividade({
       </div>
 
       <div className="max-w-[420px]">
-        <AbasTipo
-          aba={aba}
-          pastaId={campos.pastaId}
-          processoId={processoSelecionado}
-        />
+        <AbasTipo aba={aba} processoId={processoSelecionado} />
       </div>
 
       {aba === "prazo" && (
         <PrazoComDados
           campos={campos}
-          pastas={pastas}
+          processos={todosProcessos}
           erro={erro}
           escritorioId={sessao.escritorioId}
           hrefCriarPasta={hrefCriarPasta}
@@ -135,13 +124,13 @@ export default async function PaginaNovaAtividade({
 // Carrega tudo que o formulário de prazo precisa (tipos, tribunais, cálculo).
 async function PrazoComDados({
   campos,
-  pastas,
+  processos,
   erro,
   escritorioId,
   hrefCriarPasta,
 }: {
   campos: ReturnType<typeof lerCampos>;
-  pastas: Awaited<ReturnType<typeof listarPastas>>;
+  processos: Awaited<ReturnType<typeof listarProcessosParaSelecao>>;
   erro: string | null;
   escritorioId: string;
   hrefCriarPasta: string;
@@ -152,12 +141,8 @@ async function PrazoComDados({
     listarTribunais(supabase, escritorioId),
   ]);
 
-  const processos = campos.pastaId
-    ? await listarProcessosDaPasta(supabase, campos.pastaId)
-    : [];
-
   const tentouCalcular = Boolean(
-    campos.pastaId && campos.tipoAtividadeId && campos.eventoData,
+    campos.processoId && campos.tipoAtividadeId && campos.eventoData,
   );
   const calc = tentouCalcular
     ? await calcular(supabase, escritorioId, campos, hojeNoBrasil())
@@ -166,7 +151,6 @@ async function PrazoComDados({
   return (
     <FormularioPrazo
       campos={campos}
-      pastas={pastas}
       processos={processos}
       tipos={tipos}
       tribunais={tribunais}

@@ -40,8 +40,7 @@ export async function salvarPrazo(formData: FormData) {
 
   const paramsBase = new URLSearchParams({
     aba: "prazo",
-    pasta: campos.pastaId,
-    nivel: campos.nivel,
+    processo_id: campos.processoId,
     tipo: campos.tipoAtividadeId,
     tribunal: campos.tribunalId ?? "",
     evento_tipo: campos.eventoTipo,

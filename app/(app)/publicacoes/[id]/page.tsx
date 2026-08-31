@@ -56,8 +56,7 @@ export default async function PaginaTriagem({
   const hrefLancarPrazo = (`/atividades/nova?` +
     new URLSearchParams({
       aba: "prazo",
-      pasta: p.pastaId ?? "",
-      nivel: p.processoId ?? "",
+      processo_id: p.processoId ?? "",
       tipo: tipoSugeridoId,
       tribunal: tribunalIdDoProcesso,
       evento_tipo: "disponibilizacao_djen",

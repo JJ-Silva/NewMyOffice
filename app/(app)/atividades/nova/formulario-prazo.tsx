@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
-import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import type { Tribunal } from "@/lib/db/tribunais";
-import type { ProcessoResumo } from "@/lib/db/processos";
+import type { ProcessoParaSelecao } from "@/lib/db/processos";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { SelecaoProcesso } from "@/components/SelecaoProcesso";
 import {
   EVENTOS,
   type CamposPrazo,
@@ -13,17 +13,8 @@ import {
 } from "./calculo";
 import { salvarPrazo } from "./acoes";
 
-function rotuloProcesso(p: ProcessoResumo): string {
-  if (p.tipo === "geral") {
-    return `${p.numero ?? "geral"} · geral da pasta`;
-  }
-  const t = p.tipo === "judicial" ? "judicial" : "administrativo";
-  return `${p.numero ?? "sem número"} · ${t}`;
-}
-
 export function FormularioPrazo({
   campos,
-  pastas,
   processos,
   tipos,
   tribunais,
@@ -32,16 +23,13 @@ export function FormularioPrazo({
   hrefCriarPasta,
 }: {
   campos: CamposPrazo;
-  pastas: PastaResumo[];
-  processos: ProcessoResumo[];
+  processos: ProcessoParaSelecao[];
   tipos: TipoAtividadeCatalogo[];
   tribunais: Tribunal[];
   calc: { ok: true; dados: CalculoPronto } | { ok: false; erro: string } | null;
   erro: string | null;
   hrefCriarPasta: string;
 }) {
-  const geralId = processos.find((p) => p.tipo === "geral")?.id ?? "";
-  const nivelAtual = campos.nivel || geralId;
   const tipoSelecionado = tipos.find((t) => t.id === campos.tipoAtividadeId);
   const diasPlaceholder =
     tipoSelecionado?.dias_padrao != null
@@ -77,49 +65,19 @@ export function FormularioPrazo({
 
         <label className="flex flex-col gap-1.5">
           <span className="flex items-center justify-between">
-            <span className="rotulo">Pasta vinculada</span>
+            <span className="rotulo">Processo</span>
             <Link
               href={hrefCriarPasta as Route}
               className="text-xs font-medium text-teal hover:underline"
             >
-              + criar pasta
+              + nova pasta
             </Link>
           </span>
-          <select
-            name="pasta"
-            required
-            defaultValue={campos.pastaId}
-            className="campo"
-          >
-            <option value="" disabled>
-              Selecione a pasta…
-            </option>
-            {pastas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {(p.nome ?? p.codigo) +
-                  (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Processo</span>
-          <select
-            name="nivel"
-            defaultValue={nivelAtual}
-            className="campo"
-            disabled={processos.length <= 1}
-          >
-            {processos.length === 0 && (
-              <option value="">selecione a pasta primeiro</option>
-            )}
-            {processos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {rotuloProcesso(p)}
-              </option>
-            ))}
-          </select>
+          <SelecaoProcesso
+            processos={processos}
+            name="processo_id"
+            value={campos.processoId}
+          />
           <span className="text-xs text-texto-secundario">
             O prazo pertence a um processo. O “geral da pasta” é o trabalho da
             pasta sem processo formal.
@@ -250,11 +208,10 @@ export function FormularioPrazo({
           aviso={calc.dados.resultado.avisoCalendarioIncompleto}
         >
           <form action={salvarPrazo} className="flex flex-col gap-3">
-            <input type="hidden" name="pasta" value={campos.pastaId} />
             <input
               type="hidden"
-              name="nivel"
-              value={campos.nivel || calc.dados.processoId}
+              name="processo_id"
+              value={campos.processoId || calc.dados.processoId}
             />
             <input type="hidden" name="tipo" value={campos.tipoAtividadeId} />
             <input
@@ -302,7 +259,7 @@ export function FormularioPrazo({
           <p className="text-sm text-texto-secundario">
             {calc && !calc.ok
               ? calc.erro
-              : "Preencha pasta, tipo de prazo e a data do evento, depois clique em “Calcular prazo”."}
+              : "Preencha processo, tipo de prazo e a data do evento, depois clique em “Calcular prazo”."}
           </p>
         </div>
       )}
