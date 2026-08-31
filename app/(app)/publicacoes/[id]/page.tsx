@@ -64,6 +64,7 @@ export default async function PaginaTriagem({
       tipo: "judicial",
       cnj: p.cnj ?? p.numeroProcesso ?? "",
       publicacao: p.id,
+      retorno: `/publicacoes/${p.id}`,
     }).toString()) as Route;
 
   const certidaoUrl = p.hash

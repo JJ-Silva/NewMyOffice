@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { criarCliente, type TipoPessoa } from "@/lib/db/clientes";
+import { lerRetorno, anexarId } from "@/lib/navegacao";
 
 function voltarComErro(mensagem: string): never {
   redirect("/clientes/novo?erro=" + encodeURIComponent(mensagem));
@@ -41,6 +42,12 @@ export async function criarClienteESeguir(formData: FormData) {
     });
   } catch (e) {
     voltarComErro(e instanceof Error ? e.message : "Falha ao criar o cliente.");
+  }
+
+  // Veio de outro cadastro (encadeamento) → volta pra lá com o cliente pronto.
+  const retorno = lerRetorno(String(formData.get("retorno") ?? ""));
+  if (retorno) {
+    redirect(anexarId(retorno, "cliente", clienteId));
   }
 
   redirect(`/pastas/nova?cliente=${clienteId}`);

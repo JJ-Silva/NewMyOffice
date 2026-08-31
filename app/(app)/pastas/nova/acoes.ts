@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { exigirSessao } from "@/lib/supabase/sessao";
 import { criarPasta } from "@/lib/db/pastas";
+import { lerRetorno, anexarId } from "@/lib/navegacao";
 
 export async function criarPastaAction(formData: FormData) {
   const sessao = await exigirSessao();
@@ -13,11 +14,18 @@ export async function criarPastaAction(formData: FormData) {
   const areaId = String(formData.get("area_id") ?? "").trim() || null;
   const objetivo = String(formData.get("objetivo") ?? "").trim() || null;
   const objeto = String(formData.get("objeto") ?? "").trim() || null;
+  const retorno = lerRetorno(String(formData.get("retorno") ?? ""));
+
+  // Erro volta pra cá preservando a cadeia e o cliente escolhido.
+  function voltarComErro(mensagem: string): never {
+    const p = new URLSearchParams({ erro: mensagem });
+    if (clienteId) p.set("cliente", clienteId);
+    if (retorno) p.set("retorno", retorno);
+    redirect(`/pastas/nova?${p.toString()}`);
+  }
 
   if (!clienteId) {
-    redirect(
-      "/pastas/nova?erro=" + encodeURIComponent("Escolha o cliente da pasta."),
-    );
+    voltarComErro("Escolha o cliente da pasta.");
   }
 
   const supabase = await criarClienteServidor();
@@ -34,14 +42,13 @@ export async function criarPastaAction(formData: FormData) {
     });
     pastaId = criada.id;
   } catch (e) {
-    redirect(
-      "/pastas/nova?erro=" +
-        encodeURIComponent(
-          e instanceof Error ? e.message : "Falha ao criar a pasta.",
-        ),
-    );
+    voltarComErro(e instanceof Error ? e.message : "Falha ao criar a pasta.");
   }
 
-  // Passo 7 leva daqui para o lançamento de prazo. Por ora, volta para a lista.
+  // Veio de outro cadastro (encadeamento) → volta pra lá com a pasta pronta.
+  if (retorno) {
+    redirect(anexarId(retorno, "pasta", pastaId));
+  }
+
   redirect(`/pastas?criada=${pastaId}`);
 }

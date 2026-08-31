@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
@@ -26,6 +27,7 @@ export function FormularioPrazo({
   tribunais,
   calc,
   erro,
+  hrefCriarPasta,
 }: {
   campos: CamposPrazo;
   pastas: PastaResumo[];
@@ -34,6 +36,7 @@ export function FormularioPrazo({
   tribunais: Tribunal[];
   calc: { ok: true; dados: CalculoPronto } | { ok: false; erro: string } | null;
   erro: string | null;
+  hrefCriarPasta: string;
 }) {
   const geralId = processos.find((p) => p.tipo === "geral")?.id ?? "";
   const nivelAtual = campos.nivel || geralId;
@@ -71,7 +74,15 @@ export function FormularioPrazo({
         )}
 
         <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Pasta vinculada</span>
+          <span className="flex items-center justify-between">
+            <span className="rotulo">Pasta vinculada</span>
+            <Link
+              href={hrefCriarPasta as Route}
+              className="text-xs font-medium text-teal hover:underline"
+            >
+              + criar pasta
+            </Link>
+          </span>
           <select
             name="pasta"
             required

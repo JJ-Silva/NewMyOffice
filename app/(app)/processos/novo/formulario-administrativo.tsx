@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import type { PastaResumo } from "@/lib/db/pastas";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { salvarProcessoAdministrativo } from "./acoes";
@@ -13,16 +14,22 @@ export function FormularioAdministrativo({
   pastas,
   valores,
   erro,
+  retorno,
+  hrefCriarPasta,
 }: {
   pastas: PastaResumo[];
   valores: Record<string, string>;
   erro: string | null;
+  retorno: string | null;
+  hrefCriarPasta: string;
 }) {
   return (
     <form
       action={salvarProcessoAdministrativo}
       className="card flex max-w-[560px] flex-col gap-4 p-6"
     >
+      <input type="hidden" name="tipo" value="administrativo" />
+      {retorno && <input type="hidden" name="retorno" value={retorno} />}
       <h2 className="titulo-secao">Processo administrativo</h2>
 
       {erro && (
@@ -32,7 +39,15 @@ export function FormularioAdministrativo({
       )}
 
       <label className="flex flex-col gap-1.5">
-        <span className="rotulo">Pasta vinculada</span>
+        <span className="flex items-center justify-between">
+          <span className="rotulo">Pasta vinculada</span>
+          <Link
+            href={hrefCriarPasta as Route}
+            className="text-xs font-medium text-teal hover:underline"
+          >
+            + criar pasta
+          </Link>
+        </span>
         <select
           name="pasta"
           required
@@ -103,7 +118,7 @@ export function FormularioAdministrativo({
       <div className="flex gap-3 pt-1">
         <BotaoEnviar>Salvar processo</BotaoEnviar>
         <Link
-          href="/processos"
+          href={(retorno ?? "/processos") as Route}
           className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
         >
           Cancelar

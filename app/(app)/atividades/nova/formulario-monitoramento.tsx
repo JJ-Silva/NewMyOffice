@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { formatarDataBR } from "@/lib/domain/datas";
 import type { PastaResumo } from "@/lib/db/pastas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
@@ -12,12 +13,14 @@ export function FormularioMonitoramento({
   pastaSelecionada,
   data,
   erro,
+  hrefCriarPasta,
 }: {
   pastas: PastaResumo[];
   tipos: TipoAtividadeCatalogo[];
   pastaSelecionada: string;
   data: string; // hoje, como default
   erro: string | null;
+  hrefCriarPasta: string;
 }) {
   return (
     <div className="grid items-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] max-w-[900px]">
@@ -34,7 +37,15 @@ export function FormularioMonitoramento({
         )}
 
         <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Pasta vinculada</span>
+          <span className="flex items-center justify-between">
+            <span className="rotulo">Pasta vinculada</span>
+            <Link
+              href={hrefCriarPasta as Route}
+              className="text-xs font-medium text-teal hover:underline"
+            >
+              + criar pasta
+            </Link>
+          </span>
           <select
             name="pasta"
             required

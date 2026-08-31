@@ -92,7 +92,7 @@ export default async function PaginaPasta({
         <Link href={`/atividades/nova?pasta=${pasta.id}`} className="botao-secundario">
           + Atividade
         </Link>
-        <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}`} className="botao-secundario">
+        <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`} className="botao-secundario">
           + Processo
         </Link>
         <Link href={`/agenda?pasta=${pasta.id}&tudo=1`} className="botao-secundario">
@@ -212,7 +212,7 @@ export default async function PaginaPasta({
         {processosDetalhe.length === 0 ? (
           <p className="text-[13px] text-texto-secundario">
             Nenhum processo judicial ou administrativo.{" "}
-            <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}`}>
+            <Link href={`/processos/novo?tipo=judicial&pasta=${pasta.id}&retorno=${encodeURIComponent(`/pastas/${pasta.id}`)}`}>
               Cadastrar
             </Link>
             .

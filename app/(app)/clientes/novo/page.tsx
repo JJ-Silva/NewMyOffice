@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { lerRetorno } from "@/lib/navegacao";
 import { criarClienteESeguir } from "./acoes";
 
 export default async function PaginaNovoCliente({
@@ -7,16 +9,22 @@ export default async function PaginaNovoCliente({
 }: PageProps<"/clientes/novo">) {
   const params = await searchParams;
   const erro = typeof params.erro === "string" ? params.erro : null;
+  const retorno = lerRetorno(params.retorno);
 
   return (
     <div className="flex max-w-[520px] flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <Link href="/clientes" className="link-acao self-start">
-          ← Voltar para clientes
+        <Link
+          href={(retorno ?? "/clientes") as Route}
+          className="link-acao self-start"
+        >
+          {retorno ? "← Voltar" : "← Voltar para clientes"}
         </Link>
         <h1 className="titulo-pagina">Novo cliente</h1>
         <p className="subtitulo-pagina">
-          Ao salvar, o fluxo segue direto para a criação da pasta.
+          {retorno
+            ? "Ao salvar, você volta para onde estava com o cliente já selecionado."
+            : "Ao salvar, o fluxo segue direto para a criação da pasta."}
         </p>
       </div>
 
@@ -30,6 +38,7 @@ export default async function PaginaNovoCliente({
         action={criarClienteESeguir}
         className="card flex flex-col gap-4 p-6"
       >
+        {retorno && <input type="hidden" name="retorno" value={retorno} />}
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Nome completo / razão social</span>
           <input name="nome" required className="campo" />
@@ -62,10 +71,10 @@ export default async function PaginaNovoCliente({
 
         <div className="flex gap-3 pt-1">
           <BotaoEnviar rotuloOcupado="Salvando…">
-            Salvar e criar pasta
+            {retorno ? "Salvar cliente" : "Salvar e criar pasta"}
           </BotaoEnviar>
           <Link
-            href="/clientes"
+            href={(retorno ?? "/clientes") as Route}
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
           >
             Cancelar

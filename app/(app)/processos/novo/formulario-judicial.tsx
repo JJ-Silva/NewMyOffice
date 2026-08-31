@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { analisarCnj } from "@/lib/domain/cnj";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import type { PastaResumo } from "@/lib/db/pastas";
@@ -16,11 +17,15 @@ export function FormularioJudicial({
   tribunais,
   valores,
   erro,
+  retorno,
+  hrefCriarPasta,
 }: {
   pastas: PastaResumo[];
   tribunais: Tribunal[];
   valores: Record<string, string>;
   erro: string | null;
+  retorno: string | null;
+  hrefCriarPasta: string;
 }) {
   const cnjInformado = valores.cnj ?? "";
   const analise = cnjInformado ? analisarCnj(cnjInformado) : null;
@@ -34,6 +39,10 @@ export function FormularioJudicial({
         className="card flex flex-col gap-4 p-6"
       >
         <input type="hidden" name="tipo" value="judicial" />
+        {valores.publicacao && (
+          <input type="hidden" name="publicacao" value={valores.publicacao} />
+        )}
+        {retorno && <input type="hidden" name="retorno" value={retorno} />}
         <h2 className="titulo-secao">Processo judicial</h2>
 
         {erro && (
@@ -43,7 +52,15 @@ export function FormularioJudicial({
         )}
 
         <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Pasta vinculada</span>
+          <span className="flex items-center justify-between">
+            <span className="rotulo">Pasta vinculada</span>
+            <Link
+              href={hrefCriarPasta as Route}
+              className="text-xs font-medium text-teal hover:underline"
+            >
+              + criar pasta
+            </Link>
+          </span>
           <select
             name="pasta"
             required
@@ -154,7 +171,7 @@ export function FormularioJudicial({
             Conferir número
           </button>
           <Link
-            href="/processos"
+            href={(retorno ?? "/processos") as Route}
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
           >
             Cancelar

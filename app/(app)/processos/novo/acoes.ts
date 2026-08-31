@@ -9,6 +9,7 @@ import {
   criarProcessoAdministrativo,
 } from "@/lib/db/processos";
 import { vincularProcessoNaPublicacao } from "@/lib/db/publicacoes";
+import { lerRetorno, anexarId } from "@/lib/navegacao";
 
 function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
@@ -38,6 +39,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
     valor_causa: txt(formData, "valor_causa"),
     data_distribuicao: txt(formData, "data_distribuicao"),
     publicacao: txt(formData, "publicacao"),
+    retorno: txt(formData, "retorno"),
   };
 
   function voltar(erro: string): never {
@@ -71,9 +73,17 @@ export async function salvarProcessoJudicial(formData: FormData) {
     voltar(e instanceof Error ? e.message : "Falha ao salvar o processo.");
   }
 
-  // Veio da triagem de uma publicação do DJEN (Etapa 5): vincula e volta.
+  // Veio da triagem de uma publicação do DJEN (Etapa 5): já vincula.
   if (campos.publicacao) {
     await vincularProcessoNaPublicacao(supabase, campos.publicacao, processoId);
+  }
+
+  // Encadeamento de cadastros → volta pro passo anterior com o processo pronto.
+  const retorno = lerRetorno(campos.retorno);
+  if (retorno) {
+    redirect(anexarId(retorno, "processo", processoId));
+  }
+  if (campos.publicacao) {
     redirect(`/publicacoes/${campos.publicacao}`);
   }
 
@@ -85,21 +95,26 @@ export async function salvarProcessoAdministrativo(formData: FormData) {
   const supabase = await criarClienteServidor();
 
   const pasta = txt(formData, "pasta");
+  const retorno = lerRetorno(txt(formData, "retorno"));
   const esferaRaw = txt(formData, "esfera");
   const esfera =
     esferaRaw === "federal" || esferaRaw === "estadual" || esferaRaw === "municipal"
       ? esferaRaw
       : null;
 
-  if (!pasta) {
-    redirect(
-      "/processos/novo?tipo=administrativo&erro=" +
-        encodeURIComponent("Escolha a pasta."),
-    );
+  function voltar(erro: string): never {
+    const p = new URLSearchParams({ tipo: "administrativo", erro });
+    if (retorno) p.set("retorno", retorno);
+    redirect(`/processos/novo?${p.toString()}`);
   }
 
+  if (!pasta) {
+    voltar("Escolha a pasta.");
+  }
+
+  let processoId: string;
   try {
-    await criarProcessoAdministrativo(supabase, {
+    processoId = await criarProcessoAdministrativo(supabase, {
       escritorioId: sessao.escritorioId,
       pastaId: pasta,
       poloCliente: polo(txt(formData, "polo")),
@@ -111,13 +126,11 @@ export async function salvarProcessoAdministrativo(formData: FormData) {
       dataProtocolo: txt(formData, "data_protocolo") || null,
     });
   } catch (e) {
-    redirect(
-      "/processos/novo?tipo=administrativo&erro=" +
-        encodeURIComponent(
-          e instanceof Error ? e.message : "Falha ao salvar.",
-        ),
-    );
+    voltar(e instanceof Error ? e.message : "Falha ao salvar.");
   }
 
+  if (retorno) {
+    redirect(anexarId(retorno, "processo", processoId));
+  }
   redirect("/processos?criado=1");
 }

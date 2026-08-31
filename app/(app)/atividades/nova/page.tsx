@@ -7,6 +7,7 @@ import { listarPastas } from "@/lib/db/pastas";
 import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { listarTribunais } from "@/lib/db/tribunais";
+import { urlDaTela, comRetorno } from "@/lib/navegacao";
 import { lerCampos, calcular } from "./calculo";
 import { AbasTipo, type AbaTipo } from "./abas-tipo";
 import { FormularioPrazo } from "./formulario-prazo";
@@ -37,10 +38,14 @@ export default async function PaginaNovaAtividade({
       : "prazo";
   const erro = get("erro");
   const campos = lerCampos(get);
+  const hrefCriarPasta = comRetorno(
+    "/pastas/nova",
+    urlDaTela("/atividades/nova", params),
+  );
 
   const pastas = await listarPastas(supabase, sessao.escritorioId);
   if (pastas.length === 0) {
-    redirect("/clientes/novo");
+    redirect(hrefCriarPasta);
   }
 
   return (
@@ -62,6 +67,7 @@ export default async function PaginaNovaAtividade({
           pastas={pastas}
           erro={erro}
           escritorioId={sessao.escritorioId}
+          hrefCriarPasta={hrefCriarPasta}
         />
       )}
 
@@ -76,6 +82,7 @@ export default async function PaginaNovaAtividade({
           pastaSelecionada={campos.pastaId}
           data=""
           erro={erro}
+          hrefCriarPasta={hrefCriarPasta}
         />
       )}
 
@@ -90,6 +97,7 @@ export default async function PaginaNovaAtividade({
           pastaSelecionada={campos.pastaId}
           data={hojeNoBrasil()}
           erro={erro}
+          hrefCriarPasta={hrefCriarPasta}
         />
       )}
     </div>
@@ -102,11 +110,13 @@ async function PrazoComDados({
   pastas,
   erro,
   escritorioId,
+  hrefCriarPasta,
 }: {
   campos: ReturnType<typeof lerCampos>;
   pastas: Awaited<ReturnType<typeof listarPastas>>;
   erro: string | null;
   escritorioId: string;
+  hrefCriarPasta: string;
 }) {
   const supabase = await criarClienteServidor();
   const [tipos, tribunais] = await Promise.all([
@@ -134,6 +144,7 @@ async function PrazoComDados({
       tribunais={tribunais}
       calc={calc}
       erro={erro}
+      hrefCriarPasta={hrefCriarPasta}
     />
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { somarDias, formatarDataBR } from "@/lib/domain/datas";
 import { REGRAS_TIPO } from "@/lib/domain/atividade";
 import type { PastaResumo } from "@/lib/db/pastas";
@@ -13,12 +14,14 @@ export function FormularioCompromisso({
   pastaSelecionada,
   data,
   erro,
+  hrefCriarPasta,
 }: {
   pastas: PastaResumo[];
   tipos: TipoAtividadeCatalogo[];
   pastaSelecionada: string;
   data: string;
   erro: string | null;
+  hrefCriarPasta: string;
 }) {
   const diasAntes = REGRAS_TIPO.compromisso.diasAntesVisivelPadrao;
 
@@ -34,7 +37,15 @@ export function FormularioCompromisso({
         )}
 
         <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Pasta vinculada</span>
+          <span className="flex items-center justify-between">
+            <span className="rotulo">Pasta vinculada</span>
+            <Link
+              href={hrefCriarPasta as Route}
+              className="text-xs font-medium text-teal hover:underline"
+            >
+              + criar pasta
+            </Link>
+          </span>
           <select
             name="pasta"
             required
