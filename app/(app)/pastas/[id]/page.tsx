@@ -11,7 +11,6 @@ import { buscarPasta } from "@/lib/db/pastas";
 import { listarAreas } from "@/lib/db/areas";
 import { listarClientes } from "@/lib/db/clientes";
 import { listarProcessos } from "@/lib/db/processos";
-import { listarProcessosDaPasta } from "@/lib/db/processos";
 import { listarPartesDoProcesso, TIPOS_PARTE } from "@/lib/db/partes";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
@@ -50,15 +49,12 @@ export default async function PaginaPasta({
     notFound();
   }
 
-  const [areas, todosClientes, processosDetalhe, processosCrus] =
-    await Promise.all([
-      listarAreas(supabase, sessao.escritorioId),
-      listarClientes(supabase, sessao.escritorioId),
-      listarProcessos(supabase, sessao.escritorioId, { pastaId: id }),
-      listarProcessosDaPasta(supabase, id),
-    ]);
+  const [areas, todosClientes, processosDetalhe] = await Promise.all([
+    listarAreas(supabase, sessao.escritorioId),
+    listarClientes(supabase, sessao.escritorioId),
+    listarProcessos(supabase, sessao.escritorioId, { pastaId: id }),
+  ]);
 
-  const geral = processosCrus.find((p) => p.tipo === "geral");
   const clientesVinculadosIds = new Set(pasta.clientes.map((c) => c.id));
   const clientesDisponiveis = todosClientes.filter(
     (c) => !clientesVinculadosIds.has(c.id),
@@ -214,16 +210,6 @@ export default async function PaginaPasta({
       {/* Processos */}
       <div className="card flex flex-col gap-3 p-5">
         <span className="text-sm font-semibold">Processos da pasta</span>
-
-        {geral && (
-          <div className="linha-lista">
-            <span className="etiqueta-sigla">geral</span>
-            <span className="flex-1 text-[13.5px] text-texto-secundario">
-              Trabalho interno da pasta — é aqui que o prazo se pendura quando
-              não há processo judicial.
-            </span>
-          </div>
-        )}
 
         {processosDetalhe.length === 0 ? (
           <p className="text-[13px] text-texto-secundario">
