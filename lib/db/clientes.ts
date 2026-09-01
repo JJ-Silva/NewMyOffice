@@ -2,6 +2,7 @@
 // escritório (índice parcial, ignora os soft-deletados).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizarCpfCnpj } from "@/lib/domain/documento";
 
 export type TipoPessoa = "fisica" | "juridica";
 
@@ -148,7 +149,7 @@ export async function atualizarCliente(
     .from("cliente")
     .update({
       nome: campos.nome.trim(),
-      cpf_cnpj: campos.cpfCnpj.trim(),
+      cpf_cnpj: normalizarCpfCnpj(campos.cpfCnpj),
       tipo_pessoa: campos.tipoPessoa,
       telefone: campos.telefone,
       email: campos.email,
@@ -197,7 +198,7 @@ export async function criarCliente(
     .insert({
       escritorio_id: entrada.escritorioId,
       nome: entrada.nome,
-      cpf_cnpj: entrada.cpfCnpj,
+      cpf_cnpj: normalizarCpfCnpj(entrada.cpfCnpj),
       tipo_pessoa: entrada.tipoPessoa,
       telefone: entrada.telefone,
       email: entrada.email,

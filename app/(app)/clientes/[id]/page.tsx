@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarCliente } from "@/lib/db/clientes";
+import { formatarCpfCnpj } from "@/lib/domain/documento";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { salvarCliente, excluirClienteAction } from "./acoes";
 
@@ -45,7 +46,7 @@ export default async function PaginaCliente({
           {cliente.tipo_pessoa === "fisica"
             ? "Pessoa física"
             : "Pessoa jurídica"}{" "}
-          · {cliente.cpf_cnpj}
+          · {formatarCpfCnpj(cliente.cpf_cnpj)}
         </span>
         <h1 className="titulo-pagina">{cliente.nome}</h1>
       </div>
@@ -82,7 +83,7 @@ export default async function PaginaCliente({
               <input
                 name="cpf_cnpj"
                 required
-                defaultValue={cliente.cpf_cnpj}
+                defaultValue={formatarCpfCnpj(cliente.cpf_cnpj)}
                 className="campo"
               />
             </label>

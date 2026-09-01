@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
+import { formatarCpfCnpj } from "@/lib/domain/documento";
 import { listarAreas } from "@/lib/db/areas";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { lerRetorno, urlDaTela, comRetorno } from "@/lib/navegacao";
@@ -78,7 +79,7 @@ export default async function PaginaNovaPasta({
             </option>
             {clientes.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.nome} — {c.cpf_cnpj}
+                {c.nome} — {formatarCpfCnpj(c.cpf_cnpj)}
               </option>
             ))}
           </select>

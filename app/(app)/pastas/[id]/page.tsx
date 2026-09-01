@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
+import { formatarCpfCnpj } from "@/lib/domain/documento";
 import { buscarPasta } from "@/lib/db/pastas";
 import { listarAreas } from "@/lib/db/areas";
 import { listarClientes } from "@/lib/db/clientes";
@@ -196,7 +197,7 @@ export default async function PaginaPasta({
               </option>
               {clientesDisponiveis.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.nome} — {c.cpf_cnpj}
+                  {c.nome} — {formatarCpfCnpj(c.cpf_cnpj)}
                 </option>
               ))}
             </select>
@@ -279,7 +280,9 @@ export default async function PaginaPasta({
                         </span>
                         <span className="flex-1">
                           {parte.nome}
-                          {parte.cpf_cnpj ? ` · ${parte.cpf_cnpj}` : ""}
+                          {parte.cpf_cnpj
+                            ? ` · ${formatarCpfCnpj(parte.cpf_cnpj)}`
+                            : ""}
                           {parte.advogado_adverso
                             ? ` · adv. ${parte.advogado_adverso}${parte.oab_adverso ? ` (${parte.oab_adverso})` : ""}`
                             : ""}

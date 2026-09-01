@@ -6,6 +6,7 @@ import {
 } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
+import { formatarCpfCnpj } from "@/lib/domain/documento";
 
 export default async function PaginaClientes() {
   const sessao = await exigirSessao();
@@ -65,7 +66,9 @@ export default async function PaginaClientes() {
                   {c.tipo_pessoa === "fisica" ? "Pessoa física" : "Pessoa jurídica"}
                 </span>
               </div>
-              <span className="text-[13.5px] tabular-nums">{c.cpf_cnpj}</span>
+              <span className="text-[13.5px] tabular-nums">
+                {formatarCpfCnpj(c.cpf_cnpj)}
+              </span>
               <div className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-[13px]">{c.telefone ?? "—"}</span>
                 <span className="truncate text-xs text-texto-secundario">

@@ -1,6 +1,7 @@
 // Acesso a dados: `parte` (§3.5, Etapa 2). Partes vinculadas a um processo.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizarCpfCnpj } from "@/lib/domain/documento";
 
 export type TipoParte =
   | "autor"
@@ -62,7 +63,7 @@ export async function adicionarParte(
     processo_id: args.processoId,
     nome: args.nome,
     tipo_parte: args.tipoParte,
-    cpf_cnpj: args.cpfCnpj,
+    cpf_cnpj: args.cpfCnpj ? normalizarCpfCnpj(args.cpfCnpj) : null,
     advogado_adverso: args.advogadoAdverso,
     oab_adverso: args.oabAdverso,
   });
