@@ -52,6 +52,73 @@ function contarPastasVivas(vinculos: unknown): number {
   }).length;
 }
 
+export type PastaDoCliente = {
+  id: string;
+  codigo: string;
+  nome: string | null;
+  status: string;
+};
+
+export type ClienteDetalhe = Omit<Cliente, "qtd_pastas"> & {
+  pastas: PastaDoCliente[];
+};
+
+export async function buscarCliente(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  id: string,
+): Promise<ClienteDetalhe | null> {
+  const { data, error } = await supabase
+    .from("cliente")
+    .select(
+      `id, nome, cpf_cnpj, tipo_pessoa, telefone, email,
+       pasta_cliente ( pasta:pasta_id ( id, codigo, nome, status, deletado_em ) )`,
+    )
+    .eq("escritorio_id", escritorioId)
+    .eq("id", id)
+    .is("deletado_em", null)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Falha ao buscar o cliente: ${error.message}`);
+  }
+  if (!data) return null;
+
+  const vinculos = Array.isArray(data.pasta_cliente) ? data.pasta_cliente : [];
+  const pastas: PastaDoCliente[] = [];
+  for (const v of vinculos) {
+    const p = (v as { pasta?: unknown }).pasta;
+    const pasta = (Array.isArray(p) ? p[0] : p) as
+      | {
+          id: string;
+          codigo: string;
+          nome: string | null;
+          status: string;
+          deletado_em: string | null;
+        }
+      | undefined;
+    if (pasta && pasta.deletado_em === null) {
+      pastas.push({
+        id: pasta.id,
+        codigo: pasta.codigo,
+        nome: pasta.nome ?? null,
+        status: pasta.status,
+      });
+    }
+  }
+  pastas.sort((a, b) => b.codigo.localeCompare(a.codigo));
+
+  return {
+    id: data.id as string,
+    nome: data.nome as string,
+    cpf_cnpj: data.cpf_cnpj as string,
+    tipo_pessoa: data.tipo_pessoa as TipoPessoa,
+    telefone: (data.telefone as string | null) ?? null,
+    email: (data.email as string | null) ?? null,
+    pastas,
+  };
+}
+
 export type NovoCliente = {
   escritorioId: string;
   nome: string;
@@ -60,6 +127,65 @@ export type NovoCliente = {
   telefone: string | null;
   email: string | null;
 };
+
+export type CamposCliente = {
+  nome: string;
+  cpfCnpj: string;
+  tipoPessoa: TipoPessoa;
+  telefone: string | null;
+  email: string | null;
+};
+
+export async function atualizarCliente(
+  supabase: SupabaseClient,
+  id: string,
+  campos: CamposCliente,
+): Promise<void> {
+  if (!campos.nome.trim() || !campos.cpfCnpj.trim()) {
+    throw new Error("Informe o nome e o CPF/CNPJ.");
+  }
+  const { error } = await supabase
+    .from("cliente")
+    .update({
+      nome: campos.nome.trim(),
+      cpf_cnpj: campos.cpfCnpj.trim(),
+      tipo_pessoa: campos.tipoPessoa,
+      telefone: campos.telefone,
+      email: campos.email,
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("Já existe outro cliente com esse CPF/CNPJ neste escritório.");
+    }
+    throw new Error(`Falha ao salvar o cliente: ${error.message}`);
+  }
+}
+
+// Soft-delete. Bloqueia se o cliente ainda estiver em alguma pasta viva.
+export async function excluirCliente(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  id: string,
+): Promise<void> {
+  const cliente = await buscarCliente(supabase, escritorioId, id);
+  if (!cliente) {
+    throw new Error("Cliente não encontrado.");
+  }
+  if (cliente.pastas.length > 0) {
+    throw new Error(
+      `Este cliente está em ${cliente.pastas.length} pasta${cliente.pastas.length === 1 ? "" : "s"}. Desvincule ou exclua essas pastas antes.`,
+    );
+  }
+  const { error } = await supabase
+    .from("cliente")
+    .update({ deletado_em: new Date().toISOString() })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`Falha ao excluir o cliente: ${error.message}`);
+  }
+}
 
 // Retorna o id do cliente criado.
 export async function criarCliente(

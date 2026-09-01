@@ -14,6 +14,7 @@ export default async function PaginaClientes() {
   const clientes = await listarClientes(supabase, sessao.escritorioId);
   const podeCriarCliente = sessaoPode(sessao, "clientes.criar");
   const podeCriarPasta = sessaoPode(sessao, "pastas.criar");
+  const podeEditarCliente = sessaoPode(sessao, "clientes.editar");
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -54,7 +55,12 @@ export default async function PaginaClientes() {
               className="card grid min-w-[820px] items-center gap-4 px-[18px] py-3 [grid-template-columns:minmax(200px,1.5fr)_minmax(150px,1fr)_minmax(180px,1fr)_80px_120px]"
             >
               <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate text-sm font-semibold">{c.nome}</span>
+                <Link
+                  href={`/clientes/${c.id}`}
+                  className="truncate text-sm font-semibold text-texto hover:text-teal hover:no-underline"
+                >
+                  {c.nome}
+                </Link>
                 <span className="text-xs text-texto-secundario">
                   {c.tipo_pessoa === "fisica" ? "Pessoa física" : "Pessoa jurídica"}
                 </span>
@@ -69,7 +75,13 @@ export default async function PaginaClientes() {
               <span className="text-[13.5px]">
                 {c.qtd_pastas} pasta{c.qtd_pastas === 1 ? "" : "s"}
               </span>
-              <div className="flex justify-center">
+              <div className="flex items-center justify-center gap-3">
+                <Link
+                  href={`/clientes/${c.id}`}
+                  className="text-xs font-medium text-teal hover:underline"
+                >
+                  {podeEditarCliente ? "editar" : "abrir"}
+                </Link>
                 {podeCriarPasta && (
                   <Link
                     href={`/pastas/nova?cliente=${c.id}`}
