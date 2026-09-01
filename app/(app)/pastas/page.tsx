@@ -68,7 +68,9 @@ export default async function PaginaPastas() {
                 </div>
                 <span className="text-[13px]">{p.area_nome ?? "—"}</span>
                 <span className="text-[13.5px]">
-                  {p.qtd_processos} processo{p.qtd_processos === 1 ? "" : "s"}
+                  {p.qtd_processos > 0
+                    ? `${p.qtd_processos} processo${p.qtd_processos === 1 ? "" : "s"}`
+                    : "—"}
                 </span>
                 <span
                   className="text-[13.5px] font-semibold"

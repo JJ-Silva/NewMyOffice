@@ -27,7 +27,7 @@ export async function listarPastas(
       `id, codigo, nome, status,
        area:area_id ( nome ),
        pasta_cliente ( cliente:cliente_id ( id, nome ) ),
-       processo ( id, deletado_em,
+       processo ( id, tipo, deletado_em,
                   atividade ( id, tipo, status, deletado_em ) )`,
     )
     .eq("escritorio_id", escritorioId)
@@ -66,7 +66,9 @@ export async function listarPastas(
         .map((v) => um<{ id: string; nome: string }>((v as Registro).cliente))
         .filter((c): c is { id: string; nome: string } => Boolean(c))
         .map((c) => ({ id: c.id, nome: c.nome })),
-      qtd_processos: processos.length,
+      // o processo "geral" é a própria pasta — não conta como processo
+      qtd_processos: processos.filter((p) => (p as Registro).tipo !== "geral")
+        .length,
       qtd_prazos_abertos: prazosAbertos,
     };
   });
