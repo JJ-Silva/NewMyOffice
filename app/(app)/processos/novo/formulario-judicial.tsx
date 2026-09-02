@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { analisarCnj } from "@/lib/domain/cnj";
+import { identificarTribunal } from "@/lib/domain/tribunais-cnj";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import type { PastaResumo } from "@/lib/db/pastas";
-import type { Tribunal } from "@/lib/db/tribunais";
 import { salvarProcessoJudicial } from "./acoes";
 
 const POLOS = [
@@ -14,14 +14,12 @@ const POLOS = [
 
 export function FormularioJudicial({
   pastas,
-  tribunais,
   valores,
   erro,
   retorno,
   hrefCriarPasta,
 }: {
   pastas: PastaResumo[];
-  tribunais: Tribunal[];
   valores: Record<string, string>;
   erro: string | null;
   retorno: string | null;
@@ -29,6 +27,8 @@ export function FormularioJudicial({
 }) {
   const cnjInformado = valores.cnj ?? "";
   const analise = cnjInformado ? analisarCnj(cnjInformado) : null;
+  const tribunal =
+    analise?.ok ? identificarTribunal(analise.cnj.partes) : null;
 
   return (
     <div className="grid items-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] max-w-[1000px]">
@@ -88,22 +88,9 @@ export function FormularioJudicial({
             placeholder="0000000-00.0000.0.00.0000"
             className="campo tabular-nums"
           />
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="rotulo">Tribunal (catálogo de Configurações)</span>
-          <select
-            name="tribunal"
-            defaultValue={valores.tribunal ?? ""}
-            className="campo"
-          >
-            <option value="">— não vincular —</option>
-            {tribunais.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.sigla} — {t.nome}
-              </option>
-            ))}
-          </select>
+          <span className="text-xs text-texto-secundario">
+            O tribunal é identificado pelo número — não precisa escolher.
+          </span>
         </label>
 
         <div className="grid gap-4 [grid-template-columns:1fr_1fr]">
@@ -200,9 +187,17 @@ export function FormularioJudicial({
                 {analise.cnj.formatado}
               </span>
               <span className="text-[13px]">
-                {analise.cnj.descricaoSegmento} · tribunal{" "}
-                {String(analise.cnj.partes.tribunal).padStart(2, "0")} · ano{" "}
-                {analise.cnj.partes.ano}
+                {tribunal ? (
+                  <>
+                    <strong>{tribunal.sigla}</strong> — {tribunal.nome}
+                  </>
+                ) : (
+                  <>
+                    {analise.cnj.descricaoSegmento} · tribunal{" "}
+                    {String(analise.cnj.partes.tribunal).padStart(2, "0")}
+                  </>
+                )}{" "}
+                · ano {analise.cnj.partes.ano}
               </span>
             </div>
 

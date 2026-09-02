@@ -8,6 +8,7 @@ import {
   criarProcessoJudicial,
   criarProcessoAdministrativo,
 } from "@/lib/db/processos";
+import { garantirTribunalDoCnj } from "@/lib/db/tribunais";
 import { vincularProcessoNaPublicacao } from "@/lib/db/publicacoes";
 import { lerRetorno, anexarId } from "@/lib/navegacao";
 
@@ -32,7 +33,6 @@ export async function salvarProcessoJudicial(formData: FormData) {
     tipo: "judicial",
     pasta: txt(formData, "pasta"),
     cnj: txt(formData, "cnj"),
-    tribunal: txt(formData, "tribunal"),
     vara: txt(formData, "vara"),
     comarca: txt(formData, "comarca"),
     fase: txt(formData, "fase"),
@@ -53,6 +53,13 @@ export async function salvarProcessoJudicial(formData: FormData) {
   const analise = analisarCnj(campos.cnj);
   if (!analise.ok) voltar(analise.erro);
 
+  // O tribunal sai do próprio número (cria a linha do catálogo se for a 1ª vez).
+  const tribunalId = await garantirTribunalDoCnj(
+    supabase,
+    sessao.escritorioId,
+    analise.cnj.partes,
+  );
+
   let processoId: string;
   try {
     processoId = await criarProcessoJudicial(supabase, {
@@ -63,7 +70,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
       cnjPartes: analise.cnj.partes,
       digitoConfere: analise.cnj.digitoConfere,
       justica: analise.cnj.justica,
-      tribunalId: campos.tribunal || null,
+      tribunalId,
       vara: campos.vara || null,
       comarca: campos.comarca || null,
       fase: campos.fase || null,

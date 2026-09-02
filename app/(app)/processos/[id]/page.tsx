@@ -7,7 +7,6 @@ import {
 } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarProcesso } from "@/lib/db/processos";
-import { listarTribunais } from "@/lib/db/tribunais";
 import {
   FormularioJudicial,
   FormularioAdministrativo,
@@ -64,7 +63,6 @@ export default async function PaginaEditarProcesso({
       ) : processo.tipo === "judicial" ? (
         <FormularioJudicial
           processo={processo}
-          tribunais={await listarTribunais(supabase, sessao.escritorioId)}
           podeEditar={podeEditar}
           podeExcluir={podeExcluir}
         />

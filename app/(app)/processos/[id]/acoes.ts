@@ -11,6 +11,7 @@ import {
   atualizarProcessoAdministrativo,
   excluirProcesso,
 } from "@/lib/db/processos";
+import { garantirTribunalDoCnj } from "@/lib/db/tribunais";
 
 function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
@@ -36,11 +37,11 @@ async function ctx(permissao: Permissao) {
   const sessao = await exigirSessao();
   exigirPermissao(sessao, permissao);
   const supabase = await criarClienteServidor();
-  return { supabase };
+  return { sessao, supabase };
 }
 
 export async function salvarJudicial(formData: FormData) {
-  const { supabase } = await ctx("processos.editar");
+  const { sessao, supabase } = await ctx("processos.editar");
   const id = txt(formData, "id");
   if (!id) return;
 
@@ -48,6 +49,12 @@ export async function salvarJudicial(formData: FormData) {
   if (!analise.ok) {
     redirect(`/processos/${id}?erro=` + encodeURIComponent(analise.erro));
   }
+
+  const tribunalId = await garantirTribunalDoCnj(
+    supabase,
+    sessao.escritorioId,
+    analise.cnj.partes,
+  );
 
   try {
     await atualizarProcessoJudicial(supabase, id, {
@@ -58,7 +65,7 @@ export async function salvarJudicial(formData: FormData) {
       cnjPartes: analise.cnj.partes,
       digitoConfere: analise.cnj.digitoConfere,
       justica: analise.cnj.justica,
-      tribunalId: txt(formData, "tribunal") || null,
+      tribunalId,
       vara: txt(formData, "vara") || null,
       comarca: txt(formData, "comarca") || null,
       instancia: txt(formData, "instancia") || null,

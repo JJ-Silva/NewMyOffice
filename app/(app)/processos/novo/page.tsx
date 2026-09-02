@@ -4,7 +4,6 @@ import type { Route } from "next";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarPastas } from "@/lib/db/pastas";
-import { listarTribunais } from "@/lib/db/tribunais";
 import { lerRetorno, urlDaTela, comRetorno } from "@/lib/navegacao";
 import { FormularioJudicial } from "./formulario-judicial";
 import { FormularioAdministrativo } from "./formulario-administrativo";
@@ -37,7 +36,6 @@ export default async function PaginaNovoProcesso({
   for (const k of [
     "pasta",
     "cnj",
-    "tribunal",
     "vara",
     "comarca",
     "fase",
@@ -89,7 +87,6 @@ export default async function PaginaNovoProcesso({
       {tipo === "judicial" ? (
         <FormularioJudicial
           pastas={pastas}
-          tribunais={await listarTribunais(supabase, sessao.escritorioId)}
           valores={valores}
           erro={erro}
           retorno={retorno}

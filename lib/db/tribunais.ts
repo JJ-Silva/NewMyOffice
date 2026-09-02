@@ -5,6 +5,7 @@
 // esfera/uf ficam nulos por ora.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { identificarTribunal } from "@/lib/domain/tribunais-cnj";
 
 export type Tribunal = {
   id: string;
@@ -43,6 +44,56 @@ export async function criarTribunal(
   if (error) {
     throw new Error(`Falha ao criar tribunal: ${error.message}`);
   }
+}
+
+// Acha (ou cria) o tribunal do escritório a partir dos componentes do CNJ.
+// Devolve o id, ou null se o número não bater com nenhum tribunal conhecido.
+// Usado ao cadastrar/editar processo judicial — o usuário não escolhe tribunal.
+export async function garantirTribunalDoCnj(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  partes: { segmento: number; tribunal: number },
+): Promise<string | null> {
+  const identidade = identificarTribunal(partes);
+  if (!identidade) return null;
+
+  const existente = await supabase
+    .from("tribunal")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .eq("codigo_cnj", identidade.codigo)
+    .is("deletado_em", null)
+    .maybeSingle();
+  if (existente.error) {
+    throw new Error(`Falha ao buscar tribunal: ${existente.error.message}`);
+  }
+  if (existente.data) return existente.data.id as string;
+
+  const criado = await supabase
+    .from("tribunal")
+    .insert({
+      escritorio_id: escritorioId,
+      nome: identidade.nome,
+      sigla: identidade.sigla,
+      codigo_cnj: identidade.codigo,
+    })
+    .select("id")
+    .single();
+  if (criado.error) {
+    // corrida: outra requisição criou primeiro — busca de novo
+    if (criado.error.code === "23505") {
+      const r = await supabase
+        .from("tribunal")
+        .select("id")
+        .eq("escritorio_id", escritorioId)
+        .eq("codigo_cnj", identidade.codigo)
+        .is("deletado_em", null)
+        .single();
+      return (r.data?.id as string) ?? null;
+    }
+    throw new Error(`Falha ao criar tribunal: ${criado.error.message}`);
+  }
+  return criado.data.id as string;
 }
 
 // Soft-delete — dado jurídico não se apaga (plano §0). O motor filtra

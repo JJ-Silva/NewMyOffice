@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import type { Tribunal } from "@/lib/db/tribunais";
+import { analisarCnj } from "@/lib/domain/cnj";
+import { identificarTribunal } from "@/lib/domain/tribunais-cnj";
 import type { ProcessoEdicao } from "@/lib/db/processos";
 import { salvarJudicial, salvarAdministrativo, excluir } from "./acoes";
 
@@ -63,16 +64,16 @@ function BlocoExcluir({ id }: { id: string }) {
 
 export function FormularioJudicial({
   processo,
-  tribunais,
   podeEditar,
   podeExcluir,
 }: {
   processo: ProcessoEdicao;
-  tribunais: Tribunal[];
   podeEditar: boolean;
   podeExcluir: boolean;
 }) {
   const j = processo.judicial;
+  const analise = analisarCnj(j?.cnj ?? processo.numero ?? "");
+  const tribunal = analise.ok ? identificarTribunal(analise.cnj.partes) : null;
   return (
     <div className="flex flex-col gap-4">
       {!podeEditar && <AvisoSomenteLeitura />}
@@ -83,7 +84,7 @@ export function FormularioJudicial({
         <input type="hidden" name="id" value={processo.id} />
         <fieldset disabled={!podeEditar} className="contents">
 
-        <Campo rotulo="Número do processo (CNJ)" full>
+        <Campo rotulo="Número do processo (CNJ)">
           <input
             name="cnj"
             required
@@ -92,19 +93,13 @@ export function FormularioJudicial({
           />
         </Campo>
 
-        <Campo rotulo="Tribunal (calendário de feriados)">
-          <select
-            name="tribunal"
-            defaultValue={j?.tribunalId ?? ""}
-            className="campo"
-          >
-            <option value="">— não vincular —</option>
-            {tribunais.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.sigla} — {t.nome}
-              </option>
-            ))}
-          </select>
+        <Campo rotulo="Tribunal (pelo número)">
+          <input
+            value={tribunal ? `${tribunal.sigla} — ${tribunal.nome}` : "—"}
+            readOnly
+            disabled
+            className="campo bg-tint-1 text-texto-secundario"
+          />
         </Campo>
 
         <Campo rotulo="Instância">

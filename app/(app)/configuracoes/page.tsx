@@ -504,35 +504,49 @@ export default async function PaginaConfiguracoes({
       {/* ── Tribunais ──────────────────────────────────────────── */}
       <SecaoRecolhivel
         titulo="Tribunais"
-        resumo={plural(tribunais.length, "cadastrado")}
-        aberta={semTribunais}
+        resumo={
+          tribunais.length === 0
+            ? "Aparecem sozinhos ao cadastrar processos"
+            : plural(tribunais.length, "reconhecido")
+        }
       >
-        <form
-          action={adicionarTribunal}
-          className="grid items-end gap-2.5 [grid-template-columns:1fr_110px_96px]"
-        >
-          <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="rotulo">Nome</span>
-            <input
-              name="nome"
-              required
-              placeholder="Tribunal de Justiça de São Paulo"
-              className="campo"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="rotulo">Sigla</span>
-            <input name="sigla" required placeholder="TJSP" className="campo" />
-          </label>
-          <BotaoEnviar className="botao-primario h-[38px] px-0">
-            Adicionar
-          </BotaoEnviar>
-        </form>
+        <p className="text-[12.5px] text-texto-secundario">
+          O tribunal é identificado pelo número CNJ do processo — você não
+          cadastra à mão. Eles aparecem aqui para você pendurar os feriados
+          locais da comarca. Se precisar, dá para adicionar um manualmente:
+        </p>
+
+        <details className="rounded-lg border border-tint-2 p-3.5">
+          <summary className="cursor-pointer text-sm font-semibold">
+            + Adicionar tribunal manualmente
+          </summary>
+          <form
+            action={adicionarTribunal}
+            className="mt-3 grid items-end gap-2.5 [grid-template-columns:1fr_110px_96px]"
+          >
+            <label className="flex min-w-0 flex-col gap-1.5">
+              <span className="rotulo">Nome</span>
+              <input
+                name="nome"
+                required
+                placeholder="Tribunal de Justiça de São Paulo"
+                className="campo"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="rotulo">Sigla</span>
+              <input name="sigla" required placeholder="TJSP" className="campo" />
+            </label>
+            <BotaoEnviar className="botao-primario h-[38px] px-0">
+              Adicionar
+            </BotaoEnviar>
+          </form>
+        </details>
 
         {semTribunais ? (
           <p className="painel-vazio">
-            Nenhum tribunal cadastrado. Cadastre ao menos um para vincular
-            feriados e calcular prazos.
+            Nenhum tribunal ainda. Cadastre um processo judicial que o tribunal
+            aparece aqui automaticamente.
           </p>
         ) : (
           <div className="flex flex-col gap-2">

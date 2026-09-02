@@ -141,16 +141,32 @@ async function PrazoComDados({
     listarTribunais(supabase, escritorioId),
   ]);
 
+  // Se o prazo é de um processo judicial e o tribunal ainda não foi escolhido,
+  // pré-seleciona o tribunal do processo (identificado pelo CNJ no cadastro).
+  let tribunalPreSelecionado = campos.tribunalId;
+  if (campos.processoId && !tribunalPreSelecionado) {
+    const { data } = await supabase
+      .from("processo_judicial")
+      .select("tribunal_id")
+      .eq("processo_id", campos.processoId)
+      .is("deletado_em", null)
+      .maybeSingle();
+    tribunalPreSelecionado = (data?.tribunal_id as string | null) ?? null;
+  }
+  const camposEfetivos = { ...campos, tribunalId: tribunalPreSelecionado };
+
   const tentouCalcular = Boolean(
-    campos.processoId && campos.tipoAtividadeId && campos.eventoData,
+    camposEfetivos.processoId &&
+      camposEfetivos.tipoAtividadeId &&
+      camposEfetivos.eventoData,
   );
   const calc = tentouCalcular
-    ? await calcular(supabase, escritorioId, campos, hojeNoBrasil())
+    ? await calcular(supabase, escritorioId, camposEfetivos, hojeNoBrasil())
     : null;
 
   return (
     <FormularioPrazo
-      campos={campos}
+      campos={camposEfetivos}
       processos={processos}
       tipos={tipos}
       tribunais={tribunais}
