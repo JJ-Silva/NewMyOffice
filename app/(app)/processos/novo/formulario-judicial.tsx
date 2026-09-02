@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { analisarCnj } from "@/lib/domain/cnj";
 import { identificarTribunal } from "@/lib/domain/tribunais-cnj";
+import type { CamposSugeridosDatajud } from "@/lib/domain/processo-datajud";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import type { PastaResumo } from "@/lib/db/pastas";
 import { salvarProcessoJudicial } from "./acoes";
@@ -18,12 +19,16 @@ export function FormularioJudicial({
   erro,
   retorno,
   hrefCriarPasta,
+  datajud,
+  datajudErro,
 }: {
   pastas: PastaResumo[];
   valores: Record<string, string>;
   erro: string | null;
   retorno: string | null;
   hrefCriarPasta: string;
+  datajud: CamposSugeridosDatajud | null;
+  datajudErro: string | null;
 }) {
   const cnjInformado = valores.cnj ?? "";
   const analise = cnjInformado ? analisarCnj(cnjInformado) : null;
@@ -110,6 +115,26 @@ export function FormularioJudicial({
 
         <div className="grid gap-4 [grid-template-columns:1fr_1fr]">
           <label className="flex flex-col gap-1.5">
+            <span className="rotulo">Instância</span>
+            <input
+              name="instancia"
+              defaultValue={valores.instancia ?? ""}
+              placeholder="1º grau, 2º grau…"
+              className="campo"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="rotulo">Classe / tipo de ação</span>
+            <input
+              name="tipo_acao"
+              defaultValue={valores.tipo_acao ?? ""}
+              className="campo"
+            />
+          </label>
+        </div>
+
+        <div className="grid gap-4 [grid-template-columns:1fr_1fr]">
+          <label className="flex flex-col gap-1.5">
             <span className="rotulo">Fase atual</span>
             <input name="fase" defaultValue={valores.fase ?? ""} className="campo" />
           </label>
@@ -153,9 +178,17 @@ export function FormularioJudicial({
           </label>
         </div>
 
-        <div className="flex gap-3 pt-1">
+        <div className="flex flex-wrap gap-3 pt-1">
           <button type="submit" className="botao-primario">
             Conferir número
+          </button>
+          <button
+            type="submit"
+            name="buscar_datajud"
+            value="1"
+            className="botao-secundario h-10"
+          >
+            Buscar dados no DataJud
           </button>
           <Link
             href={(retorno ?? "/processos") as Route}
@@ -211,6 +244,28 @@ export function FormularioJudicial({
                 digitou certo. Você ainda pode salvar assim; fica marcado no
                 processo.
               </p>
+            )}
+
+            {datajudErro && (
+              <p className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-3.5 py-2.5 text-[13px] text-[#92400E]">
+                {datajudErro}
+              </p>
+            )}
+            {datajud && (
+              <div className="flex flex-col gap-1 rounded-lg border border-cumprido bg-[#F0FDF4] p-3.5 text-[13px] text-[#166534]">
+                <span className="font-semibold">✓ Encontrado no DataJud</span>
+                {datajud.tipoAcao && <span>Classe: {datajud.tipoAcao}</span>}
+                {datajud.vara && <span>Órgão: {datajud.vara}</span>}
+                {datajud.comarca && <span>Comarca: {datajud.comarca}</span>}
+                {datajud.instancia && <span>Instância: {datajud.instancia}</span>}
+                {datajud.dataDistribuicao && (
+                  <span>Distribuição: {datajud.dataDistribuicao}</span>
+                )}
+                <span className="text-[12px] opacity-80">
+                  Os campos vazios do formulário foram preenchidos — confira e
+                  ajuste antes de salvar.
+                </span>
+              </div>
             )}
 
             <div className="h-px bg-tint-2" />

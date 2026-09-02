@@ -453,6 +453,8 @@ export type NovoProcessoJudicial = {
   tribunalId: string | null;
   vara: string | null;
   comarca: string | null;
+  instancia: string | null;
+  tipoAcao: string | null;
   fase: string | null;
   valorCausa: number | null;
   dataDistribuicao: string | null;
@@ -494,6 +496,8 @@ export async function criarProcessoJudicial(
     tribunal_id: p.tribunalId,
     vara: p.vara,
     comarca: p.comarca,
+    instancia: p.instancia,
+    tipo_acao: p.tipoAcao,
     fase: p.fase,
     valor_causa: p.valorCausa,
     data_distribuicao: p.dataDistribuicao,
