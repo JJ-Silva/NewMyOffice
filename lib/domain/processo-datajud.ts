@@ -55,6 +55,32 @@ export function normalizarProcessoDatajud(
   };
 }
 
+// O DataJud não manda a comarca num campo próprio; para o TJSP (sistema SAJ)
+// ela vem no fim do nome do órgão: "05 CIVEL DE SOROCABA" → "Sorocaba".
+// Heurística: pega o trecho capitalizado depois da última preposição.
+// Se o nome não tem local (ex.: "5ª Vara Cível", "Turma Recursal") → null.
+export function extrairComarcaDoOrgao(nome: string | null): string | null {
+  if (!nome) return null;
+  // pega o trecho depois da ÚLTIMA preposição "de/da/do" (o `.*` é guloso).
+  // "das/dos" ficam de fora — aparecem demais no meio de nomes de cidade
+  // ("São José dos Campos", "Mogi das Cruzes").
+  const m = nome.match(/.*[\s/](?:de|da|do)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'.\- ]+?)\s*$/i);
+  if (!m) return null;
+  return capitalizarNome(m[1].trim());
+}
+
+// "SOROCABA" → "Sorocaba" · "SÃO JOSÉ DOS CAMPOS" → "São José dos Campos"
+function capitalizarNome(s: string): string {
+  const minusculas = new Set(["de", "da", "do", "das", "dos", "e"]);
+  return s
+    .toLowerCase()
+    .split(/\s+/)
+    .map((p, i) =>
+      i > 0 && minusculas.has(p) ? p : p.charAt(0).toUpperCase() + p.slice(1),
+    )
+    .join(" ");
+}
+
 // "G1" → "1º grau" · "G2" → "2º grau" · "JE" → "Juizado Especial"
 export function descreverGrau(grau: string | null): string | null {
   if (!grau) return null;
@@ -87,7 +113,8 @@ export function sugerirCamposDoProcesso(
     tipoAcao: dj.classe,
     assunto: dj.assunto,
     vara: dj.orgaoJulgador,
-    comarca: nomeMunicipio,
+    // 1º o município (código IBGE, quando vier); senão tenta o fim do nome do órgão
+    comarca: nomeMunicipio ?? extrairComarcaDoOrgao(dj.orgaoJulgador),
     instancia: descreverGrau(dj.grau),
     dataDistribuicao: dj.dataAjuizamento,
   };

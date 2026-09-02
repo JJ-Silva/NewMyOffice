@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   normalizarProcessoDatajud,
   descreverGrau,
+  extrairComarcaDoOrgao,
   sugerirCamposDoProcesso,
 } from "./processo-datajud";
 
@@ -63,16 +64,42 @@ describe("descreverGrau", () => {
   });
 });
 
+describe("extrairComarcaDoOrgao", () => {
+  it("pega a comarca do fim do nome (TJSP/SAJ, tudo em caixa alta)", () => {
+    expect(extrairComarcaDoOrgao("05 CIVEL DE SOROCABA")).toBe("Sorocaba");
+    expect(extrairComarcaDoOrgao("2ª Vara Cível de Sorocaba")).toBe("Sorocaba");
+    expect(
+      extrairComarcaDoOrgao("Vara da Fazenda Pública da Comarca de Campinas"),
+    ).toBe("Campinas");
+    expect(extrairComarcaDoOrgao("1ª VARA CRIMINAL DE SÃO JOSÉ DOS CAMPOS")).toBe(
+      "São José dos Campos",
+    );
+  });
+  it("sem local no nome → null", () => {
+    expect(extrairComarcaDoOrgao("5ª Vara Cível")).toBeNull();
+    expect(extrairComarcaDoOrgao("Turma Recursal Cível")).toBeNull();
+    expect(extrairComarcaDoOrgao(null)).toBeNull();
+  });
+});
+
 describe("sugerirCamposDoProcesso", () => {
-  it("monta os campos do formulário", () => {
+  it("usa o município quando vem (código IBGE)", () => {
     const dj = normalizarProcessoDatajud(AMOSTRA)!;
-    expect(sugerirCamposDoProcesso(dj, "Sorocaba")).toEqual({
-      tipoAcao: "Procedimento Comum Cível",
-      assunto: "Seguro",
-      vara: "2ª Vara Cível",
+    expect(sugerirCamposDoProcesso(dj, "Sorocaba").comarca).toBe("Sorocaba");
+  });
+  it("sem município, tenta o fim do nome do órgão", () => {
+    const dj = normalizarProcessoDatajud({
+      numeroProcesso: "1",
+      orgaoJulgador: { nome: "05 CIVEL DE SOROCABA" },
+      grau: "G1",
+    })!;
+    expect(sugerirCamposDoProcesso(dj, null)).toEqual({
+      tipoAcao: null,
+      assunto: null,
+      vara: "05 CIVEL DE SOROCABA",
       comarca: "Sorocaba",
       instancia: "1º grau",
-      dataDistribuicao: "2024-05-03",
+      dataDistribuicao: null,
     });
   });
 });
