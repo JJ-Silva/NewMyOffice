@@ -8,7 +8,10 @@ import {
   criarProcessoJudicial,
   criarProcessoAdministrativo,
 } from "@/lib/db/processos";
-import { garantirTribunalDoCnj } from "@/lib/db/tribunais";
+import {
+  garantirTribunalDoCnj,
+  garantirTribunalPorCodigo,
+} from "@/lib/db/tribunais";
 import { vincularProcessoNaPublicacao } from "@/lib/db/publicacoes";
 import { lerRetorno, anexarId } from "@/lib/navegacao";
 
@@ -32,7 +35,8 @@ export async function salvarProcessoJudicial(formData: FormData) {
   const campos: Record<string, string> = {
     tipo: "judicial",
     pasta: txt(formData, "pasta"),
-    cnj: txt(formData, "cnj"),
+    numero: txt(formData, "numero"),
+    tribunal_codigo: txt(formData, "tribunal_codigo"),
     vara: txt(formData, "vara"),
     comarca: txt(formData, "comarca"),
     instancia: txt(formData, "instancia"),
@@ -52,15 +56,31 @@ export async function salvarProcessoJudicial(formData: FormData) {
   }
 
   if (!campos.pasta) voltar("Escolha a pasta.");
-  const analise = analisarCnj(campos.cnj);
-  if (!analise.ok) voltar(analise.erro);
+  if (!campos.numero) voltar("Informe o número do processo.");
 
-  // O tribunal sai do próprio número (cria a linha do catálogo se for a 1ª vez).
-  const tribunalId = await garantirTribunalDoCnj(
-    supabase,
-    sessao.escritorioId,
-    analise.cnj.partes,
-  );
+  // O número pode ser um CNJ (identifica o tribunal) ou não (REsp, RE, número
+  // antigo — aí o tribunal vem do seletor).
+  const analise = analisarCnj(campos.numero);
+  const cnj = analise.ok ? analise.cnj : null;
+
+  let tribunalId: string | null;
+  if (cnj) {
+    tribunalId = await garantirTribunalDoCnj(
+      supabase,
+      sessao.escritorioId,
+      cnj.partes,
+    );
+  } else {
+    const codigo = Number(campos.tribunal_codigo);
+    if (!Number.isInteger(codigo) || codigo < 100) {
+      voltar("Número fora do padrão CNJ — escolha o tribunal na lista.");
+    }
+    tribunalId = await garantirTribunalPorCodigo(
+      supabase,
+      sessao.escritorioId,
+      codigo,
+    );
+  }
 
   let processoId: string;
   try {
@@ -68,10 +88,11 @@ export async function salvarProcessoJudicial(formData: FormData) {
       escritorioId: sessao.escritorioId,
       pastaId: campos.pasta,
       poloCliente: polo(campos.polo),
-      cnjFormatado: analise.cnj.formatado,
-      cnjPartes: analise.cnj.partes,
-      digitoConfere: analise.cnj.digitoConfere,
-      justica: analise.cnj.justica,
+      numero: cnj ? cnj.formatado : campos.numero,
+      cnjFormatado: cnj?.formatado ?? null,
+      cnjPartes: cnj?.partes ?? null,
+      digitoConfere: cnj?.digitoConfere ?? null,
+      justica: cnj?.justica ?? null,
       tribunalId,
       vara: campos.vara || null,
       comarca: campos.comarca || null,

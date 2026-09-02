@@ -176,6 +176,7 @@ export type ProcessoEdicao = {
     cnj: string | null;
     justica: string | null;
     tribunalId: string | null;
+    tribunalCodigoCnj: number | null; // pré-seleciona o seletor manual
     vara: string | null;
     comarca: string | null;
     instancia: string | null;
@@ -212,7 +213,8 @@ export async function buscarProcesso(
        pasta:pasta_id ( codigo, nome, pasta_cliente ( cliente:cliente_id ( nome ) ) ),
        processo_judicial ( cnj, justica, tribunal_id, vara, comarca, instancia,
                            tipo_acao, juizo, fase, valor_causa, data_distribuicao,
-                           cnj_digito_confere ),
+                           cnj_digito_confere,
+                           tribunal:tribunal_id ( codigo_cnj ) ),
        processo_administrativo ( numero_adm, orgao_julgador, secretaria, esfera,
                                  tipo, assunto, autoridade_competente, protocolo,
                                  data_protocolo, fase )`,
@@ -252,6 +254,10 @@ export async function buscarProcesso(
           cnj: (j.cnj as string | null) ?? null,
           justica: (j.justica as string | null) ?? null,
           tribunalId: (j.tribunal_id as string | null) ?? null,
+          tribunalCodigoCnj:
+            (um<{ codigo_cnj: number | null }>(j.tribunal)?.codigo_cnj as
+              | number
+              | null) ?? null,
           vara: (j.vara as string | null) ?? null,
           comarca: (j.comarca as string | null) ?? null,
           instancia: (j.instancia as string | null) ?? null,
@@ -287,7 +293,9 @@ export type EdicaoProcessoJudicial = {
   poloCliente: "autor" | "reu" | "terceiro" | null;
   status: string;
   observacoes: string | null;
-  // CNJ já analisado (null = mantém o que está)
+  // o que o usuário digitou (CNJ formatado, REsp, RE, número antigo…)
+  numero: string;
+  // CNJ já analisado — tudo null quando `numero` não é um CNJ
   cnjFormatado: string | null;
   cnjPartes: {
     sequencial: number;
@@ -318,7 +326,7 @@ export async function atualizarProcessoJudicial(
   const base = await supabase
     .from("processo")
     .update({
-      numero: c.cnjFormatado,
+      numero: c.numero,
       polo_cliente: c.poloCliente,
       status: c.status,
       observacoes: c.observacoes,
@@ -438,7 +446,9 @@ export type NovoProcessoJudicial = {
   escritorioId: string;
   pastaId: string;
   poloCliente: "autor" | "reu" | "terceiro" | null;
-  // CNJ (já analisado)
+  // o que o usuário digitou (CNJ formatado, REsp, RE, número antigo…)
+  numero: string;
+  // CNJ analisado — tudo null quando `numero` não é um CNJ
   cnjFormatado: string | null;
   cnjPartes: {
     sequencial: number;
@@ -470,7 +480,7 @@ export async function criarProcessoJudicial(
       escritorio_id: p.escritorioId,
       pasta_id: p.pastaId,
       tipo: "judicial",
-      numero: p.cnjFormatado,
+      numero: p.numero,
       polo_cliente: p.poloCliente,
       data_inicio: p.dataDistribuicao,
     })

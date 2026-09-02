@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { analisarCnj } from "@/lib/domain/cnj";
-import { identificarTribunal } from "@/lib/domain/tribunais-cnj";
+import {
+  identificarTribunal,
+  tribunalPorCodigo,
+  TRIBUNAIS_CONHECIDOS,
+} from "@/lib/domain/tribunais-cnj";
 import type { ProcessoEdicao } from "@/lib/db/processos";
 import { salvarJudicial, salvarAdministrativo, excluir } from "./acoes";
 
@@ -72,8 +76,13 @@ export function FormularioJudicial({
   podeExcluir: boolean;
 }) {
   const j = processo.judicial;
-  const analise = analisarCnj(j?.cnj ?? processo.numero ?? "");
+  const numeroAtual = j?.cnj ?? processo.numero ?? "";
+  const analise = analisarCnj(numeroAtual);
+  const ehCnj = analise.ok;
   const tribunal = analise.ok ? identificarTribunal(analise.cnj.partes) : null;
+  const tribunalManual = !ehCnj
+    ? tribunalPorCodigo(j?.tribunalCodigoCnj ?? 0)
+    : null;
   return (
     <div className="flex flex-col gap-4">
       {!podeEditar && <AvisoSomenteLeitura />}
@@ -84,23 +93,43 @@ export function FormularioJudicial({
         <input type="hidden" name="id" value={processo.id} />
         <fieldset disabled={!podeEditar} className="contents">
 
-        <Campo rotulo="Número do processo (CNJ)">
+        <Campo rotulo="Número do processo">
           <input
-            name="cnj"
+            name="numero"
             required
-            defaultValue={j?.cnj ?? processo.numero ?? ""}
+            defaultValue={numeroAtual}
+            placeholder="CNJ, REsp, RE, número antigo…"
             className="campo tabular-nums"
           />
         </Campo>
 
-        <Campo rotulo="Tribunal (pelo número)">
-          <input
-            value={tribunal ? `${tribunal.sigla} — ${tribunal.nome}` : "—"}
-            readOnly
-            disabled
-            className="campo bg-tint-1 text-texto-secundario"
-          />
-        </Campo>
+        {ehCnj ? (
+          <Campo rotulo="Tribunal (pelo número)">
+            <input
+              value={tribunal ? `${tribunal.sigla} — ${tribunal.nome}` : "—"}
+              readOnly
+              disabled
+              className="campo bg-tint-1 text-texto-secundario"
+            />
+          </Campo>
+        ) : (
+          <Campo rotulo="Tribunal">
+            <select
+              name="tribunal_codigo"
+              defaultValue={tribunalManual?.codigo ?? ""}
+              className="campo"
+            >
+              <option value="" disabled>
+                Selecione o tribunal…
+              </option>
+              {TRIBUNAIS_CONHECIDOS.map((t) => (
+                <option key={t.codigo} value={t.codigo}>
+                  {t.sigla} — {t.nome}
+                </option>
+              ))}
+            </select>
+          </Campo>
+        )}
 
         <Campo rotulo="Instância">
           <input

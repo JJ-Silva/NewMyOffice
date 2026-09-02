@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { identificarTribunal } from "./tribunais-cnj";
+import {
+  identificarTribunal,
+  tribunalPorCodigo,
+  TRIBUNAIS_CONHECIDOS,
+} from "./tribunais-cnj";
 import { analisarCnj } from "./cnj";
 
 describe("identificarTribunal", () => {
@@ -46,6 +50,21 @@ describe("identificarTribunal", () => {
     expect(identificarTribunal({ segmento: 8, tribunal: 99 })).toBeNull();
     expect(identificarTribunal({ segmento: 0, tribunal: 0 })).toBeNull();
     expect(identificarTribunal({ segmento: 9, tribunal: 1 })).toBeNull();
+  });
+
+  it("tribunalPorCodigo é o inverso de identificarTribunal", () => {
+    expect(tribunalPorCodigo(826)?.sigla).toBe("TJSP");
+    expect(tribunalPorCodigo(300)?.sigla).toBe("STJ");
+    expect(tribunalPorCodigo(515)?.sigla).toBe("TRT15");
+    expect(tribunalPorCodigo(0)).toBeNull();
+    expect(tribunalPorCodigo(899)).toBeNull();
+  });
+
+  it("TRIBUNAIS_CONHECIDOS: lista sem repetição, ordenada, com o TJSP", () => {
+    const codigos = TRIBUNAIS_CONHECIDOS.map((t) => t.codigo);
+    expect(new Set(codigos).size).toBe(codigos.length);
+    expect(TRIBUNAIS_CONHECIDOS.some((t) => t.sigla === "TJSP")).toBe(true);
+    expect(TRIBUNAIS_CONHECIDOS.length).toBeGreaterThan(90);
   });
 
   it("integra com analisarCnj (CNJs reais deste projeto)", () => {

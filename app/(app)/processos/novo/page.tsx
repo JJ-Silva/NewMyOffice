@@ -45,7 +45,8 @@ export default async function PaginaNovoProcesso({
   const valores: Record<string, string> = {};
   for (const k of [
     "pasta",
-    "cnj",
+    "numero",
+    "tribunal_codigo",
     "vara",
     "comarca",
     "instancia",
@@ -66,7 +67,7 @@ export default async function PaginaNovoProcesso({
   let datajud: CamposSugeridosDatajud | null = null;
   let datajudErro: string | null = null;
   if (tipo === "judicial" && get("buscar_datajud") === "1") {
-    const analise = analisarCnj(get("cnj"));
+    const analise = analisarCnj(get("numero"));
     if (analise.ok) {
       try {
         const bruto = await buscarProcessoNoDatajud({

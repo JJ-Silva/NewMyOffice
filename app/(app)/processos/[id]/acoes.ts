@@ -11,7 +11,10 @@ import {
   atualizarProcessoAdministrativo,
   excluirProcesso,
 } from "@/lib/db/processos";
-import { garantirTribunalDoCnj } from "@/lib/db/tribunais";
+import {
+  garantirTribunalDoCnj,
+  garantirTribunalPorCodigo,
+} from "@/lib/db/tribunais";
 
 function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
@@ -45,26 +48,51 @@ export async function salvarJudicial(formData: FormData) {
   const id = txt(formData, "id");
   if (!id) return;
 
-  const analise = analisarCnj(txt(formData, "cnj"));
-  if (!analise.ok) {
-    redirect(`/processos/${id}?erro=` + encodeURIComponent(analise.erro));
+  const numero = txt(formData, "numero");
+  if (!numero) {
+    redirect(
+      `/processos/${id}?erro=` +
+        encodeURIComponent("Informe o número do processo."),
+    );
   }
 
-  const tribunalId = await garantirTribunalDoCnj(
-    supabase,
-    sessao.escritorioId,
-    analise.cnj.partes,
-  );
+  const analise = analisarCnj(numero);
+  const cnj = analise.ok ? analise.cnj : null;
+
+  let tribunalId: string | null;
+  if (cnj) {
+    tribunalId = await garantirTribunalDoCnj(
+      supabase,
+      sessao.escritorioId,
+      cnj.partes,
+    );
+  } else {
+    const codigo = Number(txt(formData, "tribunal_codigo"));
+    if (!Number.isInteger(codigo) || codigo < 100) {
+      redirect(
+        `/processos/${id}?erro=` +
+          encodeURIComponent(
+            "Número fora do padrão CNJ — escolha o tribunal na lista.",
+          ),
+      );
+    }
+    tribunalId = await garantirTribunalPorCodigo(
+      supabase,
+      sessao.escritorioId,
+      codigo,
+    );
+  }
 
   try {
     await atualizarProcessoJudicial(supabase, id, {
       poloCliente: polo(txt(formData, "polo")),
       status: statusProc(txt(formData, "status")),
       observacoes: txt(formData, "observacoes") || null,
-      cnjFormatado: analise.cnj.formatado,
-      cnjPartes: analise.cnj.partes,
-      digitoConfere: analise.cnj.digitoConfere,
-      justica: analise.cnj.justica,
+      numero: cnj ? cnj.formatado : numero,
+      cnjFormatado: cnj?.formatado ?? null,
+      cnjPartes: cnj?.partes ?? null,
+      digitoConfere: cnj?.digitoConfere ?? null,
+      justica: cnj?.justica ?? null,
       tribunalId,
       vara: txt(formData, "vara") || null,
       comarca: txt(formData, "comarca") || null,

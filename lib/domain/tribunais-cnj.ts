@@ -78,6 +78,15 @@ function cod(segmento: number, tribunal: number): number {
   return segmento * 100 + tribunal;
 }
 
+// `codigo` = segmento*100 + tribunal → volta para os componentes.
+export function tribunalPorCodigo(codigo: number): TribunalCnj | null {
+  if (!Number.isInteger(codigo) || codigo < 100) return null;
+  return identificarTribunal({
+    segmento: Math.floor(codigo / 100),
+    tribunal: codigo % 100,
+  });
+}
+
 export function identificarTribunal(p: {
   segmento: number;
   tribunal: number;
@@ -195,3 +204,18 @@ export function identificarTribunal(p: {
       return null;
   }
 }
+
+// Lista completa (sem repetição), para o seletor manual de tribunal — usado
+// quando o número não é CNJ (REsp, RE, número antigo…).
+export const TRIBUNAIS_CONHECIDOS: TribunalCnj[] = (() => {
+  const vistos = new Map<number, TribunalCnj>();
+  for (let s = 1; s <= 9; s++) {
+    for (let t = 0; t <= 99; t++) {
+      const r = identificarTribunal({ segmento: s, tribunal: t });
+      if (r && !vistos.has(r.codigo)) vistos.set(r.codigo, r);
+    }
+  }
+  return [...vistos.values()].sort((a, b) =>
+    a.sigla.localeCompare(b.sigla, "pt"),
+  );
+})();
