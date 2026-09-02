@@ -6,7 +6,6 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  identificarTribunal,
   tribunalPorCodigo,
   type TribunalCnj,
 } from "@/lib/domain/tribunais-cnj";
@@ -50,16 +49,9 @@ export async function criarTribunal(
   }
 }
 
-// Acha (ou cria) o tribunal do escritório a partir dos componentes do CNJ.
-export async function garantirTribunalDoCnj(
-  supabase: SupabaseClient,
-  escritorioId: string,
-  partes: { segmento: number; tribunal: number },
-): Promise<string | null> {
-  return garantir(supabase, escritorioId, identificarTribunal(partes));
-}
-
-// Idem, mas a partir do código escolhido no seletor manual (número não é CNJ).
+// Acha (ou cria) o tribunal do escritório pelo código (o do seletor, que já
+// vem preenchido quando o número é um CNJ). Devolve o id, ou null se o código
+// não bater com nenhum tribunal conhecido.
 export async function garantirTribunalPorCodigo(
   supabase: SupabaseClient,
   escritorioId: string,

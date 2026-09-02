@@ -7,6 +7,7 @@ import {
 } from "@/lib/domain/tribunais-cnj";
 import type { CamposSugeridosDatajud } from "@/lib/domain/processo-datajud";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { CampoNumeroProcesso } from "@/components/CampoNumeroProcesso";
 import type { PastaResumo } from "@/lib/db/pastas";
 import { salvarProcessoJudicial } from "./acoes";
 
@@ -38,6 +39,9 @@ export function FormularioJudicial({
   const ehCnj = analise?.ok ?? false;
   const tribunal =
     analise?.ok ? identificarTribunal(analise.cnj.partes) : null;
+  // seletor sempre visível; quando o número é CNJ, já vem no tribunal certo
+  const tribunalDefault =
+    tribunal?.codigo?.toString() ?? valores.tribunal_codigo ?? "";
 
   return (
     <div className="grid items-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] max-w-[1000px]">
@@ -90,38 +94,34 @@ export function FormularioJudicial({
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Número do processo</span>
-          <input
-            name="numero"
-            required
-            defaultValue={numeroInformado}
-            placeholder="CNJ, REsp, RE, AREsp, número antigo…"
-            className="campo tabular-nums"
-          />
+          <CampoNumeroProcesso defaultValue={numeroInformado} />
           <span className="text-xs text-texto-secundario">
-            Se for um CNJ, o tribunal é identificado pelo número. Senão, escolha
-            o tribunal abaixo.
+            {ehCnj
+              ? "É um CNJ — tribunal identificado; ao sair do campo, o DataJud é consultado."
+              : "Se for um CNJ, o tribunal é reconhecido pelo número ao sair do campo."}
           </span>
         </label>
 
-        {numeroInformado && !ehCnj && (
-          <label className="flex flex-col gap-1.5">
-            <span className="rotulo">Tribunal</span>
-            <select
-              name="tribunal_codigo"
-              defaultValue={valores.tribunal_codigo ?? ""}
-              className="campo"
-            >
-              <option value="" disabled>
-                Selecione o tribunal…
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">
+            Tribunal{ehCnj ? " (pelo número — mude se estiver errado)" : ""}
+          </span>
+          <select
+            key={tribunalDefault}
+            name="tribunal_codigo"
+            defaultValue={tribunalDefault}
+            className="campo"
+          >
+            <option value="" disabled>
+              Selecione o tribunal…
+            </option>
+            {TRIBUNAIS_CONHECIDOS.map((t) => (
+              <option key={t.codigo} value={t.codigo}>
+                {t.sigla} — {t.nome}
               </option>
-              {TRIBUNAIS_CONHECIDOS.map((t) => (
-                <option key={t.codigo} value={t.codigo}>
-                  {t.sigla} — {t.nome}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+            ))}
+          </select>
+        </label>
 
         <div className="grid gap-4 [grid-template-columns:1fr_1fr]">
           <label className="flex flex-col gap-1.5">
@@ -204,19 +204,9 @@ export function FormularioJudicial({
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
-          <button type="submit" className="botao-primario">
+          <button type="submit" className="botao-secundario h-10">
             Conferir número
           </button>
-          {ehCnj && (
-            <button
-              type="submit"
-              name="buscar_datajud"
-              value="1"
-              className="botao-secundario h-10"
-            >
-              Buscar dados no DataJud
-            </button>
-          )}
           <Link
             href={(retorno ?? "/processos") as Route}
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"
@@ -293,14 +283,9 @@ export function FormularioJudicial({
           </>
         ) : (
           <p className="rounded-lg border border-tint-2 bg-fundo px-3.5 py-2.5 text-[13px] text-texto-secundario">
-            <strong>{numeroInformado}</strong> não está no padrão CNJ (é um REsp,
-            RE, número antigo…). Escolha o tribunal na lista ao lado e clique de
-            novo em “Conferir número”. O DataJud só consulta por CNJ.
-            {valores.tribunal_codigo && (
-              <span className="mt-1 block font-medium text-[#166534]">
-                ✓ Tribunal selecionado.
-              </span>
-            )}
+            <strong>{numeroInformado}</strong> não está no padrão CNJ (REsp, RE,
+            número antigo…). Escolha o tribunal na lista. O DataJud só consulta
+            por CNJ.
           </p>
         )}
 

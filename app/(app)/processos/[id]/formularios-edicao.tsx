@@ -80,9 +80,12 @@ export function FormularioJudicial({
   const analise = analisarCnj(numeroAtual);
   const ehCnj = analise.ok;
   const tribunal = analise.ok ? identificarTribunal(analise.cnj.partes) : null;
-  const tribunalManual = !ehCnj
-    ? tribunalPorCodigo(j?.tribunalCodigoCnj ?? 0)
-    : null;
+  // seletor sempre visível; pré-seleciona o do CNJ, senão o que já está salvo
+  const tribunalDefault = (
+    tribunal?.codigo ??
+    tribunalPorCodigo(j?.tribunalCodigoCnj ?? 0)?.codigo ??
+    ""
+  ).toString();
   return (
     <div className="flex flex-col gap-4">
       {!podeEditar && <AvisoSomenteLeitura />}
@@ -103,33 +106,23 @@ export function FormularioJudicial({
           />
         </Campo>
 
-        {ehCnj ? (
-          <Campo rotulo="Tribunal (pelo número)">
-            <input
-              value={tribunal ? `${tribunal.sigla} — ${tribunal.nome}` : "—"}
-              readOnly
-              disabled
-              className="campo bg-tint-1 text-texto-secundario"
-            />
-          </Campo>
-        ) : (
-          <Campo rotulo="Tribunal">
-            <select
-              name="tribunal_codigo"
-              defaultValue={tribunalManual?.codigo ?? ""}
-              className="campo"
-            >
-              <option value="" disabled>
-                Selecione o tribunal…
+        <Campo rotulo={ehCnj ? "Tribunal (pelo número)" : "Tribunal"}>
+          <select
+            key={tribunalDefault}
+            name="tribunal_codigo"
+            defaultValue={tribunalDefault}
+            className="campo"
+          >
+            <option value="" disabled>
+              Selecione o tribunal…
+            </option>
+            {TRIBUNAIS_CONHECIDOS.map((t) => (
+              <option key={t.codigo} value={t.codigo}>
+                {t.sigla} — {t.nome}
               </option>
-              {TRIBUNAIS_CONHECIDOS.map((t) => (
-                <option key={t.codigo} value={t.codigo}>
-                  {t.sigla} — {t.nome}
-                </option>
-              ))}
-            </select>
-          </Campo>
-        )}
+            ))}
+          </select>
+        </Campo>
 
         <Campo rotulo="Instância">
           <input

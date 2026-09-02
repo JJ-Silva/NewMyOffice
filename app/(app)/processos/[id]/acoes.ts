@@ -11,10 +11,7 @@ import {
   atualizarProcessoAdministrativo,
   excluirProcesso,
 } from "@/lib/db/processos";
-import {
-  garantirTribunalDoCnj,
-  garantirTribunalPorCodigo,
-} from "@/lib/db/tribunais";
+import { garantirTribunalPorCodigo } from "@/lib/db/tribunais";
 
 function txt(fd: FormData, k: string): string {
   return String(fd.get(k) ?? "").trim();
@@ -59,29 +56,17 @@ export async function salvarJudicial(formData: FormData) {
   const analise = analisarCnj(numero);
   const cnj = analise.ok ? analise.cnj : null;
 
-  let tribunalId: string | null;
-  if (cnj) {
-    tribunalId = await garantirTribunalDoCnj(
-      supabase,
-      sessao.escritorioId,
-      cnj.partes,
-    );
-  } else {
-    const codigo = Number(txt(formData, "tribunal_codigo"));
-    if (!Number.isInteger(codigo) || codigo < 100) {
-      redirect(
-        `/processos/${id}?erro=` +
-          encodeURIComponent(
-            "Número fora do padrão CNJ — escolha o tribunal na lista.",
-          ),
-      );
-    }
-    tribunalId = await garantirTribunalPorCodigo(
-      supabase,
-      sessao.escritorioId,
-      codigo,
+  const codigo = Number(txt(formData, "tribunal_codigo"));
+  if (!Number.isInteger(codigo) || codigo < 100) {
+    redirect(
+      `/processos/${id}?erro=` + encodeURIComponent("Escolha o tribunal."),
     );
   }
+  const tribunalId = await garantirTribunalPorCodigo(
+    supabase,
+    sessao.escritorioId,
+    codigo,
+  );
 
   try {
     await atualizarProcessoJudicial(supabase, id, {

@@ -62,11 +62,11 @@ export default async function PaginaNovoProcesso({
     if (v) valores[k] = v;
   }
 
-  // "Buscar no DataJud" (botão do form judicial): consulta o CNJ na API pública
-  // do CNJ e pré-preenche vara/comarca/classe/instância/data. Melhor esforço.
+  // Quando o número é um CNJ, consulta o DataJud e pré-preenche vara/comarca/
+  // classe/instância/data. Roda ao sair do campo do número. Melhor esforço.
   let datajud: CamposSugeridosDatajud | null = null;
   let datajudErro: string | null = null;
-  if (tipo === "judicial" && get("buscar_datajud") === "1") {
+  if (tipo === "judicial" && get("numero")) {
     const analise = analisarCnj(get("numero"));
     if (analise.ok) {
       try {

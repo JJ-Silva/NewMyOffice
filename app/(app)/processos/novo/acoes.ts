@@ -8,10 +8,7 @@ import {
   criarProcessoJudicial,
   criarProcessoAdministrativo,
 } from "@/lib/db/processos";
-import {
-  garantirTribunalDoCnj,
-  garantirTribunalPorCodigo,
-} from "@/lib/db/tribunais";
+import { garantirTribunalPorCodigo } from "@/lib/db/tribunais";
 import { vincularProcessoNaPublicacao } from "@/lib/db/publicacoes";
 import { lerRetorno, anexarId } from "@/lib/navegacao";
 
@@ -58,29 +55,20 @@ export async function salvarProcessoJudicial(formData: FormData) {
   if (!campos.pasta) voltar("Escolha a pasta.");
   if (!campos.numero) voltar("Informe o número do processo.");
 
-  // O número pode ser um CNJ (identifica o tribunal) ou não (REsp, RE, número
-  // antigo — aí o tribunal vem do seletor).
+  // O número pode ser um CNJ (guarda os componentes) ou não (REsp, RE, número
+  // antigo). O tribunal vem sempre do seletor — que já vem preenchido pelo CNJ.
   const analise = analisarCnj(campos.numero);
   const cnj = analise.ok ? analise.cnj : null;
 
-  let tribunalId: string | null;
-  if (cnj) {
-    tribunalId = await garantirTribunalDoCnj(
-      supabase,
-      sessao.escritorioId,
-      cnj.partes,
-    );
-  } else {
-    const codigo = Number(campos.tribunal_codigo);
-    if (!Number.isInteger(codigo) || codigo < 100) {
-      voltar("Número fora do padrão CNJ — escolha o tribunal na lista.");
-    }
-    tribunalId = await garantirTribunalPorCodigo(
-      supabase,
-      sessao.escritorioId,
-      codigo,
-    );
+  const codigo = Number(campos.tribunal_codigo);
+  if (!Number.isInteger(codigo) || codigo < 100) {
+    voltar("Escolha o tribunal.");
   }
+  const tribunalId = await garantirTribunalPorCodigo(
+    supabase,
+    sessao.escritorioId,
+    codigo,
+  );
 
   let processoId: string;
   try {
