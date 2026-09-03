@@ -204,9 +204,6 @@ export function FormularioJudicial({
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
-          <button type="submit" className="botao-secundario h-10">
-            Conferir número
-          </button>
           <Link
             href={(retorno ?? "/processos") as Route}
             className="flex h-10 items-center rounded-lg border border-tint-3 bg-white px-4 text-sm font-medium"

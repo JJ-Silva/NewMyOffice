@@ -12,6 +12,14 @@ export function CampoNumeroProcesso({
 }) {
   const ultimoEnviado = useRef(defaultValue);
 
+  function reconhecer(el: HTMLInputElement) {
+    const v = el.value.trim();
+    if (v && v !== ultimoEnviado.current) {
+      ultimoEnviado.current = v;
+      el.form?.requestSubmit();
+    }
+  }
+
   return (
     <input
       name="numero"
@@ -19,11 +27,11 @@ export function CampoNumeroProcesso({
       defaultValue={defaultValue}
       placeholder="CNJ, REsp, RE, AREsp, número antigo…"
       className="campo tabular-nums"
-      onBlur={(e) => {
-        const v = e.currentTarget.value.trim();
-        if (v && v !== ultimoEnviado.current) {
-          ultimoEnviado.current = v;
-          e.currentTarget.form?.requestSubmit();
+      onBlur={(e) => reconhecer(e.currentTarget)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          reconhecer(e.currentTarget);
         }
       }}
     />
