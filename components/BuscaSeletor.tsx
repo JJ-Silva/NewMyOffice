@@ -67,9 +67,11 @@ export function BuscaSeletor({
   }
 
   return (
-    <>
-      {/* valor pro form (GET ou Server Action); só existe para o submit e a
-          validação `required` — o usuário interage pelo botão abaixo */}
+    <div className="relative">
+      {/* valor pro form (GET ou Server Action). Fica por cima do botão,
+          invisível e sem capturar clique — assim, quando está vazio e o form é
+          enviado, o balão de validação nativo (`required`) aponta pro campo
+          visível, não pra um elemento fora da tela. */}
       <input
         type="text"
         name={name}
@@ -78,8 +80,8 @@ export function BuscaSeletor({
         onChange={() => {}}
         onFocus={() => dispararRef.current?.focus()}
         tabIndex={-1}
-        aria-label={textoVazio}
-        className="sr-only"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
       />
 
       <button
@@ -107,7 +109,7 @@ export function BuscaSeletor({
           aoEscolher={escolher}
         />
       )}
-    </>
+    </div>
   );
 }
 
@@ -148,28 +150,37 @@ function ModalBusca({
       abortRef.current = ctrl;
       const offset = anexar ? offsetRef.current : 0;
 
+      const meu = ctrl; // esta requisição; se outra começar, `meu` fica velho
+      const souAtual = () => abortRef.current === meu;
+
       setCarregando(true);
       setErro(null);
       try {
         const url =
           `${endpoint}?q=${encodeURIComponent(texto)}` +
           `&offset=${offset}`;
-        const resp = await fetch(url, { signal: ctrl.signal });
+        const resp = await fetch(url, { signal: meu.signal });
+        if (!souAtual()) return; // uma busca mais nova assumiu
         if (!resp.ok) throw new Error(String(resp.status));
         const dados = (await resp.json()) as Resposta;
+        if (!souAtual()) return;
 
         offsetRef.current = offset + dados.itens.length;
-        setItens((atuais) =>
-          anexar ? [...atuais, ...dados.itens] : dados.itens,
-        );
+        setItens((atuais) => {
+          if (!anexar) return dados.itens;
+          const vistos = new Set(atuais.map((i) => i.id));
+          return [...atuais, ...dados.itens.filter((i) => !vistos.has(i.id))];
+        });
         setTemMais(dados.temMais);
         setTruncado(dados.truncado);
         if (!anexar) setRealce(0);
       } catch (e) {
+        if (!souAtual()) return;
         if (e instanceof DOMException && e.name === "AbortError") return;
         setErro("Não deu para buscar agora. Tente de novo.");
       } finally {
-        setCarregando(false);
+        // só a requisição vigente mexe no estado de carregando
+        if (souAtual()) setCarregando(false);
       }
     },
     [endpoint],

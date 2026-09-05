@@ -127,8 +127,138 @@ export type BuscaProcessos = {
   truncado: boolean;
 };
 
-const TETO_POR_CAMPO = 200; // ids que cada campo contribui, no máximo
-const TETO_UNIAO = 200; // ids que vão para a query final (limite de URL)
+// Tetos: ids que cada campo contribui e tamanho das listas que entram num
+// `.in(...)` — este último precisa caber na URL do PostgREST (uuid ≈ 37 bytes).
+const TETO_POR_CAMPO = 150;
+const TETO_UNIAO = 120;
+
+type IdsAchados = { ids: string[]; truncou: boolean };
+
+const bateuNoTeto = (linhas: unknown[] | null): boolean =>
+  (linhas?.length ?? 0) >= TETO_POR_CAMPO;
+
+// Não deixa uma lista de ids estourar a URL do `.in(...)`.
+const capInt = (ids: string[]): string[] => ids.slice(0, TETO_POR_CAMPO);
+
+// ── um campo pesquisável = uma função pequena, uma query visível ───────────
+
+// Número do processo: casa o texto cru e — se foi digitado com separadores
+// (traço, ponto, barra) — uma versão com cada separador virando curinga, pra
+// achar o mesmo número gravado com pontuação diferente.
+async function idsPorNumero(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  termo: string,
+  like: string,
+): Promise<IdsAchados> {
+  const comCuringas = termo.replace(/[^0-9a-zA-Z]+/g, "%");
+  const usarCuringas = /[0-9]/.test(termo) && comCuringas !== termo;
+  const filtro = usarCuringas
+    ? `numero.ilike.${like},numero.ilike.%${comCuringas}%`
+    : `numero.ilike.${like}`;
+  const { data, error } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .or(filtro)
+    .limit(TETO_POR_CAMPO);
+  if (error) throw new Error(`Falha na busca por número: ${error.message}`);
+  return { ids: (data ?? []).map((l) => l.id as string), truncou: bateuNoTeto(data) };
+}
+
+// Pasta (código AAAA/NNNNNN ou nome) → processos dessa pasta.
+async function idsPorPasta(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  like: string,
+): Promise<IdsAchados> {
+  const { data: pastas, error } = await supabase
+    .from("pasta")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .or(`codigo.ilike.${like},nome.ilike.${like}`)
+    .limit(TETO_POR_CAMPO);
+  if (error) throw new Error(`Falha na busca por pasta: ${error.message}`);
+  const pastaIds = (pastas ?? []).map((p) => p.id as string);
+  if (!pastaIds.length) return { ids: [], truncou: bateuNoTeto(pastas) };
+
+  const { data, error: e2 } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .in("pasta_id", capInt(pastaIds))
+    .limit(TETO_POR_CAMPO);
+  if (e2) throw new Error(`Falha na busca por pasta: ${e2.message}`);
+  return {
+    ids: (data ?? []).map((l) => l.id as string),
+    truncou: bateuNoTeto(pastas) || bateuNoTeto(data),
+  };
+}
+
+// Cliente (nome) → pastas do cliente → processos.
+async function idsPorCliente(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  like: string,
+): Promise<IdsAchados> {
+  const { data: clientes, error } = await supabase
+    .from("cliente")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .ilike("nome", like)
+    .limit(TETO_POR_CAMPO);
+  if (error) throw new Error(`Falha na busca por cliente: ${error.message}`);
+  const clienteIds = (clientes ?? []).map((c) => c.id as string);
+  if (!clienteIds.length) return { ids: [], truncou: bateuNoTeto(clientes) };
+
+  const { data: vinculos, error: e2 } = await supabase
+    .from("pasta_cliente")
+    .select("pasta_id")
+    .in("cliente_id", capInt(clienteIds))
+    .limit(TETO_POR_CAMPO);
+  if (e2) throw new Error(`Falha na busca por cliente: ${e2.message}`);
+  const pastaIds = [
+    ...new Set((vinculos ?? []).map((v) => v.pasta_id as string)),
+  ];
+  if (!pastaIds.length) return { ids: [], truncou: bateuNoTeto(clientes) };
+
+  const { data, error: e3 } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .in("pasta_id", capInt(pastaIds))
+    .limit(TETO_POR_CAMPO);
+  if (e3) throw new Error(`Falha na busca por cliente: ${e3.message}`);
+  return {
+    ids: (data ?? []).map((l) => l.id as string),
+    truncou: bateuNoTeto(clientes) || bateuNoTeto(data),
+  };
+}
+
+// Parte / advogado adverso (nome) → processo_id.
+async function idsPorParte(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  like: string,
+): Promise<IdsAchados> {
+  const { data, error } = await supabase
+    .from("parte")
+    .select("processo_id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .or(`nome.ilike.${like},advogado_adverso.ilike.${like}`)
+    .limit(TETO_POR_CAMPO);
+  if (error) throw new Error(`Falha na busca por parte: ${error.message}`);
+  return {
+    ids: (data ?? []).map((l) => l.processo_id as string),
+    truncou: bateuNoTeto(data),
+  };
+}
 
 export async function buscarProcessosParaSelecao(
   supabase: SupabaseClient,
@@ -160,108 +290,21 @@ export async function buscarProcessosParaSelecao(
     };
   }
 
+  // Com texto: cada campo é uma função própria; rodam em paralelo e os ids
+  // são unidos no TS (nada de query builder dinâmico).
   const like = `%${termo}%`;
-  const digitos = termo.replace(/[^0-9a-zA-Z]/g, "");
-  const likeDigitos = digitos && digitos !== termo ? `%${digitos}%` : null;
+  const achados = await Promise.all([
+    idsPorNumero(supabase, escritorioId, termo, like),
+    idsPorPasta(supabase, escritorioId, like),
+    idsPorCliente(supabase, escritorioId, like),
+    idsPorParte(supabase, escritorioId, like),
+  ]);
 
   const ids = new Set<string>();
   let truncado = false;
-  const absorver = (
-    linhas: Array<{ id?: unknown; processo_id?: unknown }> | null,
-  ) => {
-    for (const l of linhas ?? []) {
-      const id = (l.id ?? l.processo_id) as string | undefined;
-      if (id) ids.add(id);
-    }
-    if ((linhas?.length ?? 0) >= TETO_POR_CAMPO) truncado = true;
-  };
-
-  // 1 · número do processo (como digitado e só os dígitos/letras)
-  {
-    const filtro = likeDigitos
-      ? `numero.ilike.${like},numero.ilike.${likeDigitos}`
-      : `numero.ilike.${like}`;
-    const { data, error } = await supabase
-      .from("processo")
-      .select("id")
-      .eq("escritorio_id", escritorioId)
-      .is("deletado_em", null)
-      .or(filtro)
-      .limit(TETO_POR_CAMPO);
-    if (error) throw new Error(`Falha na busca por número: ${error.message}`);
-    absorver(data);
-  }
-
-  // 2 · pasta (código AAAA/NNNNNN ou nome) → processos dessa pasta
-  {
-    const { data: pastas, error } = await supabase
-      .from("pasta")
-      .select("id")
-      .eq("escritorio_id", escritorioId)
-      .is("deletado_em", null)
-      .or(`codigo.ilike.${like},nome.ilike.${like}`)
-      .limit(TETO_POR_CAMPO);
-    if (error) throw new Error(`Falha na busca por pasta: ${error.message}`);
-    const pastaIds = (pastas ?? []).map((p) => p.id as string);
-    if (pastaIds.length) {
-      const { data, error: e2 } = await supabase
-        .from("processo")
-        .select("id")
-        .eq("escritorio_id", escritorioId)
-        .is("deletado_em", null)
-        .in("pasta_id", pastaIds)
-        .limit(TETO_POR_CAMPO);
-      if (e2) throw new Error(`Falha na busca por pasta: ${e2.message}`);
-      absorver(data);
-    }
-  }
-
-  // 3 · cliente (nome) → pastas do cliente → processos
-  {
-    const { data: clientes, error } = await supabase
-      .from("cliente")
-      .select("id")
-      .eq("escritorio_id", escritorioId)
-      .is("deletado_em", null)
-      .ilike("nome", like)
-      .limit(TETO_POR_CAMPO);
-    if (error) throw new Error(`Falha na busca por cliente: ${error.message}`);
-    const clienteIds = (clientes ?? []).map((c) => c.id as string);
-    if (clienteIds.length) {
-      const { data: vinculos, error: e2 } = await supabase
-        .from("pasta_cliente")
-        .select("pasta_id")
-        .in("cliente_id", clienteIds)
-        .limit(TETO_POR_CAMPO);
-      if (e2) throw new Error(`Falha na busca por cliente: ${e2.message}`);
-      const pastaIds = [
-        ...new Set((vinculos ?? []).map((v) => v.pasta_id as string)),
-      ];
-      if (pastaIds.length) {
-        const { data, error: e3 } = await supabase
-          .from("processo")
-          .select("id")
-          .eq("escritorio_id", escritorioId)
-          .is("deletado_em", null)
-          .in("pasta_id", pastaIds)
-          .limit(TETO_POR_CAMPO);
-        if (e3) throw new Error(`Falha na busca por cliente: ${e3.message}`);
-        absorver(data);
-      }
-    }
-  }
-
-  // 4 · parte / advogado adverso (nome) → processo_id
-  {
-    const { data, error } = await supabase
-      .from("parte")
-      .select("processo_id")
-      .eq("escritorio_id", escritorioId)
-      .is("deletado_em", null)
-      .or(`nome.ilike.${like},advogado_adverso.ilike.${like}`)
-      .limit(TETO_POR_CAMPO);
-    if (error) throw new Error(`Falha na busca por parte: ${error.message}`);
-    absorver(data);
+  for (const a of achados) {
+    for (const id of a.ids) if (id) ids.add(id);
+    if (a.truncou) truncado = true;
   }
 
   const universo = [...ids];
