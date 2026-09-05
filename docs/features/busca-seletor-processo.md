@@ -198,10 +198,11 @@ Classes novas seguindo o design system (`.card`, acento teal): `.modal-overlay`,
 
 ## Fora do escopo (follow-ups, listar no PR)
 
-0. **Busca sem acento** — hoje `ilike` é case-insensitive mas não ignora acento:
-   "cicera" não acha "Cícera". Corrigir exige `unaccent` (extensão + migration,
-   ou coluna `nome_sem_acento` por tabela, ou RPC) — fora do "sem migration"
-   deste slice. **Impacto alto** para nomes brasileiros; primeiro da fila.
+0. **Busca é acento-sensível — decisão do Jefferson (2026-09-05), não é bug.**
+   `ilike` ignora maiúscula/minúscula mas não acento: "cicera" não acha "Cícera".
+   Fica assim de propósito — o usuário sabe se digitou o nome com acento ou não.
+   Só reabrir se ele pedir; aí seria uma view `security_invoker` com `f_unaccent`
+   (sem guardar cópia de dado) — ver a discussão nesta conversa.
 1. Reusar `BuscaSeletor` para **cliente** (`pastas/nova`, `pastas/[id]`) e
    **pasta** (`processos/novo`, filtros de `agenda`/`processos`,
    `publicacoes/[id]`) — cada um com seu endpoint `/api/busca/*`.
@@ -227,7 +228,7 @@ npm run build
 número (CNJ parcial), pasta, cliente e parte; `geral` aparece como o nome da
 pasta (sem "geral"); scroll infinito (`offset=30`); teclado (setas/Enter/Esc,
 Enter não submete o form externo); persistência no GET do prazo ("Calcular
-prazo") e no `?processo=` da troca de aba. **Gap conhecido:** busca sem acento
+prazo") e no `?processo=` da troca de aba. Busca é acento-sensível por decisão
 (follow-up 0).
 
 Roteiro completo:
