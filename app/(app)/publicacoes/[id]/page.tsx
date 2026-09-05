@@ -68,7 +68,7 @@ export default async function PaginaTriagem({
   const hrefCadastrarProcesso = (`/processos/novo?` +
     new URLSearchParams({
       tipo: "judicial",
-      cnj: p.cnj ?? p.numeroProcesso ?? "",
+      numero: p.cnj ?? p.numeroProcesso ?? "",
       publicacao: p.id,
       retorno: `/publicacoes/${p.id}`,
     }).toString()) as Route;
