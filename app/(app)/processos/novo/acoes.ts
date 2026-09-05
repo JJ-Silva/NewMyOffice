@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
-import { analisarCnj } from "@/lib/domain/cnj";
+import { interpretarNumeroProcesso } from "@/lib/domain/numero-processo";
 import {
   criarProcessoJudicial,
   criarProcessoAdministrativo,
@@ -53,21 +53,19 @@ export async function salvarProcessoJudicial(formData: FormData) {
   }
 
   if (!campos.pasta) voltar("Escolha a pasta.");
-  if (!campos.numero) voltar("Informe o número do processo.");
 
-  // O número pode ser um CNJ (guarda os componentes) ou não (REsp, RE, número
-  // antigo). O tribunal vem sempre do seletor — que já vem preenchido pelo CNJ.
-  const analise = analisarCnj(campos.numero);
-  const cnj = analise.ok ? analise.cnj : null;
+  // CNJ → guarda os componentes e o tribunal vem do próprio número;
+  // número livre (REsp, RE…) → vale o tribunal do seletor.
+  const n = interpretarNumeroProcesso(
+    campos.numero,
+    campos.tribunal_codigo ? Number(campos.tribunal_codigo) : null,
+  );
+  if (!n.ok) voltar(n.erro);
 
-  const codigo = Number(campos.tribunal_codigo);
-  if (!Number.isInteger(codigo) || codigo < 100) {
-    voltar("Escolha o tribunal.");
-  }
   const tribunalId = await garantirTribunalPorCodigo(
     supabase,
     sessao.escritorioId,
-    codigo,
+    n.numero.tribunalCodigo,
   );
 
   let processoId: string;
@@ -76,11 +74,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
       escritorioId: sessao.escritorioId,
       pastaId: campos.pasta,
       poloCliente: polo(campos.polo),
-      numero: cnj ? cnj.formatado : campos.numero,
-      cnjFormatado: cnj?.formatado ?? null,
-      cnjPartes: cnj?.partes ?? null,
-      digitoConfere: cnj?.digitoConfere ?? null,
-      justica: cnj?.justica ?? null,
+      numero: n.numero,
       tribunalId,
       vara: campos.vara || null,
       comarca: campos.comarca || null,

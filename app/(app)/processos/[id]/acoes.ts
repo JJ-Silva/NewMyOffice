@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import type { Permissao } from "@/lib/domain/permissoes";
-import { analisarCnj } from "@/lib/domain/cnj";
+import { interpretarNumeroProcesso } from "@/lib/domain/numero-processo";
 import {
   atualizarProcessoJudicial,
   atualizarProcessoAdministrativo,
@@ -45,27 +45,19 @@ export async function salvarJudicial(formData: FormData) {
   const id = txt(formData, "id");
   if (!id) return;
 
-  const numero = txt(formData, "numero");
-  if (!numero) {
-    redirect(
-      `/processos/${id}?erro=` +
-        encodeURIComponent("Informe o número do processo."),
-    );
+  const codigoDigitado = txt(formData, "tribunal_codigo");
+  const n = interpretarNumeroProcesso(
+    txt(formData, "numero"),
+    codigoDigitado ? Number(codigoDigitado) : null,
+  );
+  if (!n.ok) {
+    redirect(`/processos/${id}?erro=` + encodeURIComponent(n.erro));
   }
 
-  const analise = analisarCnj(numero);
-  const cnj = analise.ok ? analise.cnj : null;
-
-  const codigo = Number(txt(formData, "tribunal_codigo"));
-  if (!Number.isInteger(codigo) || codigo < 100) {
-    redirect(
-      `/processos/${id}?erro=` + encodeURIComponent("Escolha o tribunal."),
-    );
-  }
   const tribunalId = await garantirTribunalPorCodigo(
     supabase,
     sessao.escritorioId,
-    codigo,
+    n.numero.tribunalCodigo,
   );
 
   try {
@@ -73,11 +65,7 @@ export async function salvarJudicial(formData: FormData) {
       poloCliente: polo(txt(formData, "polo")),
       status: statusProc(txt(formData, "status")),
       observacoes: txt(formData, "observacoes") || null,
-      numero: cnj ? cnj.formatado : numero,
-      cnjFormatado: cnj?.formatado ?? null,
-      cnjPartes: cnj?.partes ?? null,
-      digitoConfere: cnj?.digitoConfere ?? null,
-      justica: cnj?.justica ?? null,
+      numero: n.numero,
       tribunalId,
       vara: txt(formData, "vara") || null,
       comarca: txt(formData, "comarca") || null,

@@ -3,6 +3,7 @@
 // junto com a pasta; aqui tratamos os processos judiciais/administrativos.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { NumeroJudicial } from "@/lib/domain/numero-processo";
 
 // Todos os processos do escritório, para os seletores "onde cadastrar a
 // atividade" (agrupados por pasta na tela). Toda atividade vai num processo.
@@ -293,20 +294,9 @@ export type EdicaoProcessoJudicial = {
   poloCliente: "autor" | "reu" | "terceiro" | null;
   status: string;
   observacoes: string | null;
-  // o que o usuário digitou (CNJ formatado, REsp, RE, número antigo…)
-  numero: string;
-  // CNJ já analisado — tudo null quando `numero` não é um CNJ
-  cnjFormatado: string | null;
-  cnjPartes: {
-    sequencial: number;
-    digitoVerificador: number;
-    ano: number;
-    segmento: number;
-    tribunal: number;
-    origem: number;
-  } | null;
-  digitoConfere: boolean | null;
-  justica: string | null;
+  // número já interpretado (lib/domain/numero-processo.ts)
+  numero: NumeroJudicial;
+  // `tribunal` do escritório, resolvido a partir de `numero.tribunalCodigo`
   tribunalId: string | null;
   vara: string | null;
   comarca: string | null;
@@ -318,6 +308,22 @@ export type EdicaoProcessoJudicial = {
   dataDistribuicao: string | null;
 };
 
+// NumeroJudicial → colunas `cnj_*` / `justica` de `processo_judicial`.
+// Um lugar só (antes o mapa vivia repetido em criar e atualizar).
+function colunasDoNumero(n: NumeroJudicial) {
+  return {
+    cnj: n.cnjFormatado,
+    cnj_sequencial: n.cnjPartes?.sequencial ?? null,
+    cnj_dv: n.cnjPartes?.digitoVerificador ?? null,
+    cnj_ano: n.cnjPartes?.ano ?? null,
+    cnj_segmento: n.cnjPartes?.segmento ?? null,
+    cnj_tribunal: n.cnjPartes?.tribunal ?? null,
+    cnj_origem: n.cnjPartes?.origem ?? null,
+    cnj_digito_confere: n.digitoConfere,
+    justica: n.justica,
+  };
+}
+
 export async function atualizarProcessoJudicial(
   supabase: SupabaseClient,
   id: string,
@@ -326,7 +332,7 @@ export async function atualizarProcessoJudicial(
   const base = await supabase
     .from("processo")
     .update({
-      numero: c.numero,
+      numero: c.numero.numero,
       polo_cliente: c.poloCliente,
       status: c.status,
       observacoes: c.observacoes,
@@ -340,15 +346,7 @@ export async function atualizarProcessoJudicial(
   const detalhe = await supabase
     .from("processo_judicial")
     .update({
-      cnj: c.cnjFormatado,
-      cnj_sequencial: c.cnjPartes?.sequencial ?? null,
-      cnj_dv: c.cnjPartes?.digitoVerificador ?? null,
-      cnj_ano: c.cnjPartes?.ano ?? null,
-      cnj_segmento: c.cnjPartes?.segmento ?? null,
-      cnj_tribunal: c.cnjPartes?.tribunal ?? null,
-      cnj_origem: c.cnjPartes?.origem ?? null,
-      cnj_digito_confere: c.digitoConfere,
-      justica: c.justica,
+      ...colunasDoNumero(c.numero),
       tribunal_id: c.tribunalId,
       vara: c.vara,
       comarca: c.comarca,
@@ -446,20 +444,9 @@ export type NovoProcessoJudicial = {
   escritorioId: string;
   pastaId: string;
   poloCliente: "autor" | "reu" | "terceiro" | null;
-  // o que o usuário digitou (CNJ formatado, REsp, RE, número antigo…)
-  numero: string;
-  // CNJ analisado — tudo null quando `numero` não é um CNJ
-  cnjFormatado: string | null;
-  cnjPartes: {
-    sequencial: number;
-    digitoVerificador: number;
-    ano: number;
-    segmento: number;
-    tribunal: number;
-    origem: number;
-  } | null;
-  digitoConfere: boolean | null;
-  justica: string | null;
+  // número já interpretado (lib/domain/numero-processo.ts)
+  numero: NumeroJudicial;
+  // `tribunal` do escritório, resolvido a partir de `numero.tribunalCodigo`
   tribunalId: string | null;
   vara: string | null;
   comarca: string | null;
@@ -480,7 +467,7 @@ export async function criarProcessoJudicial(
       escritorio_id: p.escritorioId,
       pasta_id: p.pastaId,
       tipo: "judicial",
-      numero: p.numero,
+      numero: p.numero.numero,
       polo_cliente: p.poloCliente,
       data_inicio: p.dataDistribuicao,
     })
@@ -494,15 +481,7 @@ export async function criarProcessoJudicial(
   const detalhe = await supabase.from("processo_judicial").insert({
     processo_id: processoId,
     escritorio_id: p.escritorioId,
-    cnj: p.cnjFormatado,
-    cnj_sequencial: p.cnjPartes?.sequencial ?? null,
-    cnj_dv: p.cnjPartes?.digitoVerificador ?? null,
-    cnj_ano: p.cnjPartes?.ano ?? null,
-    cnj_segmento: p.cnjPartes?.segmento ?? null,
-    cnj_tribunal: p.cnjPartes?.tribunal ?? null,
-    cnj_origem: p.cnjPartes?.origem ?? null,
-    cnj_digito_confere: p.digitoConfere,
-    justica: p.justica,
+    ...colunasDoNumero(p.numero),
     tribunal_id: p.tribunalId,
     vara: p.vara,
     comarca: p.comarca,
