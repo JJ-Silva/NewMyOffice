@@ -39,6 +39,7 @@
   --color-atrasado: var(--atrasado);
   --color-cumprido: var(--cumprido);
   --color-aviso: var(--aviso);
+  --color-placeholder: var(--placeholder);
   --font-sans: var(--font-inter);
 }
 
@@ -233,6 +234,21 @@ textarea.campo {
   background: var(--fundo);
   color: var(--teal);
   flex: none;
+}
+
+/* ── Seletor por busca (components/BuscaSeletor) ─────────────────────────── */
+.busca-linha {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.busca-linha:hover,
+.busca-linha[data-realce] {
+  background: var(--tint-1);
+  border-color: var(--tint-2);
 }
 
 /* ── Shell da app (sidebar + conteúdo) ───────────────────────────────────── */

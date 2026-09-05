@@ -2,24 +2,23 @@ import Link from "next/link";
 import type { Route } from "next";
 import { somarDias, formatarDataBR } from "@/lib/domain/datas";
 import { REGRAS_TIPO } from "@/lib/domain/atividade";
-import type { ProcessoParaSelecao } from "@/lib/db/processos";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import { SelecaoProcesso } from "@/components/SelecaoProcesso";
+import { SeletorProcesso } from "@/components/SeletorProcesso";
 import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarCompromisso } from "./acoes";
 
 export function FormularioCompromisso({
-  processos,
   tipos,
   processoSelecionado,
+  rotuloInicialProcesso,
   data,
   erro,
   hrefCriarPasta,
 }: {
-  processos: ProcessoParaSelecao[];
   tipos: TipoAtividadeCatalogo[];
   processoSelecionado: string;
+  rotuloInicialProcesso: string | null;
   data: string;
   erro: string | null;
   hrefCriarPasta: string;
@@ -47,12 +46,12 @@ export function FormularioCompromisso({
               + nova pasta
             </Link>
           </span>
-          <SelecaoProcesso
-            processos={processos}
+          <SeletorProcesso
             value={processoSelecionado}
+            rotuloInicial={rotuloInicialProcesso}
           />
           <span className="text-xs text-texto-secundario">
-            O “geral da pasta” é o trabalho da pasta sem processo formal.
+            Para trabalho da pasta sem processo formal, escolha a própria pasta.
           </span>
         </label>
 

@@ -184,13 +184,15 @@ Classes novas seguindo o design system (`.card`, acento teal): `.modal-overlay`,
 
 ### 7. Testes
 
-- `tests/busca-processo-integracao.test.ts` (padrão dos outros `tests/` — `pg`,
-  `DATABASE_URL`, transação com rollback): acha por número (com/sem pontuação),
-  por código de pasta, por nome de pasta, por nome de cliente, por nome de parte;
-  o processo `geral` aparece (e `linhasDoProcesso` não usa a palavra "geral");
-  dedup (processo que casa em 2 campos vem 1x); `temMais` e
-  `offset` paginam; escopo por `escritorio_id`.
-- `rotulo-processo.test.ts`: unit puro.
+- `lib/domain/rotulo-processo.test.ts`: unit puro de `linhasDoProcesso` — geral
+  (com/sem nome de pasta), judicial, administrativo, sem número, sem pasta;
+  garante que a palavra "geral" nunca vaza pro rótulo.
+- **Sem teste de integração para `buscarProcessosParaSelecao`**: como todo o
+  resto de `lib/db/*`, é código de client Supabase e a base não testa isso em
+  `tests/` (lá só entram schema/constraints via `pg` e funções puras de
+  mapeamento). O `pg` roda numa transação isolada que o PostgREST não enxerga,
+  então não dá pra exercitar a função de verdade. Cobertura fica na verificação
+  no localhost (abaixo) + `tsc`/`build`.
 
 ---
 

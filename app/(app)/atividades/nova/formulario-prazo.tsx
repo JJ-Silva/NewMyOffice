@@ -3,9 +3,8 @@ import type { Route } from "next";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import type { Tribunal } from "@/lib/db/tribunais";
-import type { ProcessoParaSelecao } from "@/lib/db/processos";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
-import { SelecaoProcesso } from "@/components/SelecaoProcesso";
+import { SeletorProcesso } from "@/components/SeletorProcesso";
 import {
   EVENTOS,
   type CamposPrazo,
@@ -15,7 +14,7 @@ import { salvarPrazo } from "./acoes";
 
 export function FormularioPrazo({
   campos,
-  processos,
+  rotuloInicialProcesso,
   tipos,
   tribunais,
   calc,
@@ -23,7 +22,7 @@ export function FormularioPrazo({
   hrefCriarPasta,
 }: {
   campos: CamposPrazo;
-  processos: ProcessoParaSelecao[];
+  rotuloInicialProcesso: string | null;
   tipos: TipoAtividadeCatalogo[];
   tribunais: Tribunal[];
   calc: { ok: true; dados: CalculoPronto } | { ok: false; erro: string } | null;
@@ -73,14 +72,13 @@ export function FormularioPrazo({
               + nova pasta
             </Link>
           </span>
-          <SelecaoProcesso
-            processos={processos}
-            name="processo_id"
+          <SeletorProcesso
             value={campos.processoId}
+            rotuloInicial={rotuloInicialProcesso}
           />
           <span className="text-xs text-texto-secundario">
-            O prazo pertence a um processo. O “geral da pasta” é o trabalho da
-            pasta sem processo formal.
+            O prazo pertence a um processo. Para trabalho da pasta sem processo
+            formal, escolha a própria pasta.
           </span>
         </label>
 
