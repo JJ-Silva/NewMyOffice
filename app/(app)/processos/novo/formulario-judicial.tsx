@@ -124,7 +124,7 @@ export function FormularioJudicial({
 
           <label className="flex flex-col gap-1.5">
             <span className="flex items-center justify-between">
-              <span className="rotulo">Pasta vinculada</span>
+              <span className="rotulo">Pasta (opcional)</span>
               <Link
                 href={hrefCriarPasta as Route}
                 className="text-xs font-medium text-teal hover:underline"
@@ -134,14 +134,11 @@ export function FormularioJudicial({
             </span>
             <select
               name="pasta"
-              required
               value={f.pasta}
               onChange={(e) => set("pasta", e.target.value)}
               className="campo"
             >
-              <option value="" disabled>
-                Selecione a pasta…
-              </option>
+              <option value="">Sem pasta — organizo depois</option>
               {pastas.map((p) => (
                 <option key={p.id} value={p.id}>
                   {(p.nome ?? p.codigo) +

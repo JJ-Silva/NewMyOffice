@@ -180,8 +180,10 @@ export default async function PaginaTriagem({
             {p.processoId ? (
               <p className="rounded-lg border border-cumprido bg-[#F0FDF4] px-3.5 py-2.5 text-[13px] text-[#166534]">
                 ✓ Vinculada a{" "}
-                <strong>{p.pastaNome ?? p.pastaCodigo}</strong> ·{" "}
-                {p.clienteNome ?? "sem cliente"}
+                <strong>
+                  {p.pastaNome ?? p.pastaCodigo ?? "processo avulso"}
+                </strong>{" "}
+                · {p.clienteNome ?? "sem cliente"}
                 {p.processoNumero ? ` · ${p.processoNumero}` : " · geral da pasta"}
               </p>
             ) : (
@@ -229,7 +231,7 @@ export default async function PaginaTriagem({
                           {judiciais.map((x) => (
                             <option key={x.id} value={x.id}>
                               {(x.numero ?? "sem número") +
-                                ` · ${x.pastaNome ?? x.pastaCodigo}` +
+                                ` · ${x.pastaNome ?? x.pastaCodigo ?? "sem pasta"}` +
                                 (x.clienteNome ? ` · ${x.clienteNome}` : "")}
                             </option>
                           ))}

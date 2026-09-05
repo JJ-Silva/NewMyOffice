@@ -1,0 +1,33 @@
+-- ============================================================================
+-- 17 · Processo pode existir SEM pasta
+-- ============================================================================
+-- Decisão 2026-09-05: cadastrar processo não exige mais uma pasta.
+--
+-- O fluxo cliente → pasta → processo → atividade é barreira pra quem só quer
+-- controlar os prazos dos seus processos (advogado solo/pequeno, "200 processos
+-- e zero organização"). Agora a pasta é opcional no cadastro e pode ser
+-- vinculada depois (lib/db/processos.ts → vincularPastaAoProcesso).
+--
+-- Por que é seguro (validado contra a RLS 2026-09-05):
+--   - a RLS de processo / processo_judicial / processo_administrativo / parte /
+--     atividade / prazo_historico é por `escritorio_id` + `tem_permissao(...,
+--     '<grupo>.ver')` — NUNCA passou pela pasta. Um processo com pasta_id null
+--     não abre buraco de visibilidade;
+--   - toda ATIVIDADE aponta pro processo, nunca pra pasta (migration 11), então
+--     vincular tarde é um único UPDATE — nada migra;
+--   - o trigger `criar_processo_geral` dispara no INSERT da pasta, não do
+--     processo → um processo sem pasta simplesmente não tem 'geral' irmão
+--     (ele é a unidade);
+--   - o índice único `processo_geral_unico` filtra `tipo = 'geral'` → intocado
+--     (processo sem pasta é sempre judicial/administrativo).
+--
+-- A pasta segue sendo o lugar do consultivo ('geral'), do cliente (pasta_cliente),
+-- das partes e dos relatórios por caso — o processo solto só não participa
+-- disso até ser vinculado.
+-- ============================================================================
+
+alter table processo alter column pasta_id drop not null;
+
+-- O índice `processo_por_pasta` (parcial, where deletado_em is null) continua
+-- válido — linhas com pasta_id null simplesmente não entram nele, que é o
+-- comportamento desejado.

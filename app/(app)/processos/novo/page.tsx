@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
@@ -26,10 +25,9 @@ export default async function PaginaNovoProcesso({
   const urlAtual = urlDaTela("/processos/novo", params);
   const hrefCriarPasta = comRetorno("/pastas/nova", urlAtual);
 
+  // A pasta é opcional (pode vincular depois, na tela do processo). Se o
+  // escritório ainda não tem nenhuma, o cadastro segue sem pasta.
   const pastas = await listarPastas(supabase, sessao.escritorioId);
-  if (pastas.length === 0) {
-    redirect(hrefCriarPasta);
-  }
 
   // Eco dos campos: só é usado quando o servidor recusa o cadastro e devolve
   // pra cá com ?erro=… (o formulário judicial é client e mantém o resto no

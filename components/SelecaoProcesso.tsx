@@ -30,19 +30,21 @@ export function SelecaoProcesso({
   required?: boolean;
 }) {
   const grupos: {
-    pastaId: string;
+    chave: string;
     rotulo: string;
     itens: ProcessoParaSelecao[];
   }[] = [];
   for (const p of processos) {
-    let g = grupos.find((x) => x.pastaId === p.pastaId);
+    const chave = p.pastaId ?? "__sem_pasta__";
+    let g = grupos.find((x) => x.chave === chave);
     if (!g) {
       g = {
-        pastaId: p.pastaId,
-        rotulo:
-          (p.pastaNome ? `${p.pastaNome} · ` : "") +
-          p.pastaCodigo +
-          (p.clienteNome ? ` · ${p.clienteNome}` : ""),
+        chave,
+        rotulo: p.pastaId
+          ? (p.pastaNome ? `${p.pastaNome} · ` : "") +
+            (p.pastaCodigo ?? "") +
+            (p.clienteNome ? ` · ${p.clienteNome}` : "")
+          : "Sem pasta",
         itens: [],
       };
       grupos.push(g);
@@ -61,7 +63,7 @@ export function SelecaoProcesso({
         Selecione o processo…
       </option>
       {grupos.map((g) => (
-        <optgroup key={g.pastaId} label={g.rotulo}>
+        <optgroup key={g.chave} label={g.rotulo}>
           {g.itens.map((p) => (
             <option key={p.id} value={p.id}>
               {rotuloDoProcesso(p)}

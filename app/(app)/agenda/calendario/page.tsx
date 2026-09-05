@@ -337,7 +337,7 @@ function Celula({
                 ? 0.5
                 : 1,
           }}
-          title={`${TIPO_LABEL[item.tipo]} · ${item.pastaNome ?? item.pastaCodigo}`}
+          title={`${TIPO_LABEL[item.tipo]} · ${item.pastaNome ?? item.pastaCodigo ?? item.processoNumero ?? "processo avulso"}`}
         >
           <span className="truncate font-medium text-texto">
             {item.status === "concluida" ? "✓ " : ""}
@@ -345,7 +345,7 @@ function Celula({
             {item.titulo ?? item.tipoAtividadeNome ?? "atividade"}
           </span>
           <span className="truncate text-texto-secundario">
-            {item.pastaNome ?? item.pastaCodigo}
+            {item.pastaNome ?? item.pastaCodigo ?? item.processoNumero ?? "—"}
           </span>
         </Link>
       ))}

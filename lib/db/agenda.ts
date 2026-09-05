@@ -21,8 +21,8 @@ export type ItemAgenda = {
   status: StatusAtividade;
   diasAntesVisivelCustom: number | null;
   prioridadeManual: "baixa" | "media" | "alta" | "urgente";
-  pastaId: string;
-  pastaCodigo: string;
+  pastaId: string | null; // null = atividade num processo sem pasta
+  pastaCodigo: string | null;
   pastaNome: string | null;
   clienteNome: string | null;
   // processo ao qual a atividade está ligada (todo processo tem número:
@@ -104,8 +104,8 @@ export async function listarAgenda(
         (linha.dias_antes_visivel_custom as number | null) ?? null,
       prioridadeManual:
         linha.prioridade_manual as ItemAgenda["prioridadeManual"],
-      pastaId: processo?.pasta_id ?? "",
-      pastaCodigo: pasta?.codigo ?? "—",
+      pastaId: (processo?.pasta_id as string | null) ?? null,
+      pastaCodigo: pasta?.codigo ?? null,
       pastaNome: pasta?.nome ?? null,
       clienteNome: cliente?.nome ?? null,
       processoTipo:

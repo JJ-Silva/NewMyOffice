@@ -29,6 +29,7 @@ Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string d
 | `..._usuario_colegas.sql` | **Etapa 6 (Passo C)** — policy extra em `usuario`: SELECT liberado para o perfil (nome/e-mail) de quem compartilha um escritório com o usuário logado (tela "Equipe"). Escrita continua só na própria linha. |
 | `..._convite.sql` | **Etapa 6 (Passo D)** — `convite` (email + rótulo + token + validade 14 dias) · RPCs `ver_convite(token)` (público) e `aceitar_convite(token)` (`security definer` — cria o `membro`) · RLS: gerir só com `membros.gerenciar`. |
 | `..._tribunal_codigo_cnj.sql` | `tribunal.codigo_cnj` (= segmento*100+tribunal do CNJ) + índice único · backfill: liga os processos judiciais existentes ao tribunal identificado pelo número. Fonte viva: `lib/domain/tribunais-cnj.ts`. |
+| `..._processo_sem_pasta.sql` | `processo.pasta_id` vira nullable — cadastrar processo não exige mais uma pasta (advogado que só quer gerir prazos). Vínculo tardio via `lib/db/processos.ts` → `vincularPastaAoProcesso`. RLS/trigger `geral`/índice `processo_geral_unico` intocados (nenhum passa pela pasta). |
 
 ## Regras
 - Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.

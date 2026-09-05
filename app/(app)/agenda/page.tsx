@@ -279,12 +279,12 @@ export default async function PaginaAgenda({
                     href={`/agenda/${item.id}`}
                     className="truncate text-sm font-semibold text-texto hover:text-teal hover:no-underline"
                   >
-                    {item.pastaNome ?? item.pastaCodigo}
+                    {item.pastaNome ?? item.pastaCodigo ?? "Processo avulso"}
                   </Link>
                   {/* 2 · número do processo */}
                   <span className="truncate text-xs tabular-nums text-texto-secundario">
                     {item.processoTipo !== "geral" && "⚖ "}
-                    {item.processoNumero ?? item.pastaCodigo}
+                    {item.processoNumero ?? item.pastaCodigo ?? "—"}
                   </span>
                   {/* 3 · nome da parte */}
                   <span className="truncate text-[11px] text-texto-secundario">

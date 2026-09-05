@@ -87,11 +87,12 @@ export default async function PaginaDetalheAtividade({
           ← Voltar para a agenda
         </Link>
         <span className="text-sm font-semibold text-texto">
-          {d.pastaNome ?? d.pastaCodigo}
+          {d.pastaNome ?? d.pastaCodigo ?? "Processo avulso"}
         </span>
         <span className="text-xs tabular-nums text-texto-secundario">
           {d.processoTipo !== "geral" && "⚖ "}
-          {d.processoNumero ?? d.pastaCodigo} · {d.clienteNome ?? "sem cliente"}
+          {d.processoNumero ?? d.pastaCodigo ?? "—"} ·{" "}
+          {d.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
           {TIPO_LABEL[d.tipo]}: {d.titulo ?? d.tipoAtividadeNome ?? "—"}

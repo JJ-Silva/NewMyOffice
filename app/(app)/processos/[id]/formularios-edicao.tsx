@@ -7,7 +7,13 @@ import {
   TRIBUNAIS_CONHECIDOS,
 } from "@/lib/domain/tribunais-cnj";
 import type { ProcessoEdicao } from "@/lib/db/processos";
-import { salvarJudicial, salvarAdministrativo, excluir } from "./acoes";
+import type { PastaResumo } from "@/lib/db/pastas";
+import {
+  salvarJudicial,
+  salvarAdministrativo,
+  vincularPasta,
+  excluir,
+} from "./acoes";
 
 const POLOS = [
   { valor: "", label: "—" },
@@ -36,6 +42,58 @@ function Campo({
       <span className="rotulo">{rotulo}</span>
       {children}
     </label>
+  );
+}
+
+// "Organizar em uma pasta" — o vínculo tardio do processo cadastrado sem pasta.
+// Também troca ou remove uma pasta já vinculada.
+export function BlocoPasta({
+  processo,
+  pastas,
+  podeEditar,
+}: {
+  processo: ProcessoEdicao;
+  pastas: PastaResumo[];
+  podeEditar: boolean;
+}) {
+  const temPasta = processo.pastaId !== null;
+  return (
+    <form
+      action={vincularPasta}
+      className="card flex flex-wrap items-end gap-3 p-5"
+    >
+      <input type="hidden" name="id" value={processo.id} />
+      <label className="flex min-w-[260px] flex-1 flex-col gap-1.5">
+        <span className="rotulo">
+          {temPasta ? "Pasta" : "Organizar em uma pasta"}
+        </span>
+        <select
+          name="pasta"
+          defaultValue={processo.pastaId ?? ""}
+          disabled={!podeEditar}
+          className="campo"
+        >
+          <option value="">Sem pasta</option>
+          {pastas.map((p) => (
+            <option key={p.id} value={p.id}>
+              {(p.nome ?? p.codigo) +
+                (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
+            </option>
+          ))}
+        </select>
+      </label>
+      {podeEditar && (
+        <BotaoEnviar className="botao-secundario h-[38px]" rotuloOcupado="…">
+          {temPasta ? "Atualizar" : "Vincular"}
+        </BotaoEnviar>
+      )}
+      <Link
+        href="/pastas/nova"
+        className="pb-2 text-xs font-medium text-teal hover:underline"
+      >
+        + criar pasta
+      </Link>
+    </form>
   );
 }
 

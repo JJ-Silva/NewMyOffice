@@ -30,8 +30,8 @@ export type DetalheAtividade = {
   status: StatusAtividade;
   dataConclusao: string | null;
   observacaoConclusao: string | null;
-  pastaId: string;
-  pastaCodigo: string;
+  pastaId: string | null; // null = atividade num processo sem pasta
+  pastaCodigo: string | null;
   pastaNome: string | null;
   clienteNome: string | null;
   processoTipo: string;
@@ -148,8 +148,8 @@ export async function carregarDetalheAtividade(
     status: data.status as StatusAtividade,
     dataConclusao: (data.data_conclusao as string | null) ?? null,
     observacaoConclusao: (data.observacao_conclusao as string | null) ?? null,
-    pastaId: processo?.pasta_id ?? "",
-    pastaCodigo: pasta?.codigo ?? "—",
+    pastaId: (processo?.pasta_id as string | null) ?? null,
+    pastaCodigo: pasta?.codigo ?? null,
     pastaNome: pasta?.nome ?? null,
     clienteNome: cliente?.nome ?? null,
     processoTipo: processo?.tipo ?? "geral",

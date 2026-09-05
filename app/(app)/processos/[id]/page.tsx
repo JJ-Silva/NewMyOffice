@@ -7,9 +7,11 @@ import {
 } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarProcesso } from "@/lib/db/processos";
+import { listarPastas } from "@/lib/db/pastas";
 import {
   FormularioJudicial,
   FormularioAdministrativo,
+  BlocoPasta,
 } from "./formularios-edicao";
 
 export default async function PaginaEditarProcesso({
@@ -28,6 +30,12 @@ export default async function PaginaEditarProcesso({
   const processo = await buscarProcesso(supabase, sessao.escritorioId, id);
   if (!processo) notFound();
 
+  // Só carrega a lista de pastas quando faz sentido oferecer o vínculo.
+  const pastas =
+    processo.tipo === "geral"
+      ? []
+      : await listarPastas(supabase, sessao.escritorioId);
+
   return (
     <div className="flex max-w-[860px] flex-col gap-5">
       <div className="flex flex-col gap-1.5">
@@ -40,7 +48,7 @@ export default async function PaginaEditarProcesso({
             : processo.tipo === "administrativo"
               ? "Processo administrativo"
               : "Processo"}{" "}
-          · {processo.pastaNome ?? processo.pastaCodigo} ·{" "}
+          · {processo.pastaNome ?? processo.pastaCodigo ?? "sem pasta"} ·{" "}
           {processo.clienteNome ?? "sem cliente"}
         </span>
         <h1 className="titulo-pagina">
@@ -61,17 +69,31 @@ export default async function PaginaEditarProcesso({
           pasta.
         </div>
       ) : processo.tipo === "judicial" ? (
-        <FormularioJudicial
-          processo={processo}
-          podeEditar={podeEditar}
-          podeExcluir={podeExcluir}
-        />
+        <>
+          <BlocoPasta
+            processo={processo}
+            pastas={pastas}
+            podeEditar={podeEditar}
+          />
+          <FormularioJudicial
+            processo={processo}
+            podeEditar={podeEditar}
+            podeExcluir={podeExcluir}
+          />
+        </>
       ) : (
-        <FormularioAdministrativo
-          processo={processo}
-          podeEditar={podeEditar}
-          podeExcluir={podeExcluir}
-        />
+        <>
+          <BlocoPasta
+            processo={processo}
+            pastas={pastas}
+            podeEditar={podeEditar}
+          />
+          <FormularioAdministrativo
+            processo={processo}
+            podeEditar={podeEditar}
+            podeExcluir={podeExcluir}
+          />
+        </>
       )}
     </div>
   );

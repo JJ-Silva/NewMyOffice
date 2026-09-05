@@ -47,9 +47,10 @@ export default async function PaginaNovaAtividade({
     supabase,
     sessao.escritorioId,
   );
-  // Toda pasta nasce com um processo 'geral' → sem processos = sem pastas.
+  // Toda atividade pertence a um processo. Sem nenhum processo (nem 'geral' de
+  // pasta, nem judicial/administrativo avulso) → manda cadastrar um.
   if (todosProcessos.length === 0) {
-    redirect(hrefCriarPasta);
+    redirect("/processos/novo");
   }
 
   // Processo em foco (compartilhado entre as 3 abas):

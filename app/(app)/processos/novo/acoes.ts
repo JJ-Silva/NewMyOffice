@@ -52,7 +52,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
     redirect(`/processos/novo?${p.toString()}`);
   }
 
-  if (!campos.pasta) voltar("Escolha a pasta.");
+  // A pasta é opcional — dá pra vincular depois, na tela do processo.
 
   // CNJ → guarda os componentes e o tribunal vem do próprio número;
   // número livre (REsp, RE…) → vale o tribunal do seletor.
@@ -72,7 +72,7 @@ export async function salvarProcessoJudicial(formData: FormData) {
   try {
     processoId = await criarProcessoJudicial(supabase, {
       escritorioId: sessao.escritorioId,
-      pastaId: campos.pasta,
+      pastaId: campos.pasta || null,
       poloCliente: polo(campos.polo),
       numero: n.numero,
       tribunalId,
@@ -124,15 +124,13 @@ export async function salvarProcessoAdministrativo(formData: FormData) {
     redirect(`/processos/novo?${p.toString()}`);
   }
 
-  if (!pasta) {
-    voltar("Escolha a pasta.");
-  }
+  // A pasta é opcional — dá pra vincular depois, na tela do processo.
 
   let processoId: string;
   try {
     processoId = await criarProcessoAdministrativo(supabase, {
       escritorioId: sessao.escritorioId,
-      pastaId: pasta,
+      pastaId: pasta || null,
       poloCliente: polo(txt(formData, "polo")),
       numeroAdm: txt(formData, "numero_adm") || null,
       orgaoJulgador: txt(formData, "orgao_julgador") || null,

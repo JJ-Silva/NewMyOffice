@@ -9,6 +9,7 @@ import { interpretarNumeroProcesso } from "@/lib/domain/numero-processo";
 import {
   atualizarProcessoJudicial,
   atualizarProcessoAdministrativo,
+  vincularPastaAoProcesso,
   excluirProcesso,
 } from "@/lib/db/processos";
 import { garantirTribunalPorCodigo } from "@/lib/db/tribunais";
@@ -123,6 +124,30 @@ export async function salvarAdministrativo(formData: FormData) {
   revalidatePath(`/processos/${id}`);
   revalidatePath("/processos");
   redirect("/processos?salvo=1");
+}
+
+// Organizar em uma pasta (ou tirar da pasta, com pasta = ""). O cadastro sem
+// pasta cria o processo solto; aqui ele ganha (ou troca) o vínculo.
+export async function vincularPasta(formData: FormData) {
+  const { supabase } = await ctx("processos.editar");
+  const id = txt(formData, "id");
+  if (!id) return;
+  const pastaId = txt(formData, "pasta") || null;
+
+  try {
+    await vincularPastaAoProcesso(supabase, id, pastaId);
+  } catch (e) {
+    redirect(
+      `/processos/${id}?erro=` +
+        encodeURIComponent(
+          e instanceof Error ? e.message : "Falha ao vincular a pasta.",
+        ),
+    );
+  }
+
+  revalidatePath(`/processos/${id}`);
+  revalidatePath("/processos");
+  redirect(`/processos/${id}`);
 }
 
 export async function excluir(formData: FormData) {

@@ -204,7 +204,7 @@ function Cartao({
           }}
         >
           {p.processoId
-            ? `${p.pastaNome ?? p.pastaCodigo} · ${p.clienteNome ?? "sem cliente"}`
+            ? `${p.pastaNome ?? p.pastaCodigo ?? "processo avulso"} · ${p.clienteNome ?? "sem cliente"}`
             : p.cnj
               ? "CNJ sem processo cadastrado"
               : "sem nº de processo"}

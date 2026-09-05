@@ -123,14 +123,22 @@ export default async function PaginaProcessos({
               </div>
 
               <div className="flex min-w-0 flex-col gap-0.5">
-                <Link
-                  href={`/pastas/${x.pastaId}`}
-                  className="truncate text-[13.5px] font-medium text-texto hover:text-teal hover:no-underline"
-                >
-                  {x.pastaNome ?? x.pastaCodigo}
-                </Link>
+                {x.pastaId ? (
+                  <Link
+                    href={`/pastas/${x.pastaId}`}
+                    className="truncate text-[13.5px] font-medium text-texto hover:text-teal hover:no-underline"
+                  >
+                    {x.pastaNome ?? x.pastaCodigo}
+                  </Link>
+                ) : (
+                  <span className="truncate text-[13.5px] font-medium text-texto-secundario">
+                    Sem pasta
+                  </span>
+                )}
                 <span className="truncate text-xs text-texto-secundario">
-                  {x.clienteNome ?? "sem cliente"}
+                  {x.pastaId
+                    ? x.clienteNome ?? "sem cliente"
+                    : "processo avulso"}
                   {x.valorCausa !== null ? ` · ${moeda(x.valorCausa)}` : ""}
                 </span>
               </div>
@@ -167,7 +175,7 @@ export default async function PaginaProcessos({
                 </Link>
                 {podeLancarAtividade && (
                   <Link
-                    href={`/atividades/nova?pasta=${x.pastaId}`}
+                    href={`/atividades/nova?processo=${x.id}`}
                     className="botao-secundario"
                   >
                     + Prazo

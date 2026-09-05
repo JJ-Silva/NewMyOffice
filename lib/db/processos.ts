@@ -11,8 +11,8 @@ export type ProcessoParaSelecao = {
   id: string;
   tipo: "geral" | "judicial" | "administrativo";
   numero: string | null;
-  pastaId: string;
-  pastaCodigo: string;
+  pastaId: string | null; // null = processo sem pasta
+  pastaCodigo: string | null;
   pastaNome: string | null;
   clienteNome: string | null;
 };
@@ -54,8 +54,8 @@ export async function listarProcessosParaSelecao(
         id: linha.id as string,
         tipo,
         numero: (linha.numero as string | null) ?? null,
-        pastaId: linha.pasta_id as string,
-        pastaCodigo: pasta?.codigo ?? "—",
+        pastaId: (linha.pasta_id as string | null) ?? null,
+        pastaCodigo: pasta?.codigo ?? null,
         pastaNome: pasta?.nome ?? null,
         clienteNome: cliente?.nome ?? null,
       } satisfies ProcessoParaSelecao,
@@ -78,8 +78,8 @@ export type ProcessoLista = {
   numero: string | null;
   poloCliente: "autor" | "reu" | "terceiro" | null;
   status: string;
-  pastaId: string;
-  pastaCodigo: string;
+  pastaId: string | null; // null = processo sem pasta
+  pastaCodigo: string | null;
   pastaNome: string | null;
   clienteNome: string | null;
   // judicial
@@ -136,8 +136,8 @@ export async function listarProcessos(
       numero: (linha.numero as string | null) ?? null,
       poloCliente: (linha.polo_cliente as ProcessoLista["poloCliente"]) ?? null,
       status: linha.status as string,
-      pastaId: linha.pasta_id as string,
-      pastaCodigo: pasta?.codigo ?? "—",
+      pastaId: (linha.pasta_id as string | null) ?? null,
+      pastaCodigo: pasta?.codigo ?? null,
       pastaNome: pasta?.nome ?? null,
       clienteNome: cliente?.nome ?? null,
       fase:
@@ -165,8 +165,8 @@ export async function listarProcessos(
 export type ProcessoEdicao = {
   id: string;
   tipo: "geral" | "judicial" | "administrativo";
-  pastaId: string;
-  pastaCodigo: string;
+  pastaId: string | null; // null = processo sem pasta
+  pastaCodigo: string | null;
   pastaNome: string | null;
   clienteNome: string | null;
   numero: string | null;
@@ -242,8 +242,8 @@ export async function buscarProcesso(
   return {
     id: data.id as string,
     tipo: data.tipo as ProcessoEdicao["tipo"],
-    pastaId: data.pasta_id as string,
-    pastaCodigo: pasta?.codigo ?? "—",
+    pastaId: (data.pasta_id as string | null) ?? null,
+    pastaCodigo: pasta?.codigo ?? null,
     pastaNome: pasta?.nome ?? null,
     clienteNome: cliente?.nome ?? null,
     numero: (data.numero as string | null) ?? null,
@@ -423,6 +423,24 @@ export async function atualizarProcessoAdministrativo(
   }
 }
 
+// Vincula (ou desvincula, com pastaId null) um processo a uma pasta — o
+// "organizo depois" do cadastro sem pasta. Como toda atividade aponta pro
+// processo (não pra pasta), isto é um único UPDATE: nada mais se move.
+export async function vincularPastaAoProcesso(
+  supabase: SupabaseClient,
+  processoId: string,
+  pastaId: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("processo")
+    .update({ pasta_id: pastaId })
+    .eq("id", processoId)
+    .neq("tipo", "geral"); // o 'geral' é a própria pasta — nunca troca
+  if (error) {
+    throw new Error(`Falha ao vincular a pasta: ${error.message}`);
+  }
+}
+
 // Soft-delete (plano §0). As atividades e publicações ligadas continuam no
 // banco mas somem das listas.
 export async function excluirProcesso(
@@ -442,7 +460,7 @@ export async function excluirProcesso(
 // ── Criar processo judicial ───────────────────────────────────────────────
 export type NovoProcessoJudicial = {
   escritorioId: string;
-  pastaId: string;
+  pastaId: string | null; // null = processo sem pasta (vincula depois)
   poloCliente: "autor" | "reu" | "terceiro" | null;
   // número já interpretado (lib/domain/numero-processo.ts)
   numero: NumeroJudicial;
@@ -502,7 +520,7 @@ export async function criarProcessoJudicial(
 // ── Criar processo administrativo ─────────────────────────────────────────
 export type NovoProcessoAdministrativo = {
   escritorioId: string;
-  pastaId: string;
+  pastaId: string | null; // null = processo sem pasta (vincula depois)
   poloCliente: "autor" | "reu" | "terceiro" | null;
   numeroAdm: string | null;
   orgaoJulgador: string | null;
