@@ -7,6 +7,7 @@ Sistema de gestão para escritório de advocacia. Começa pelo **controle de pra
 2. `docs/MYOFFICE_MOTOR_TESTES.md` — casos de teste do motor de cálculo de prazo
 3. `docs/referencia/funcao-vba-Contar_Prazos.txt` — a função VBA que o motor porta
 4. `docs/prototipo/TELAS.md` — protótipo visual das telas (paleta, layout, vocabulário, divergências a decidir). Canvas editável: `docs/prototipo/MyOffice.dc.html`
+5. `docs/COMO-CRIAR-FEATURES.md` — o fluxo para features novas (branch, plano, migration, PR)
 
 `INICIO-AQUI.md` (raiz) tem o passo a passo da primeira entrega.
 
@@ -50,3 +51,12 @@ docs/           especificação + referência
 - Ao fim de cada passo do `INICIO-AQUI.md`: parar, mostrar, esperar OK.
 - Decisão não coberta pelo plano → **perguntar**, não inventar.
 - Nada de escopo além do que o passo atual pede.
+- **`git push` só com autorização expressa do Jefferson.** Commit local à vontade.
+
+## Criar features novas (ver `docs/COMO-CRIAR-FEATURES.md`)
+- **Nunca codar na `master`.** Toda feature nasce numa branch `feat/<nome>` a partir da `master` atualizada.
+- **Plano primeiro:** `docs/features/<nome>.md` com a fatia vertical fina, commitado antes de codar.
+- **Migration só aditiva:** coluna nova `nullable`, tabela nova. Nunca `drop`, nunca `not null` em coluna cheia, nunca renomear numa migration única. O código tem que rodar **antes** da migration ser aplicada (lê o novo com `?? null`).
+- **Migration é aplicada pelo Jefferson** (`supabase db push` no Prompt de Comando) — o Claude não roda.
+- Antes de abrir PR: `npx tsc --noEmit` · `npx eslint .` · `npx vitest run` · `npm run build` verdes + teste no localhost + `/code-review`.
+- Ao mexer em schema, **reler as policies RLS afetadas** antes de afirmar que a mudança é segura.
