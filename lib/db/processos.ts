@@ -5,8 +5,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NumeroJudicial } from "@/lib/domain/numero-processo";
 
-// Todos os processos do escritório, para os seletores "onde cadastrar a
-// atividade" (agrupados por pasta na tela). Toda atividade vai num processo.
+// Uma linha do seletor de processo (modal de busca — components/BuscaSeletor).
+// Toda atividade vai num processo; o 'geral' representa o trabalho da pasta sem
+// processo formal (e na busca aparece como a própria pasta — ver
+// lib/domain/rotulo-processo.ts).
 export type ProcessoParaSelecao = {
   id: string;
   tipo: "geral" | "judicial" | "administrativo";
@@ -17,58 +19,273 @@ export type ProcessoParaSelecao = {
   clienteNome: string | null;
 };
 
-export async function listarProcessosParaSelecao(
+// `select` compartilhado por todas as leituras que devolvem ProcessoParaSelecao.
+const SELECT_SELECAO = `id, tipo, numero, pasta_id,
+   pasta:pasta_id ( codigo, nome,
+                    pasta_cliente ( cliente:cliente_id ( nome ) ) )`;
+
+type LinhaSelecao = {
+  id: unknown;
+  tipo: unknown;
+  numero: unknown;
+  pasta_id: unknown;
+  pasta: unknown;
+};
+
+function mapSelecao(linha: LinhaSelecao): ProcessoParaSelecao {
+  const pasta = um<{
+    codigo: string;
+    nome: string | null;
+    pasta_cliente: unknown;
+  }>(linha.pasta);
+  const cliente = um<{ nome: string }>(
+    um<{ cliente: unknown }>(arr(pasta?.pasta_cliente)[0])?.cliente,
+  );
+  return {
+    id: linha.id as string,
+    tipo: linha.tipo as ProcessoParaSelecao["tipo"],
+    numero: (linha.numero as string | null) ?? null,
+    pastaId: (linha.pasta_id as string | null) ?? null,
+    pastaCodigo: pasta?.codigo ?? null,
+    pastaNome: pasta?.nome ?? null,
+    clienteNome: cliente?.nome ?? null,
+  };
+}
+
+// Um processo pelo id — para o rótulo inicial do seletor quando a tela já
+// recebe ?processo_id= (vindo da agenda, de uma publicação, etc.).
+export async function buscarProcessoParaSelecao(
   supabase: SupabaseClient,
   escritorioId: string,
-): Promise<ProcessoParaSelecao[]> {
+  id: string,
+): Promise<ProcessoParaSelecao | null> {
   const { data, error } = await supabase
     .from("processo")
-    .select(
-      `id, tipo, numero, pasta_id,
-       pasta:pasta_id ( codigo, nome, ano, sequencial,
-                        pasta_cliente ( cliente:cliente_id ( nome ) ) )`,
-    )
+    .select(SELECT_SELECAO)
     .eq("escritorio_id", escritorioId)
-    .is("deletado_em", null);
-
+    .eq("id", id)
+    .is("deletado_em", null)
+    .maybeSingle();
   if (error) {
-    throw new Error(`Falha ao listar processos: ${error.message}`);
+    throw new Error(`Falha ao carregar o processo: ${error.message}`);
+  }
+  return data ? mapSelecao(data as LinhaSelecao) : null;
+}
+
+// O processo 'geral' de uma pasta (a tela recebe ?pasta= e quer pré-selecionar
+// o trabalho de nível-pasta). Há no máximo um por pasta (índice parcial).
+export async function buscarProcessoGeralDaPasta(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  pastaId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .eq("pasta_id", pastaId)
+    .eq("tipo", "geral")
+    .is("deletado_em", null)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Falha ao achar o processo geral: ${error.message}`);
+  }
+  return (data?.id as string | undefined) ?? null;
+}
+
+// Guard "sem nenhum processo → manda cadastrar um" sem carregar a lista toda.
+export async function existeAlgumProcesso(
+  supabase: SupabaseClient,
+  escritorioId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("processo")
+    .select("id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .limit(1);
+  if (error) {
+    throw new Error(`Falha ao verificar processos: ${error.message}`);
+  }
+  return (data?.length ?? 0) > 0;
+}
+
+// ── Busca de processo (modal do seletor) ──────────────────────────────────
+//
+// Uma caixa de texto, que casa contra: número do processo · código/nome da
+// pasta · nome do cliente · nome da parte ou do advogado adverso. Cada campo é
+// uma query própria e visível (nada de query builder dinâmico); os ids são
+// unidos no TypeScript e uma última query hidrata a página.
+//
+// A RLS de cada tabela continua valendo (o client é o de sessão): quem não tem
+// `clientes.ver` não acha por nome de cliente, etc. — igual ao seletor antigo.
+
+export type BuscaProcessos = {
+  itens: ProcessoParaSelecao[];
+  temMais: boolean;
+  // algum filtro bateu no teto → a lista pode estar incompleta ("refine a busca")
+  truncado: boolean;
+};
+
+const TETO_POR_CAMPO = 200; // ids que cada campo contribui, no máximo
+const TETO_UNIAO = 200; // ids que vão para a query final (limite de URL)
+
+export async function buscarProcessosParaSelecao(
+  supabase: SupabaseClient,
+  escritorioId: string,
+  opcoes: { q: string; offset?: number; limite?: number },
+): Promise<BuscaProcessos> {
+  const offset = Math.max(0, opcoes.offset ?? 0);
+  const limite = Math.min(50, Math.max(1, opcoes.limite ?? 30));
+  // vírgula e parênteses quebram a sintaxe do .or() do PostgREST
+  const termo = opcoes.q.replace(/[,()]/g, " ").trim();
+
+  // Sem texto: lista tudo, mais recentes primeiro, paginado (scroll infinito).
+  if (!termo) {
+    const { data, error } = await supabase
+      .from("processo")
+      .select(SELECT_SELECAO)
+      .eq("escritorio_id", escritorioId)
+      .is("deletado_em", null)
+      .order("criado_em", { ascending: false })
+      .range(offset, offset + limite); // pega limite+1 p/ saber se há mais
+    if (error) {
+      throw new Error(`Falha ao listar processos: ${error.message}`);
+    }
+    const linhas = (data ?? []) as LinhaSelecao[];
+    return {
+      itens: linhas.slice(0, limite).map(mapSelecao),
+      temMais: linhas.length > limite,
+      truncado: false,
+    };
   }
 
-  const ordemTipo = { geral: 0, judicial: 1, administrativo: 2 };
+  const like = `%${termo}%`;
+  const digitos = termo.replace(/[^0-9a-zA-Z]/g, "");
+  const likeDigitos = digitos && digitos !== termo ? `%${digitos}%` : null;
 
-  const itens = (data ?? []).map((linha) => {
-    const pasta = um<{
-      codigo: string;
-      nome: string | null;
-      ano: number;
-      sequencial: number;
-      pasta_cliente: unknown;
-    }>(linha.pasta);
-    const cliente = um<{ nome: string }>(
-      um<{ cliente: unknown }>(arr(pasta?.pasta_cliente)[0])?.cliente,
-    );
-    const tipo = linha.tipo as ProcessoParaSelecao["tipo"];
-    return {
-      processo: {
-        id: linha.id as string,
-        tipo,
-        numero: (linha.numero as string | null) ?? null,
-        pastaId: (linha.pasta_id as string | null) ?? null,
-        pastaCodigo: pasta?.codigo ?? null,
-        pastaNome: pasta?.nome ?? null,
-        clienteNome: cliente?.nome ?? null,
-      } satisfies ProcessoParaSelecao,
-      // chave de ordenação: pasta mais nova primeiro; geral antes dos outros
-      ordem:
-        -(pasta?.ano ?? 0) * 1e9 -
-        (pasta?.sequencial ?? 0) * 10 +
-        ordemTipo[tipo],
-    };
-  });
+  const ids = new Set<string>();
+  let truncado = false;
+  const absorver = (
+    linhas: Array<{ id?: unknown; processo_id?: unknown }> | null,
+  ) => {
+    for (const l of linhas ?? []) {
+      const id = (l.id ?? l.processo_id) as string | undefined;
+      if (id) ids.add(id);
+    }
+    if ((linhas?.length ?? 0) >= TETO_POR_CAMPO) truncado = true;
+  };
 
-  itens.sort((a, b) => a.ordem - b.ordem);
-  return itens.map((x) => x.processo);
+  // 1 · número do processo (como digitado e só os dígitos/letras)
+  {
+    const filtro = likeDigitos
+      ? `numero.ilike.${like},numero.ilike.${likeDigitos}`
+      : `numero.ilike.${like}`;
+    const { data, error } = await supabase
+      .from("processo")
+      .select("id")
+      .eq("escritorio_id", escritorioId)
+      .is("deletado_em", null)
+      .or(filtro)
+      .limit(TETO_POR_CAMPO);
+    if (error) throw new Error(`Falha na busca por número: ${error.message}`);
+    absorver(data);
+  }
+
+  // 2 · pasta (código AAAA/NNNNNN ou nome) → processos dessa pasta
+  {
+    const { data: pastas, error } = await supabase
+      .from("pasta")
+      .select("id")
+      .eq("escritorio_id", escritorioId)
+      .is("deletado_em", null)
+      .or(`codigo.ilike.${like},nome.ilike.${like}`)
+      .limit(TETO_POR_CAMPO);
+    if (error) throw new Error(`Falha na busca por pasta: ${error.message}`);
+    const pastaIds = (pastas ?? []).map((p) => p.id as string);
+    if (pastaIds.length) {
+      const { data, error: e2 } = await supabase
+        .from("processo")
+        .select("id")
+        .eq("escritorio_id", escritorioId)
+        .is("deletado_em", null)
+        .in("pasta_id", pastaIds)
+        .limit(TETO_POR_CAMPO);
+      if (e2) throw new Error(`Falha na busca por pasta: ${e2.message}`);
+      absorver(data);
+    }
+  }
+
+  // 3 · cliente (nome) → pastas do cliente → processos
+  {
+    const { data: clientes, error } = await supabase
+      .from("cliente")
+      .select("id")
+      .eq("escritorio_id", escritorioId)
+      .is("deletado_em", null)
+      .ilike("nome", like)
+      .limit(TETO_POR_CAMPO);
+    if (error) throw new Error(`Falha na busca por cliente: ${error.message}`);
+    const clienteIds = (clientes ?? []).map((c) => c.id as string);
+    if (clienteIds.length) {
+      const { data: vinculos, error: e2 } = await supabase
+        .from("pasta_cliente")
+        .select("pasta_id")
+        .in("cliente_id", clienteIds)
+        .limit(TETO_POR_CAMPO);
+      if (e2) throw new Error(`Falha na busca por cliente: ${e2.message}`);
+      const pastaIds = [
+        ...new Set((vinculos ?? []).map((v) => v.pasta_id as string)),
+      ];
+      if (pastaIds.length) {
+        const { data, error: e3 } = await supabase
+          .from("processo")
+          .select("id")
+          .eq("escritorio_id", escritorioId)
+          .is("deletado_em", null)
+          .in("pasta_id", pastaIds)
+          .limit(TETO_POR_CAMPO);
+        if (e3) throw new Error(`Falha na busca por cliente: ${e3.message}`);
+        absorver(data);
+      }
+    }
+  }
+
+  // 4 · parte / advogado adverso (nome) → processo_id
+  {
+    const { data, error } = await supabase
+      .from("parte")
+      .select("processo_id")
+      .eq("escritorio_id", escritorioId)
+      .is("deletado_em", null)
+      .or(`nome.ilike.${like},advogado_adverso.ilike.${like}`)
+      .limit(TETO_POR_CAMPO);
+    if (error) throw new Error(`Falha na busca por parte: ${error.message}`);
+    absorver(data);
+  }
+
+  const universo = [...ids];
+  if (universo.length > TETO_UNIAO) truncado = true;
+  const pagina = universo.slice(0, TETO_UNIAO);
+  if (pagina.length === 0) {
+    return { itens: [], temMais: false, truncado };
+  }
+
+  const { data, error } = await supabase
+    .from("processo")
+    .select(SELECT_SELECAO)
+    .in("id", pagina)
+    .order("criado_em", { ascending: false })
+    .range(offset, offset + limite - 1);
+  if (error) {
+    throw new Error(`Falha ao carregar os processos: ${error.message}`);
+  }
+
+  return {
+    itens: ((data ?? []) as LinhaSelecao[]).map(mapSelecao),
+    temMais: offset + limite < pagina.length,
+    truncado,
+  };
 }
 
 // ── Lista geral de processos (judicial + administrativo) ───────────────────
