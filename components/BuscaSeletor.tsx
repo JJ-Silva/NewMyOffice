@@ -240,7 +240,7 @@ function ModalBusca({
         aria-modal="true"
         aria-labelledby={tituloId}
         onKeyDown={aoTeclar}
-        className="card flex max-h-[80vh] w-full max-w-[560px] flex-col gap-3 p-4"
+        className="card flex max-h-[80vh] w-full max-w-[720px] flex-col gap-3 p-4"
       >
         <div className="flex items-center justify-between gap-2">
           <span id={tituloId} className="text-sm font-semibold">
