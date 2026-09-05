@@ -198,6 +198,10 @@ Classes novas seguindo o design system (`.card`, acento teal): `.modal-overlay`,
 
 ## Fora do escopo (follow-ups, listar no PR)
 
+0. **Busca sem acento** — hoje `ilike` é case-insensitive mas não ignora acento:
+   "cicera" não acha "Cícera". Corrigir exige `unaccent` (extensão + migration,
+   ou coluna `nome_sem_acento` por tabela, ou RPC) — fora do "sem migration"
+   deste slice. **Impacto alto** para nomes brasileiros; primeiro da fila.
 1. Reusar `BuscaSeletor` para **cliente** (`pastas/nova`, `pastas/[id]`) e
    **pasta** (`processos/novo`, filtros de `agenda`/`processos`,
    `publicacoes/[id]`) — cada um com seu endpoint `/api/busca/*`.
@@ -219,7 +223,14 @@ npx vitest run
 npm run build
 ```
 
-**No localhost (o Jefferson roda — Claude não abre localhost):**
+**Verificado no localhost (2026-09-05, dados reais do escritório):** busca por
+número (CNJ parcial), pasta, cliente e parte; `geral` aparece como o nome da
+pasta (sem "geral"); scroll infinito (`offset=30`); teclado (setas/Enter/Esc,
+Enter não submete o form externo); persistência no GET do prazo ("Calcular
+prazo") e no `?processo=` da troca de aba. **Gap conhecido:** busca sem acento
+(follow-up 0).
+
+Roteiro completo:
 
 1. `/atividades/nova` aba **Prazo** → clicar no campo de processo → modal abre
    listando tudo; rolar (scroll infinito carrega mais).
