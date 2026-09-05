@@ -93,21 +93,24 @@ Remove `listarProcessosParaSelecao` (único consumidor era `atividades/nova`).
 Acrescenta, reusando o type `ProcessoParaSelecao` que já existe:
 
 - **`buscarProcessosParaSelecao(supabase, escritorioId, { q, offset, limite })`**
-  `→ { itens: ProcessoParaSelecao[]; temMais: boolean }`
+  `→ { itens: ProcessoParaSelecao[]; temMais: boolean; truncado: boolean }`
   - `q` vazio → **uma** query: `processo` (todos os tipos, inclui `geral`)
-    `order by ano desc, sequencial desc` + `range(offset, offset+limite)`.
-  - `q` preenchido → **queries de id explícitas, uma por campo** (cada uma
-    `select id` + `limit` alto p.ex. 400):
-    1. `processo` por `numero ilike %q%` **e** por `numero ilike %<q só dígitos>%`
-    2. `pasta` por `codigo ilike` / `nome ilike` → `processo.pasta_id in (…)`
+    `order by criado_em desc` + `range(offset, offset+limite)`.
+  - `q` preenchido → **uma função por campo** (`idsPorNumero` / `idsPorPasta` /
+    `idsPorCliente` / `idsPorParte`), rodando em **`Promise.all`**, cada uma
+    `select id` + `limit TETO_POR_CAMPO`:
+    1. `numero ilike %q%` **e**, se `q` tem dígito e separador, `numero ilike`
+       com cada separador virando `%` (acha o mesmo nº com pontuação diferente)
+    2. `pasta` por `codigo`/`nome ilike` → `processo.pasta_id in (…)`
     3. `cliente` por `nome ilike` → `pasta_cliente` → `processo.pasta_id in (…)`
-    4. `parte` por `nome ilike` (ou `advogado_adverso ilike`) → `processo_id in (…)`
-    - une os ids no TS (`Set`), dedup, então **uma** query final
-      `processo … where id in (ids) order by … range(offset, offset+limite)`.
-    - `temMais` = ids restantes além da página. Se algum passo bater no teto de
-      400, o modal mostra um aviso "refine a busca" (comentário no código).
-  - Hidrata pasta/código/nome/cliente como o `listarProcessosParaSelecao` fazia
-    (mesmo `select` aninhado, mesmos helpers `um`/`arr`).
+    4. `parte` por `nome`/`advogado_adverso ilike` → `processo_id`
+    - une os ids no TS (`Set`), então **uma** query final
+      `processo where id in (ids) order by criado_em desc range(...)`.
+    - listas que entram num `.in(...)` são cortadas em `TETO_POR_CAMPO` (150) e o
+      universo final em `TETO_UNIAO` (120) — cabem na URL do PostgREST.
+    - `truncado` = algum passo bateu no teto → o modal mostra "refine a busca".
+  - Hidrata pasta/código/nome/cliente via `mapSelecao` + `SELECT_SELECAO`
+    (mesmos helpers `um`/`arr`).
 - **`buscarProcessoParaSelecao(supabase, escritorioId, id)` `→ ProcessoParaSelecao | null`**
   Uma linha, para o rótulo inicial do botão (SSR) quando já vem `?processo_id=`.
 - **`buscarProcessoGeralDaPasta(supabase, escritorioId, pastaId)` `→ string | null`**
@@ -118,9 +121,9 @@ Acrescenta, reusando o type `ProcessoParaSelecao` que já existe:
 
 ### 3. `app/api/busca/processos/route.ts` (novo — Route Handler GET)
 
-`GET /api/busca/processos?q=&offset=` → `criarClienteServidor()` + `exigirSessao`
-→ `buscarProcessosParaSelecao` → JSON
-`{ itens: { id, primario, secundario }[], temMais }`.
+`GET /api/busca/processos?q=&offset=` → `sessaoAtual()` (401 JSON se não logado,
+sem redirect) + `criarClienteServidor()` → `buscarProcessosParaSelecao` → JSON
+`{ itens: { id, primario, secundario }[], temMais, truncado }`.
 **O endpoint** monta `primario`/`secundario` (via `linhasDoProcesso` do
 `lib/domain/rotulo-processo.ts`), deixando o componente genérico e burro.
 `proxy.ts` já não redireciona `/api/*`.
@@ -184,18 +187,25 @@ Classes novas seguindo o design system (`.card`, acento teal): `.modal-overlay`,
 
 ### 7. Testes
 
-- `tests/busca-processo-integracao.test.ts` (padrão dos outros `tests/` — `pg`,
-  `DATABASE_URL`, transação com rollback): acha por número (com/sem pontuação),
-  por código de pasta, por nome de pasta, por nome de cliente, por nome de parte;
-  o processo `geral` aparece (e `linhasDoProcesso` não usa a palavra "geral");
-  dedup (processo que casa em 2 campos vem 1x); `temMais` e
-  `offset` paginam; escopo por `escritorio_id`.
-- `rotulo-processo.test.ts`: unit puro.
+- `lib/domain/rotulo-processo.test.ts`: unit puro de `linhasDoProcesso` — geral
+  (com/sem nome de pasta), judicial, administrativo, sem número, sem pasta;
+  garante que a palavra "geral" nunca vaza pro rótulo.
+- **Sem teste de integração para `buscarProcessosParaSelecao`**: como todo o
+  resto de `lib/db/*`, é código de client Supabase e a base não testa isso em
+  `tests/` (lá só entram schema/constraints via `pg` e funções puras de
+  mapeamento). O `pg` roda numa transação isolada que o PostgREST não enxerga,
+  então não dá pra exercitar a função de verdade. Cobertura fica na verificação
+  no localhost (abaixo) + `tsc`/`build`.
 
 ---
 
 ## Fora do escopo (follow-ups, listar no PR)
 
+0. **Busca é acento-sensível — decisão do Jefferson (2026-09-05), não é bug.**
+   `ilike` ignora maiúscula/minúscula mas não acento: "cicera" não acha "Cícera".
+   Fica assim de propósito — o usuário sabe se digitou o nome com acento ou não.
+   Só reabrir se ele pedir; aí seria uma view `security_invoker` com `f_unaccent`
+   (sem guardar cópia de dado) — ver a discussão nesta conversa.
 1. Reusar `BuscaSeletor` para **cliente** (`pastas/nova`, `pastas/[id]`) e
    **pasta** (`processos/novo`, filtros de `agenda`/`processos`,
    `publicacoes/[id]`) — cada um com seu endpoint `/api/busca/*`.
@@ -217,7 +227,14 @@ npx vitest run
 npm run build
 ```
 
-**No localhost (o Jefferson roda — Claude não abre localhost):**
+**Verificado no localhost (2026-09-05, dados reais do escritório):** busca por
+número (CNJ parcial), pasta, cliente e parte; `geral` aparece como o nome da
+pasta (sem "geral"); scroll infinito (`offset=30`); teclado (setas/Enter/Esc,
+Enter não submete o form externo); persistência no GET do prazo ("Calcular
+prazo") e no `?processo=` da troca de aba. Busca é acento-sensível por decisão
+(follow-up 0).
+
+Roteiro completo:
 
 1. `/atividades/nova` aba **Prazo** → clicar no campo de processo → modal abre
    listando tudo; rolar (scroll infinito carrega mais).

@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
-import { listarProcessosParaSelecao } from "@/lib/db/processos";
+import {
+  existeAlgumProcesso,
+  buscarProcessoParaSelecao,
+  buscarProcessoGeralDaPasta,
+} from "@/lib/db/processos";
+import { linhasDoProcesso } from "@/lib/domain/rotulo-processo";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { listarTribunais } from "@/lib/db/tribunais";
 import { urlDaTela, comRetorno } from "@/lib/navegacao";
@@ -43,13 +48,9 @@ export default async function PaginaNovaAtividade({
     urlDaTela("/atividades/nova", params),
   );
 
-  const todosProcessos = await listarProcessosParaSelecao(
-    supabase,
-    sessao.escritorioId,
-  );
   // Toda atividade pertence a um processo. Sem nenhum processo (nem 'geral' de
   // pasta, nem judicial/administrativo avulso) → manda cadastrar um.
-  if (todosProcessos.length === 0) {
+  if (!(await existeAlgumProcesso(supabase, sessao.escritorioId))) {
     redirect("/processos/novo");
   }
 
@@ -60,11 +61,25 @@ export default async function PaginaNovaAtividade({
   let processoSelecionado = campos.processoId || (get("processo") ?? "");
   if (!processoSelecionado && pastaParam) {
     processoSelecionado =
-      todosProcessos.find(
-        (p) => p.pastaId === pastaParam && p.tipo === "geral",
-      )?.id ?? "";
+      (await buscarProcessoGeralDaPasta(
+        supabase,
+        sessao.escritorioId,
+        pastaParam,
+      )) ?? "";
   }
   campos.processoId = processoSelecionado;
+
+  // Rótulo do processo já selecionado (SSR), para o botão do seletor.
+  const processoInicial = processoSelecionado
+    ? await buscarProcessoParaSelecao(
+        supabase,
+        sessao.escritorioId,
+        processoSelecionado,
+      )
+    : null;
+  const rotuloInicialProcesso = processoInicial
+    ? linhasDoProcesso(processoInicial).primario
+    : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,7 +97,7 @@ export default async function PaginaNovaAtividade({
       {aba === "prazo" && (
         <PrazoComDados
           campos={campos}
-          processos={todosProcessos}
+          rotuloInicialProcesso={rotuloInicialProcesso}
           erro={erro}
           escritorioId={sessao.escritorioId}
           hrefCriarPasta={hrefCriarPasta}
@@ -91,13 +106,13 @@ export default async function PaginaNovaAtividade({
 
       {aba === "compromisso" && (
         <FormularioCompromisso
-          processos={todosProcessos}
           tipos={await listarTiposDeAtividade(
             supabase,
             sessao.escritorioId,
             "compromisso",
           )}
           processoSelecionado={processoSelecionado}
+          rotuloInicialProcesso={rotuloInicialProcesso}
           data=""
           erro={erro}
           hrefCriarPasta={hrefCriarPasta}
@@ -106,13 +121,13 @@ export default async function PaginaNovaAtividade({
 
       {aba === "monitoramento" && (
         <FormularioMonitoramento
-          processos={todosProcessos}
           tipos={await listarTiposDeAtividade(
             supabase,
             sessao.escritorioId,
             "monitoramento",
           )}
           processoSelecionado={processoSelecionado}
+          rotuloInicialProcesso={rotuloInicialProcesso}
           data={hojeNoBrasil()}
           erro={erro}
           hrefCriarPasta={hrefCriarPasta}
@@ -125,13 +140,13 @@ export default async function PaginaNovaAtividade({
 // Carrega tudo que o formulário de prazo precisa (tipos, tribunais, cálculo).
 async function PrazoComDados({
   campos,
-  processos,
+  rotuloInicialProcesso,
   erro,
   escritorioId,
   hrefCriarPasta,
 }: {
   campos: ReturnType<typeof lerCampos>;
-  processos: Awaited<ReturnType<typeof listarProcessosParaSelecao>>;
+  rotuloInicialProcesso: string | null;
   erro: string | null;
   escritorioId: string;
   hrefCriarPasta: string;
@@ -168,7 +183,7 @@ async function PrazoComDados({
   return (
     <FormularioPrazo
       campos={camposEfetivos}
-      processos={processos}
+      rotuloInicialProcesso={rotuloInicialProcesso}
       tipos={tipos}
       tribunais={tribunais}
       calc={calc}
