@@ -89,10 +89,10 @@ export function BuscaSeletor({
         className="campo flex w-full items-center justify-between gap-2 text-left"
         aria-haspopup="dialog"
       >
-        <span className={escolha ? "" : "text-placeholder"}>
+        <span className={`truncate ${escolha ? "" : "text-placeholder"}`}>
           {escolha?.rotulo ?? textoVazio}
         </span>
-        <span aria-hidden className="text-xs text-texto-secundario">
+        <span aria-hidden className="flex-none text-xs text-texto-secundario">
           buscar
         </span>
       </button>
@@ -136,6 +136,7 @@ function ModalBusca({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const fecharRef = useRef<HTMLButtonElement>(null);
+  const listaRef = useRef<HTMLDivElement>(null);
   const sentinelaRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -188,15 +189,17 @@ function ModalBusca({
     return () => clearTimeout(t);
   }, [q, buscar]);
 
-  // Scroll infinito.
+  // Scroll infinito: observa a sentinela dentro da própria lista (root).
   useEffect(() => {
     const alvo = sentinelaRef.current;
-    if (!alvo) return;
-    const obs = new IntersectionObserver((entradas) => {
-      if (entradas[0]?.isIntersecting && temMais && !carregando) {
-        void buscar(q, true);
-      }
-    });
+    const raiz = listaRef.current;
+    if (!alvo || !raiz || !temMais || carregando) return;
+    const obs = new IntersectionObserver(
+      (entradas) => {
+        if (entradas[0]?.isIntersecting) void buscar(q, true);
+      },
+      { root: raiz, rootMargin: "120px" },
+    );
     obs.observe(alvo);
     return () => obs.disconnect();
   }, [temMais, carregando, q, buscar]);
@@ -271,7 +274,7 @@ function ModalBusca({
         )}
         {erro && <p className="text-xs text-atrasado">{erro}</p>}
 
-        <div className="-mx-1 flex-1 overflow-y-auto">
+        <div ref={listaRef} className="-mx-1 flex-1 overflow-y-auto">
           {itens.length === 0 && !carregando && !erro ? (
             <p className="px-1 py-6 text-center text-sm text-texto-secundario">
               Nada encontrado.
