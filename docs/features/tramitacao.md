@@ -138,17 +138,34 @@ Bloco C.4 (já em produção) pra "consertar" isso — fora do escopo desta fati
 
 ## UI
 
-- **Componente novo** `components/FioTramitacao.tsx`: lista cronológica (mais recente
-  embaixo, como o protótipo), cada item com autor (ou "Sistema" quando
-  `autor_membro_id is null`), texto, e um selo quando linkado (`atividade_id` →
-  link pro prazo/compromisso/monitoramento; `publicacao_id` → link pra publicação).
-  Textarea + botão no rodapé pra `criarAndamentoManual`. Sem filtro, sem anexo.
-- **`app/(app)/pastas/[id]/tramitacao/page.tsx`** — usa `listarAndamentosDaPasta`;
-  ao postar manualmente, escolhe o processo (default: o `geral` da pasta).
-- **`app/(app)/processos/[id]/tramitacao/page.tsx`** — usa
-  `listarAndamentosDoProcesso`; processo fixo, sem seletor.
-- Link **"Tramitação"** adicionado nas ações de `/pastas/[id]` e `/processos/[id]`
-  (mesmo padrão do link "Ver agenda desta pasta" que já existe).
+> **Revisão de design (2026-09-06):** a 1ª entrega usava uma lista de cards em 2
+> rotas escondidas dentro de `/pastas/[id]` e `/processos/[id]`. O Jefferson
+> pediu o layout do protótipo `MyOffice — Tramitação` (grupo de mensagens) e
+> acesso pelo **menu lateral**. As decisões abaixo substituem só a camada de
+> exibição — migration, `lib/db/andamentos.ts` e os 6 gatilhos ficam como estão.
+
+- **Rota única `app/(app)/tramitacao/page.tsx`**, item **"Tramitação" na sidebar**
+  (gate `tramitacao.ver`). Query: `?processo=<id>&vista=caso|processo`.
+  - Sem `?processo` → abre no processo com o **andamento mais recente**
+    (`processoComAndamentoMaisRecente`); sem nenhum andamento → estado vazio + seletor.
+  - **Seletor** = o modal de busca que já existe (`BuscaSeletor`/`SeletorProcesso`,
+    endpoint `/api/busca/processos`), num wrapper client que navega ao escolher
+    (`components/SeletorProcessoTramitacao.tsx`). **Não** é combobox.
+  - **Alternância no cabeçalho:** `Este processo` (`listarAndamentosDoProcesso`)
+    × `Caso inteiro` (`listarAndamentosDaPasta`, etiqueta "⚖ nº" em cada balão).
+    Processo **sem pasta** → só `Este processo`. Default: `caso` quando há pasta.
+  - Ao postar: em `vista=processo` grava no processo exibido; em `vista=caso`
+    grava no `geral` da pasta.
+- **`components/FioTramitacao.tsx` (client)** — fio em **balões de chat**:
+  agrupado por dia (pílula `Hoje`/`Ontem`/`DD/MM/AAAA · dia-semana`), avatar com
+  iniciais + cor determinística por `autor_membro_id` (null = "Sistema", teal),
+  balão do autor logado à **direita** (verde), hora no rodapé, chip `⏳ ver <tipo>`
+  quando `atividade_id`, `📄 ver publicação` quando `publicacao_id`. Compositor
+  "Escrever um andamento…" + Enviar; rola pro fim ao abrir/ao chegar mensagem.
+  **Sem filtro por participante** (fica pra depois), **sem anexo** (Storage/Etapa 4).
+- **`/pastas/[id]/tramitacao` e `/processos/[id]/tramitacao` viram redirects**
+  pra `/tramitacao?processo=…` (deep-links antigos continuam válidos). Os links
+  "Tramitação" em `/pastas/[id]` e `/processos/[id]` seguem apontando pra elas.
 
 ---
 
@@ -156,7 +173,7 @@ Bloco C.4 (já em produção) pra "consertar" isso — fora do escopo desta fati
 
 - Anexos (Etapa 4 / Storage) — schema não bloqueia, sem coluna nova por enquanto.
 - Cliente no fio — rejeitado por design, não é "ainda não".
-- Filtro por papel/rótulo — fácil de somar depois (`WHERE` a mais).
+- Filtro por participante/rótulo no fio — chips do protótipo; adiar (WHERE a mais).
 - Ver por cliente (agregando pastas) — ideia anotada, sem desenho ainda.
 - Mini-tarefas dentro de uma atividade — conceito novo, precisa de rodada própria.
 - Reagendar compromisso → gerar andamento — função ainda não existe no código.
