@@ -16,3 +16,5 @@ Criados no Passo 8: `agenda.ts` (lista), `atividade-detalhe.ts` (detalhe + obser
 
 **Semanas 3–4 da Etapa 1:** `atividades.ts` ganha `criarCompromisso` / `criarMonitoramento`; `atividade-acoes.ts` ganha `registrarVerificacao` (monitoramento: eleva prioridade se achou mudança, senão conclui). A agenda aplica `atividadeVisivelEm` (§3.6): prazo sempre, compromisso 5 dias antes, monitoramento no dia — toggle "ver tudo" e filtro de status ignoram.
 
+**Feature Tramitação:** `andamentos.ts` — o fio cronológico por processo/pasta. `registrarAndamento` é o único INSERT (helper reaproveitado pelos gatilhos automáticos); `criarAndamentoManual` (anotação da tela); `listarAndamentosDoProcesso` / `listarAndamentosDaPasta` (join pelo `processo.pasta_id`).
+
