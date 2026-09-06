@@ -7,6 +7,7 @@
 //    sugestão, o advogado confirma (nunca cria nada sozinho)
 
 import { analisarCnj } from "./cnj";
+import { formatarDataBR } from "./datas";
 
 // ── Texto ────────────────────────────────────────────────────────────────────
 const ENTIDADES: Record<string, string> = {
@@ -159,6 +160,40 @@ export function sugerirPrazo(texto: string): SugestaoPrazo {
     dias: null,
     explicacao: "Não deu para sugerir o tipo nem o prazo pelo texto. Escolha manualmente.",
   };
+}
+
+// ── Resumo automático para a Tramitação ─────────────────────────────────────
+// Quando uma publicação do DJEN passa a ter processo (auto-match por CNJ ou
+// vínculo manual), ela vira um andamento no fio. Este é o texto desse andamento:
+// um cabeçalho curto (tipo · classe · órgão · data) + um trecho do teor. O teor
+// completo continua na própria publicação (o andamento linka pra ela).
+export type PublicacaoParaResumo = {
+  tipoComunicacao: string | null;
+  nomeClasse: string | null;
+  siglaTribunal: string | null;
+  nomeOrgao: string | null;
+  dataDisponibilizacao: string; // 'AAAA-MM-DD'
+  texto: string;
+};
+
+export function resumoDaPublicacaoDjen(pub: PublicacaoParaResumo): string {
+  const orgao = [pub.siglaTribunal, pub.nomeOrgao]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(" — ");
+
+  const cabecalho = [
+    pub.tipoComunicacao?.trim() || "Publicação",
+    pub.nomeClasse?.trim() || null,
+    orgao || null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const quando = `disponibilizada em ${formatarDataBR(pub.dataDisponibilizacao)}`;
+  const corpo = trecho(pub.texto, 300);
+
+  return `DJEN — ${cabecalho} (${quando}).` + (corpo ? `\n${corpo}` : "");
 }
 
 // Heurística grosseira: a publicação parece só informativa (sem prazo)?

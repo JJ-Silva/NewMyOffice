@@ -6,7 +6,12 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComunicacaoDjen } from "@/lib/djen/comunica-api";
-import { trecho, pareceSemPrazo } from "@/lib/domain/publicacao";
+import {
+  trecho,
+  pareceSemPrazo,
+  resumoDaPublicacaoDjen,
+} from "@/lib/domain/publicacao";
+import { registrarAndamento } from "@/lib/db/andamentos";
 
 // Na UI "descartada" aparece como "arquivada" — o valor gravado continua
 // 'descartada' (constraint da migration); só o rótulo muda.
@@ -103,13 +108,35 @@ export async function salvarComunicacoes(
     processo_id: c.cnj ? (porCnj.get(c.cnj) ?? null) : null,
   }));
 
-  const { error } = await supabase.from("publicacao").insert(linhas);
+  const { data: inseridas, error } = await supabase
+    .from("publicacao")
+    .insert(linhas)
+    .select("id, djen_id, processo_id");
   if (error) {
     // corrida com outra busca simultânea → alguns já entraram
     if (error.code === "23505") {
       return { novas: 0, jaExistiam: comunicacoes.length };
     }
     throw new Error(`Falha ao gravar as publicações: ${error.message}`);
+  }
+
+  // Tramitação: a publicação que já nasce vinculada a um processo (auto-match
+  // por CNJ) vira um andamento no fio daquele processo. Sem autor — o fato veio
+  // do DJEN, não de uma pessoa.
+  const porDjenId = new Map(novas.map((c) => [c.djenId, c]));
+  for (const linha of inseridas ?? []) {
+    const processoId = linha.processo_id as string | null;
+    if (!processoId) continue;
+    const c = porDjenId.get(linha.djen_id as number);
+    if (!c) continue;
+    await registrarAndamento(supabase, {
+      escritorioId,
+      processoId,
+      autorMembroId: null,
+      origem: "publicacao_djen",
+      texto: resumoDaPublicacaoDjen(c),
+      publicacaoId: linha.id as string,
+    });
   }
 
   return { novas: novas.length, jaExistiam: comunicacoes.length - novas.length };
@@ -213,6 +240,26 @@ export async function arquivarPublicacao(
     })
     .eq("id", args.id);
   if (error) throw new Error(`Falha ao arquivar: ${error.message}`);
+
+  // Tramitação: arquivar uma publicação JÁ vinculada a um processo, com
+  // justificativa, deixa registro no fio. É decisão de alguém → origem 'manual',
+  // com autor.
+  const motivo = args.motivo?.trim();
+  if (!motivo) return;
+  const { data: pub } = await supabase
+    .from("publicacao")
+    .select("escritorio_id, processo_id")
+    .eq("id", args.id)
+    .maybeSingle();
+  if (!pub?.processo_id) return;
+  await registrarAndamento(supabase, {
+    escritorioId: pub.escritorio_id as string,
+    processoId: pub.processo_id as string,
+    autorMembroId: args.membroId,
+    origem: "manual",
+    texto: `Publicação arquivada: ${motivo}`,
+    publicacaoId: args.id,
+  });
 }
 
 export async function reabrirPublicacao(
@@ -237,6 +284,42 @@ export async function vincularProcessoNaPublicacao(
     .update({ processo_id: processoId })
     .eq("id", id);
   if (error) throw new Error(`Falha ao vincular o processo: ${error.message}`);
+
+  // Tramitação: gera o andamento da publicação — a menos que já tenha saído na
+  // captura (auto-match por CNJ em salvarComunicacoes).
+  const { data: jaTem } = await supabase
+    .from("andamento")
+    .select("id")
+    .eq("publicacao_id", id)
+    .is("deletado_em", null)
+    .limit(1)
+    .maybeSingle();
+  if (jaTem) return;
+
+  const { data: pub } = await supabase
+    .from("publicacao")
+    .select(
+      "escritorio_id, tipo_comunicacao, nome_classe, sigla_tribunal, nome_orgao, data_disponibilizacao, texto",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (!pub) return;
+
+  await registrarAndamento(supabase, {
+    escritorioId: pub.escritorio_id as string,
+    processoId,
+    autorMembroId: null,
+    origem: "publicacao_djen",
+    texto: resumoDaPublicacaoDjen({
+      tipoComunicacao: pub.tipo_comunicacao as string | null,
+      nomeClasse: pub.nome_classe as string | null,
+      siglaTribunal: pub.sigla_tribunal as string | null,
+      nomeOrgao: pub.nome_orgao as string | null,
+      dataDisponibilizacao: pub.data_disponibilizacao as string,
+      texto: pub.texto as string,
+    }),
+    publicacaoId: id,
+  });
 }
 
 export async function marcarPublicacaoVirouPrazo(
