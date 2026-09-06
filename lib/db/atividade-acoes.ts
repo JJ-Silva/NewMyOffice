@@ -2,6 +2,25 @@
 // ajustar datas do prazo). §4 Bloco C.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { registrarAndamento } from "@/lib/db/andamentos";
+
+// A tramitação (feature Tramitação) precisa saber a qual processo/escritório a
+// atividade pertence pra registrar o andamento. Um select barato por id.
+async function contextoDaAtividade(
+  supabase: SupabaseClient,
+  atividadeId: string,
+): Promise<{ escritorioId: string; processoId: string } | null> {
+  const { data } = await supabase
+    .from("atividade")
+    .select("escritorio_id, processo_id")
+    .eq("id", atividadeId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    escritorioId: data.escritorio_id as string,
+    processoId: data.processo_id as string,
+  };
+}
 
 export async function concluirAtividade(
   supabase: SupabaseClient,
@@ -22,6 +41,21 @@ export async function concluirAtividade(
     })
     .eq("id", args.atividadeId);
   if (error) throw new Error(`Falha ao concluir: ${error.message}`);
+
+  // Tramitação: a informação de conclusão vira um andamento (§ gatilhos).
+  if (args.observacaoConclusao && args.observacaoConclusao.trim()) {
+    const ctx = await contextoDaAtividade(supabase, args.atividadeId);
+    if (ctx) {
+      await registrarAndamento(supabase, {
+        escritorioId: ctx.escritorioId,
+        processoId: ctx.processoId,
+        autorMembroId: args.membroId,
+        origem: "conclusao_atividade",
+        texto: args.observacaoConclusao,
+        atividadeId: args.atividadeId,
+      });
+    }
+  }
 }
 
 export async function reativarAtividade(
@@ -74,6 +108,21 @@ export async function adicionarObservacao(
     texto: args.texto,
   });
   if (error) throw new Error(`Falha ao gravar a anotação: ${error.message}`);
+
+  // Tramitação: toda anotação (livre, cancelamento, verificação com mudança)
+  // entra no fio. Cobre de graça cancelarAtividade / registrarVerificacao /
+  // a ação "anotar" — todas passam por aqui.
+  const ctx = await contextoDaAtividade(supabase, args.atividadeId);
+  if (ctx) {
+    await registrarAndamento(supabase, {
+      escritorioId: args.escritorioId,
+      processoId: ctx.processoId,
+      autorMembroId: args.autorId,
+      origem: "observacao_atividade",
+      texto: args.texto,
+      atividadeId: args.atividadeId,
+    });
+  }
 }
 
 // Registrar verificação de um monitoramento (§4 C.4):
@@ -212,4 +261,17 @@ export async function ajustarDatasDoPrazo(
     throw new Error(`Falha ao ajustar as datas: ${upd.error.message}`);
   }
   // a trigger atividade_prazo_sincroniza_data cuida de atividade.data = prazo_fatal
+
+  // Tramitação: o motivo do ajuste manual (obrigatório) vira um andamento.
+  const ctx = await contextoDaAtividade(supabase, args.atividadeId);
+  if (ctx) {
+    await registrarAndamento(supabase, {
+      escritorioId: args.escritorioId,
+      processoId: ctx.processoId,
+      autorMembroId: args.membroId,
+      origem: "ajuste_prazo",
+      texto: args.motivo,
+      atividadeId: args.atividadeId,
+    });
+  }
 }
