@@ -5,6 +5,7 @@ import {
   normalizarCnj,
   sugerirPrazo,
   pareceSemPrazo,
+  resumoDaPublicacaoDjen,
 } from "./publicacao";
 
 describe("limparTexto", () => {
@@ -112,5 +113,50 @@ describe("pareceSemPrazo", () => {
     expect(
       pareceSemPrazo("Intime-se para pagar no prazo de 15 dias."),
     ).toBe(false);
+  });
+});
+
+describe("resumoDaPublicacaoDjen", () => {
+  const base = {
+    tipoComunicacao: "Intimação",
+    nomeClasse: "Procedimento Comum Cível",
+    siglaTribunal: "TJSP",
+    nomeOrgao: "1ª Vara Cível de Sorocaba",
+    dataDisponibilizacao: "2026-09-01",
+    texto: "Fica a parte intimada para se manifestar no prazo de 15 dias.",
+  };
+
+  it("monta cabeçalho tipo · classe · órgão + data no formato BR", () => {
+    const r = resumoDaPublicacaoDjen(base);
+    expect(r).toContain("DJEN — Intimação · Procedimento Comum Cível · TJSP — 1ª Vara Cível de Sorocaba");
+    expect(r).toContain("disponibilizada em 01/09/2026");
+  });
+
+  it("inclui um trecho do teor numa segunda linha", () => {
+    const r = resumoDaPublicacaoDjen(base);
+    const linhas = r.split("\n");
+    expect(linhas).toHaveLength(2);
+    expect(linhas[1]).toContain("prazo de 15 dias");
+  });
+
+  it("aguenta metadados ausentes sem quebrar", () => {
+    const r = resumoDaPublicacaoDjen({
+      tipoComunicacao: null,
+      nomeClasse: null,
+      siglaTribunal: null,
+      nomeOrgao: null,
+      dataDisponibilizacao: "2026-12-25",
+      texto: "",
+    });
+    expect(r).toBe("DJEN — Publicação (disponibilizada em 25/12/2026).");
+  });
+
+  it("limpa HTML do teor", () => {
+    const r = resumoDaPublicacaoDjen({
+      ...base,
+      texto: "<p>Intime-se&nbsp;a parte.</p>",
+    });
+    expect(r).toContain("Intime-se a parte.");
+    expect(r).not.toContain("<p>");
   });
 });

@@ -20,3 +20,7 @@ o schema).
 - `recorrencia-integracao.test.ts` — Etapa 3a: valida a migration
   `atividade_recorrencia` (colunas, CHECKs, FK `ON DELETE SET NULL`, índice
   único) e o ida-e-volta `colunasDaRegra` ⇄ `regraDaLinha`.
+- `tramitacao-integracao.test.ts` — feature Tramitação: valida a migration
+  `andamento` (colunas, CHECK de `origem`, `processo_id` not null, FK
+  `atividade_id` `ON DELETE SET NULL`, índice, RLS com `tem_permissao`) e o
+  backfill de `tramitacao.ver` nos rótulos que já tinham `atividades.ver`.
