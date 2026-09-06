@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { formatarDataBR } from "@/lib/domain/datas";
+import { formatarDataHoraBrasil } from "@/lib/hoje";
 import type { AndamentoItem } from "@/lib/db/andamentos";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 
@@ -70,7 +70,7 @@ export function FioTramitacao({
                   </span>
                   <span>{a.autorNome ?? "Sistema"}</span>
                   <span>·</span>
-                  <span>{formatarDataBR(a.criadoEm.slice(0, 10))}</span>
+                  <span>{formatarDataHoraBrasil(a.criadoEm)}</span>
                   {mostrarProcesso && a.processoNumero && (
                     <>
                       <span>·</span>

@@ -15,14 +15,18 @@ suite("Tramitação — integração (andamento)", () => {
   let cli: Client;
   let escritorioId: string;
   let processoId: string;
+  let pastaId: string | null;
   let membroId: string | null;
+  // um 2º processo, de OUTRA pasta (para o teste de agregação por pasta)
+  let processoOutraPasta: string | null;
+  let outraPastaId: string | null;
 
   beforeAll(async () => {
     cli = new Client({ connectionString: URL });
     await cli.connect();
 
     const ctx = await cli.query(`
-      select p.escritorio_id, p.id as processo_id
+      select p.escritorio_id, p.id as processo_id, p.pasta_id
       from processo p
       where p.tipo = 'geral' and p.deletado_em is null
       limit 1
@@ -30,12 +34,25 @@ suite("Tramitação — integração (andamento)", () => {
     if (ctx.rowCount === 0) throw new Error("Sem processo 'geral' no banco.");
     escritorioId = ctx.rows[0].escritorio_id;
     processoId = ctx.rows[0].processo_id;
+    pastaId = ctx.rows[0].pasta_id;
 
     const m = await cli.query(
       `select id from membro where escritorio_id = $1 limit 1`,
       [escritorioId],
     );
     membroId = m.rowCount ? m.rows[0].id : null;
+
+    const outro = await cli.query(
+      `select p.id, p.pasta_id from processo p
+       where p.escritorio_id = $1 and p.pasta_id is not null
+         and p.pasta_id <> $2 and p.deletado_em is null
+       limit 1`,
+      [escritorioId, pastaId],
+    );
+    if (outro.rowCount) {
+      processoOutraPasta = outro.rows[0].id;
+      outraPastaId = outro.rows[0].pasta_id;
+    }
   });
 
   afterAll(async () => {
@@ -157,6 +174,33 @@ suite("Tramitação — integração (andamento)", () => {
         [and.rows[0].id],
       );
       expect(depois.rows[0].atividade_id).toBeNull();
+    });
+  });
+
+  // Espelha o que listarAndamentosDaPasta faz via PostgREST
+  // (processo:processo_id!inner + .eq("processo.pasta_id", …)): a agregação por
+  // pasta tem de somar SÓ os andamentos dos processos daquela pasta.
+  it("agregação por pasta junta só os andamentos dos processos da pasta", async () => {
+    if (!pastaId || !processoOutraPasta || !outraPastaId) {
+      return; // banco sem 2 pastas com processo — nada a comparar
+    }
+    await comRollback(async () => {
+      const daPasta = await inserir({ texto: "andamento da pasta alvo" });
+      const deOutra = await inserir({
+        processo_id: processoOutraPasta,
+        texto: "andamento de outra pasta",
+      });
+
+      const { rows } = await cli.query(
+        `select a.id
+           from andamento a
+           join processo p on p.id = a.processo_id
+          where a.deletado_em is null and p.pasta_id = $1`,
+        [pastaId],
+      );
+      const ids = rows.map((r) => r.id);
+      expect(ids).toContain(daPasta.rows[0].id);
+      expect(ids).not.toContain(deOutra.rows[0].id);
     });
   });
 

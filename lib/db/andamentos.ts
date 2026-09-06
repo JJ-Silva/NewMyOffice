@@ -5,9 +5,14 @@
 // prazo_historico.motivo, publicacao.motivo_descarte). Ver
 // docs/features/tramitacao.md.
 //
-// `registrarAndamento` é o único ponto de INSERT — os 6 gatilhos automáticos
-// (atividade-acoes.ts, atividades/nova/acoes.ts, agenda/acoes.ts, publicacoes.ts)
-// chamam essa mesma função logo depois da escrita que já existe.
+// Todo INSERT em `andamento` mora neste arquivo. Dois modos:
+//   registrarAndamento        → estrito (throw). Usado quando o andamento É a
+//                               ação (anotação manual da tela).
+//   registrarAndamentoSeguro  → best-effort (loga, não derruba). Usado pelos
+//                               GATILHOS automáticos: o andamento é bookkeeping
+//                               derivado — nunca pode fazer concluir/anotar/
+//                               ajustar prazo/importar DJEN falharem por causa
+//                               dele (nem se a migration ainda não rodou).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -139,6 +144,53 @@ export async function registrarAndamento(
   });
   if (error) {
     throw new Error(`Falha ao registrar o andamento: ${error.message}`);
+  }
+}
+
+// Versão para os GATILHOS: nunca propaga. Se o insert do andamento falhar
+// (tabela ainda não migrada, constraint, rede), a ação principal — que já
+// gravou — segue normal e a falha vai só pro log.
+export async function registrarAndamentoSeguro(
+  supabase: SupabaseClient,
+  args: Parameters<typeof registrarAndamento>[1],
+): Promise<void> {
+  try {
+    await registrarAndamento(supabase, args);
+  } catch (e) {
+    console.error(
+      `[tramitacao] andamento não registrado (origem=${args.origem}, processo=${args.processoId}):`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+}
+
+// Lote de andamentos de publicação do DJEN (a importação pode casar muitas
+// publicações de uma vez). Um único INSERT, best-effort como os gatilhos.
+export async function registrarAndamentosDjenEmLote(
+  supabase: SupabaseClient,
+  itens: {
+    escritorioId: string;
+    processoId: string;
+    publicacaoId: string;
+    texto: string;
+  }[],
+): Promise<void> {
+  if (itens.length === 0) return;
+  const { error } = await supabase.from("andamento").insert(
+    itens.map((i) => ({
+      escritorio_id: i.escritorioId,
+      processo_id: i.processoId,
+      autor_membro_id: null,
+      origem: "publicacao_djen" as const,
+      texto: i.texto,
+      publicacao_id: i.publicacaoId,
+    })),
+  );
+  if (error) {
+    console.error(
+      `[tramitacao] ${itens.length} andamento(s) do DJEN não registrados:`,
+      error.message,
+    );
   }
 }
 

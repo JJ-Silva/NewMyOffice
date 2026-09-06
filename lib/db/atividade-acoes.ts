@@ -2,7 +2,7 @@
 // ajustar datas do prazo). §4 Bloco C.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { registrarAndamento } from "@/lib/db/andamentos";
+import { registrarAndamentoSeguro } from "@/lib/db/andamentos";
 
 // A tramitação (feature Tramitação) precisa saber a qual processo/escritório a
 // atividade pertence pra registrar o andamento. Um select barato por id.
@@ -46,7 +46,7 @@ export async function concluirAtividade(
   if (args.observacaoConclusao && args.observacaoConclusao.trim()) {
     const ctx = await contextoDaAtividade(supabase, args.atividadeId);
     if (ctx) {
-      await registrarAndamento(supabase, {
+      await registrarAndamentoSeguro(supabase, {
         escritorioId: ctx.escritorioId,
         processoId: ctx.processoId,
         autorMembroId: args.membroId,
@@ -114,7 +114,7 @@ export async function adicionarObservacao(
   // a ação "anotar" — todas passam por aqui.
   const ctx = await contextoDaAtividade(supabase, args.atividadeId);
   if (ctx) {
-    await registrarAndamento(supabase, {
+    await registrarAndamentoSeguro(supabase, {
       escritorioId: args.escritorioId,
       processoId: ctx.processoId,
       autorMembroId: args.autorId,
@@ -265,7 +265,7 @@ export async function ajustarDatasDoPrazo(
   // Tramitação: o motivo do ajuste manual (obrigatório) vira um andamento.
   const ctx = await contextoDaAtividade(supabase, args.atividadeId);
   if (ctx) {
-    await registrarAndamento(supabase, {
+    await registrarAndamentoSeguro(supabase, {
       escritorioId: args.escritorioId,
       processoId: ctx.processoId,
       autorMembroId: args.membroId,

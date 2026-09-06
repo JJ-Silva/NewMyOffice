@@ -11,7 +11,10 @@ import {
   pareceSemPrazo,
   resumoDaPublicacaoDjen,
 } from "@/lib/domain/publicacao";
-import { registrarAndamento } from "@/lib/db/andamentos";
+import {
+  registrarAndamentoSeguro,
+  registrarAndamentosDjenEmLote,
+} from "@/lib/db/andamentos";
 
 // Na UI "descartada" aparece como "arquivada" — o valor gravado continua
 // 'descartada' (constraint da migration); só o rótulo muda.
@@ -120,24 +123,24 @@ export async function salvarComunicacoes(
     throw new Error(`Falha ao gravar as publicações: ${error.message}`);
   }
 
-  // Tramitação: a publicação que já nasce vinculada a um processo (auto-match
-  // por CNJ) vira um andamento no fio daquele processo. Sem autor — o fato veio
-  // do DJEN, não de uma pessoa.
+  // Tramitação: cada publicação que já nasce vinculada a um processo (auto-match
+  // por CNJ) vira um andamento no fio. Sem autor — o fato veio do DJEN. Um só
+  // INSERT pro lote inteiro.
   const porDjenId = new Map(novas.map((c) => [c.djenId, c]));
-  for (const linha of inseridas ?? []) {
+  const andamentos = (inseridas ?? []).flatMap((linha) => {
     const processoId = linha.processo_id as string | null;
-    if (!processoId) continue;
     const c = porDjenId.get(linha.djen_id as number);
-    if (!c) continue;
-    await registrarAndamento(supabase, {
-      escritorioId,
-      processoId,
-      autorMembroId: null,
-      origem: "publicacao_djen",
-      texto: resumoDaPublicacaoDjen(c),
-      publicacaoId: linha.id as string,
-    });
-  }
+    if (!processoId || !c) return [];
+    return [
+      {
+        escritorioId,
+        processoId,
+        publicacaoId: linha.id as string,
+        texto: resumoDaPublicacaoDjen(c),
+      },
+    ];
+  });
+  await registrarAndamentosDjenEmLote(supabase, andamentos);
 
   return { novas: novas.length, jaExistiam: comunicacoes.length - novas.length };
 }
@@ -252,7 +255,7 @@ export async function arquivarPublicacao(
     .eq("id", args.id)
     .maybeSingle();
   if (!pub?.processo_id) return;
-  await registrarAndamento(supabase, {
+  await registrarAndamentoSeguro(supabase, {
     escritorioId: pub.escritorio_id as string,
     processoId: pub.processo_id as string,
     autorMembroId: args.membroId,
@@ -279,33 +282,28 @@ export async function vincularProcessoNaPublicacao(
   id: string,
   processoId: string,
 ): Promise<void> {
+  // Lê o estado ANTES do update: se a publicação já tinha processo, o andamento
+  // da tramitação já saiu (na captura por auto-match, ou num vínculo anterior).
+  // Checar isso pelo próprio registro — e não consultando `andamento` — evita
+  // depender da RLS de `andamento` (quem só tem 'publicacoes.triar' não a lê).
+  const { data: pub } = await supabase
+    .from("publicacao")
+    .select(
+      "processo_id, escritorio_id, tipo_comunicacao, nome_classe, sigla_tribunal, nome_orgao, data_disponibilizacao, texto",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("publicacao")
     .update({ processo_id: processoId })
     .eq("id", id);
   if (error) throw new Error(`Falha ao vincular o processo: ${error.message}`);
 
-  // Tramitação: gera o andamento da publicação — a menos que já tenha saído na
-  // captura (auto-match por CNJ em salvarComunicacoes).
-  const { data: jaTem } = await supabase
-    .from("andamento")
-    .select("id")
-    .eq("publicacao_id", id)
-    .is("deletado_em", null)
-    .limit(1)
-    .maybeSingle();
-  if (jaTem) return;
+  // Já tinha processo (ou não achou a linha) → nada a registrar aqui.
+  if (!pub || pub.processo_id) return;
 
-  const { data: pub } = await supabase
-    .from("publicacao")
-    .select(
-      "escritorio_id, tipo_comunicacao, nome_classe, sigla_tribunal, nome_orgao, data_disponibilizacao, texto",
-    )
-    .eq("id", id)
-    .maybeSingle();
-  if (!pub) return;
-
-  await registrarAndamento(supabase, {
+  await registrarAndamentoSeguro(supabase, {
     escritorioId: pub.escritorio_id as string,
     processoId,
     autorMembroId: null,

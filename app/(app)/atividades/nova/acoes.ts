@@ -11,7 +11,7 @@ import {
 } from "@/lib/db/atividades";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { criarRecorrencia } from "@/lib/db/recorrencias";
-import { registrarAndamento } from "@/lib/db/andamentos";
+import { registrarAndamentoSeguro } from "@/lib/db/andamentos";
 import { marcarPublicacaoVirouPrazo } from "@/lib/db/publicacoes";
 import {
   validarRegra,
@@ -93,7 +93,7 @@ export async function salvarPrazo(formData: FormData) {
 
   // Tramitação: a justificativa preenchida ao criar vira o 1º andamento.
   if (descricao) {
-    await registrarAndamento(supabase, {
+    await registrarAndamentoSeguro(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       autorMembroId: sessao.membro.id,
@@ -241,7 +241,10 @@ export async function salvarCompromisso(formData: FormData) {
           processoId,
           tipoAtividadeId: tipo.id,
           titulo: texto(formData, "titulo") || null,
-          descricao,
+          // a justificativa da série vira 1 andamento (abaixo), não vai pra
+          // atividade_recorrencia.descricao (senão criarInstancia copiaria o
+          // texto pra toda instância materializada)
+          descricao: null,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
           diasAntesVisivelCustom: null,
@@ -261,6 +264,15 @@ export async function salvarCompromisso(formData: FormData) {
         processoId,
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
+    }
+    if (descricao) {
+      await registrarAndamentoSeguro(supabase, {
+        escritorioId: sessao.escritorioId,
+        processoId,
+        autorMembroId: sessao.membro.id,
+        origem: "criacao_atividade",
+        texto: descricao,
+      });
     }
     redirect("/recorrencias?criada=1");
   }
@@ -287,7 +299,7 @@ export async function salvarCompromisso(formData: FormData) {
     );
   }
   if (descricao) {
-    await registrarAndamento(supabase, {
+    await registrarAndamentoSeguro(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       autorMembroId: sessao.membro.id,
@@ -347,7 +359,10 @@ export async function salvarMonitoramento(formData: FormData) {
           processoId,
           tipoAtividadeId: tipo.id,
           titulo: texto(formData, "titulo") || null,
-          descricao,
+          // a justificativa da série vira 1 andamento (abaixo), não vai pra
+          // atividade_recorrencia.descricao (senão criarInstancia copiaria o
+          // texto pra toda instância materializada)
+          descricao: null,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
           diasAntesVisivelCustom: null,
@@ -365,6 +380,15 @@ export async function salvarMonitoramento(formData: FormData) {
         processoId,
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
+    }
+    if (descricao) {
+      await registrarAndamentoSeguro(supabase, {
+        escritorioId: sessao.escritorioId,
+        processoId,
+        autorMembroId: sessao.membro.id,
+        origem: "criacao_atividade",
+        texto: descricao,
+      });
     }
     redirect("/recorrencias?criada=1");
   }
@@ -389,7 +413,7 @@ export async function salvarMonitoramento(formData: FormData) {
     );
   }
   if (descricao) {
-    await registrarAndamento(supabase, {
+    await registrarAndamentoSeguro(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       autorMembroId: sessao.membro.id,
