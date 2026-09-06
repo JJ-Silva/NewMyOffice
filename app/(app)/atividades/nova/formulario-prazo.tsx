@@ -182,6 +182,17 @@ export function FormularioPrazo({
           />
         </label>
 
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Justificativa/observação (opcional)</span>
+          <textarea
+            name="descricao"
+            defaultValue={campos.descricao}
+            rows={2}
+            placeholder="Contexto do prazo. Fica registrado na tramitação do processo."
+            className="campo"
+          />
+        </label>
+
         <div className="flex gap-3 pt-1">
           <button type="submit" className="botao-primario">
             Calcular prazo
@@ -234,6 +245,7 @@ export function FormularioPrazo({
               }
             />
             <input type="hidden" name="titulo" value={campos.titulo} />
+            <input type="hidden" name="descricao" value={campos.descricao} />
             {campos.publicacaoId && (
               <input
                 type="hidden"

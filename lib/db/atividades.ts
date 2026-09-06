@@ -13,6 +13,7 @@ export type NovoPrazo = {
   processoId: string;
   tipoAtividadeId: string;
   titulo: string | null;
+  descricao: string | null;
   responsavelId: string | null;
   tribunalId: string | null;
   // configuração da contagem
@@ -64,6 +65,7 @@ export async function criarPrazo(
       tipo: "prazo",
       tipo_atividade_id: p.tipoAtividadeId,
       titulo: p.titulo,
+      descricao: p.descricao,
       data: p.prazoFatalCalculado,
       responsavel_id: p.responsavelId,
       status: "pendente",
@@ -105,6 +107,7 @@ export type NovoCompromisso = {
   processoId: string;
   tipoAtividadeId: string;
   titulo: string | null;
+  descricao: string | null;
   responsavelId: string | null;
   data: string; // 'AAAA-MM-DD'
   hora: string | null; // 'HH:MM'
@@ -124,6 +127,7 @@ export async function criarCompromisso(
       tipo: "compromisso",
       tipo_atividade_id: c.tipoAtividadeId,
       titulo: c.titulo,
+      descricao: c.descricao,
       data: c.data,
       responsavel_id: c.responsavelId,
       status: "pendente",
@@ -155,6 +159,7 @@ export type NovoMonitoramento = {
   processoId: string;
   tipoAtividadeId: string;
   titulo: string | null;
+  descricao: string | null;
   responsavelId: string | null;
   data: string; // 'AAAA-MM-DD' (dia da verificação)
   alvo: string | null;
@@ -172,6 +177,7 @@ export async function criarMonitoramento(
       tipo: "monitoramento",
       tipo_atividade_id: m.tipoAtividadeId,
       titulo: m.titulo,
+      descricao: m.descricao,
       data: m.data,
       responsavel_id: m.responsavelId,
       status: "pendente",

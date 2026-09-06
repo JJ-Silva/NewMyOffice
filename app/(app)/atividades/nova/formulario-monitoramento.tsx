@@ -100,6 +100,16 @@ export function FormularioMonitoramento({
           />
         </label>
 
+        <label className="flex flex-col gap-1.5">
+          <span className="rotulo">Justificativa/observação (opcional)</span>
+          <textarea
+            name="descricao"
+            rows={2}
+            placeholder="Por que este monitoramento? Fica registrado na tramitação do processo."
+            className="campo"
+          />
+        </label>
+
         <CamposRecorrencia rotuloData="o dia da verificação" />
 
         <div className="flex gap-3 pt-1">

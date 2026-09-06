@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/atividades";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { criarRecorrencia } from "@/lib/db/recorrencias";
+import { registrarAndamento } from "@/lib/db/andamentos";
 import { marcarPublicacaoVirouPrazo } from "@/lib/db/publicacoes";
 import {
   validarRegra,
@@ -48,6 +49,7 @@ export async function salvarPrazo(formData: FormData) {
     dobro: campos.dobro ? "1" : "",
     dias: campos.diasInformado ? String(campos.diasInformado) : "",
     titulo: campos.titulo,
+    descricao: campos.descricao,
     publicacao: campos.publicacaoId,
   });
 
@@ -58,6 +60,7 @@ export async function salvarPrazo(formData: FormData) {
 
   const { processoId, tipo, natureza, dias, resultado } = calc.dados;
   const titulo = campos.titulo.trim() || null;
+  const descricao = campos.descricao.trim() || null;
 
   let atividadeId: string;
   try {
@@ -66,6 +69,7 @@ export async function salvarPrazo(formData: FormData) {
       processoId,
       tipoAtividadeId: tipo.id,
       titulo,
+      descricao,
       responsavelId: sessao.membro.id,
       tribunalId: campos.tribunalId,
       natureza,
@@ -85,6 +89,18 @@ export async function salvarPrazo(formData: FormData) {
       e instanceof Error ? e.message : "Falha ao salvar o prazo.",
     );
     redirect(`/atividades/nova?${paramsBase.toString()}`);
+  }
+
+  // Tramitação: a justificativa preenchida ao criar vira o 1º andamento.
+  if (descricao) {
+    await registrarAndamento(supabase, {
+      escritorioId: sessao.escritorioId,
+      processoId,
+      autorMembroId: sessao.membro.id,
+      origem: "criacao_atividade",
+      texto: descricao,
+      atividadeId,
+    });
   }
 
   // Veio de uma publicação do DJEN (Etapa 5) → fecha a triagem.
@@ -208,6 +224,7 @@ export async function salvarCompromisso(formData: FormData) {
   }
 
   const duracaoRaw = texto(formData, "duracao");
+  const descricao = texto(formData, "descricao") || null;
 
   // Recorrência (Etapa 3a): cria a régua; ela materializa a 1ª instância.
   if (texto(formData, "repetir") === "1") {
@@ -224,7 +241,7 @@ export async function salvarCompromisso(formData: FormData) {
           processoId,
           tipoAtividadeId: tipo.id,
           titulo: texto(formData, "titulo") || null,
-          descricao: null,
+          descricao,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
           diasAntesVisivelCustom: null,
@@ -248,12 +265,14 @@ export async function salvarCompromisso(formData: FormData) {
     redirect("/recorrencias?criada=1");
   }
 
+  let atividadeId: string;
   try {
-    await criarCompromisso(supabase, {
+    atividadeId = await criarCompromisso(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       tipoAtividadeId: tipo.id,
       titulo: texto(formData, "titulo") || null,
+      descricao,
       responsavelId: sessao.membro.id,
       data,
       hora: texto(formData, "hora") || null,
@@ -266,6 +285,16 @@ export async function salvarCompromisso(formData: FormData) {
       processoId,
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
+  }
+  if (descricao) {
+    await registrarAndamento(supabase, {
+      escritorioId: sessao.escritorioId,
+      processoId,
+      autorMembroId: sessao.membro.id,
+      origem: "criacao_atividade",
+      texto: descricao,
+      atividadeId,
+    });
   }
   redirect("/agenda?lancado=1");
 }
@@ -301,6 +330,8 @@ export async function salvarMonitoramento(formData: FormData) {
     );
   }
 
+  const descricao = texto(formData, "descricao") || null;
+
   // Recorrência (Etapa 3a).
   if (texto(formData, "repetir") === "1") {
     const r = lerRegraDoFormulario(formData, data);
@@ -316,7 +347,7 @@ export async function salvarMonitoramento(formData: FormData) {
           processoId,
           tipoAtividadeId: tipo.id,
           titulo: texto(formData, "titulo") || null,
-          descricao: null,
+          descricao,
           responsavelId: sessao.membro.id,
           prioridadeManual: "media",
           diasAntesVisivelCustom: null,
@@ -338,12 +369,14 @@ export async function salvarMonitoramento(formData: FormData) {
     redirect("/recorrencias?criada=1");
   }
 
+  let atividadeId: string;
   try {
-    await criarMonitoramento(supabase, {
+    atividadeId = await criarMonitoramento(supabase, {
       escritorioId: sessao.escritorioId,
       processoId,
       tipoAtividadeId: tipo.id,
       titulo: texto(formData, "titulo") || null,
+      descricao,
       responsavelId: sessao.membro.id,
       data,
       alvo: texto(formData, "alvo") || null,
@@ -354,6 +387,16 @@ export async function salvarMonitoramento(formData: FormData) {
         processoId,
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
+  }
+  if (descricao) {
+    await registrarAndamento(supabase, {
+      escritorioId: sessao.escritorioId,
+      processoId,
+      autorMembroId: sessao.membro.id,
+      origem: "criacao_atividade",
+      texto: descricao,
+      atividadeId,
+    });
   }
   redirect("/agenda?lancado=1");
 }
