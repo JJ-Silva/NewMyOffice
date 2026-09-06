@@ -15,12 +15,10 @@ export function FioTramitacao({
   dias,
   podePostar,
   acaoPostar,
-  semNada,
 }: {
   dias: DiaFio[];
   podePostar: boolean;
   acaoPostar: (formData: FormData) => void | Promise<void>;
-  semNada: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const total = dias.reduce((n, d) => n + d.mensagens.length, 0);
@@ -34,10 +32,10 @@ export function FioTramitacao({
     <div className="flex flex-col overflow-hidden rounded-xl border border-tint-2 bg-white">
       <div
         ref={scrollRef}
-        className="flex flex-col gap-3.5 overflow-y-auto bg-[#f5fafa] p-4"
+        className="flex flex-col gap-3.5 overflow-y-auto bg-fio-fundo p-4"
         style={{ maxHeight: "62vh", minHeight: "260px" }}
       >
-        {semNada ? (
+        {total === 0 ? (
           <div className="py-12 text-center">
             <p className="text-sm font-medium">Nenhum andamento aqui ainda</p>
             <p className="mt-1 text-[13px] text-texto-secundario">
@@ -66,7 +64,7 @@ export function FioTramitacao({
                   <div
                     className={`flex max-w-[80%] flex-col gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
                       m.ehMeu
-                        ? "border-[#d2e4c6] bg-[#eaf3e4]"
+                        ? "border-fio-meu-borda bg-fio-meu"
                         : "border-tint-2 bg-white"
                     }`}
                   >

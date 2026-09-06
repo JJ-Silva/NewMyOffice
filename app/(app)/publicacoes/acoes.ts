@@ -73,6 +73,7 @@ export async function arquivar(formData: FormData) {
   if (!id) return;
   await arquivarPublicacao(supabase, {
     id,
+    escritorioId: sessao.escritorioId,
     membroId: sessao.membro.id,
     motivo: txt(formData, "motivo") || null,
   });
@@ -113,6 +114,6 @@ export async function vincularProcessoJudicial(formData: FormData) {
     );
   }
 
-  await vincularProcessoNaPublicacao(supabase, id, processoId);
+  await vincularProcessoNaPublicacao(supabase, id, processoId, sessao.escritorioId);
   revalidatePath(`/publicacoes/${id}`);
 }

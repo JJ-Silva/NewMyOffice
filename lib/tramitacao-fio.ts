@@ -4,7 +4,7 @@
 
 import type { AndamentoItem } from "@/lib/db/andamentos";
 import { instanteNoBrasil } from "@/lib/hoje";
-import { nomeDoDiaDaSemana } from "@/lib/domain/datas";
+import { nomeDoDiaDaSemana, somarDias } from "@/lib/domain/datas";
 
 export type MensagemFio = {
   id: string;
@@ -22,11 +22,14 @@ export type MensagemFio = {
 export type DiaFio = { chave: string; rotulo: string; mensagens: MensagemFio[] };
 
 // Cores estáveis por autor (mesmo membro → mesma cor). Sistema = teal.
+// Paleta própria de avatares por pessoa (não faz parte do design system — são
+// só cores distintas o suficiente pra diferenciar autores num balão). Sistema
+// usa o teal do design system.
 const PALETA = [
   "#6D4AAE", "#1D6FA5", "#B45309", "#15803D", "#0E7490",
   "#B91C1C", "#7C5CBF", "#8A6D00", "#475569",
 ];
-const COR_SISTEMA = "#00727E";
+const COR_SISTEMA = "var(--teal)";
 
 function corDoAutor(membroId: string | null): string {
   if (!membroId) return COR_SISTEMA;
@@ -65,9 +68,7 @@ function chipDe(a: AndamentoItem): MensagemFio["chip"] {
 
 function rotuloDoDia(dia: string, hoje: string): string {
   if (dia === hoje) return "Hoje";
-  const [y, m, d] = hoje.split("-").map(Number);
-  const ontem = new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
-  if (dia === ontem) return "Ontem";
+  if (dia === somarDias(hoje, -1)) return "Ontem";
   const [yy, mm, dd] = dia.split("-");
   return `${dd}/${mm}/${yy} · ${nomeDoDiaDaSemana(dia)}`;
 }

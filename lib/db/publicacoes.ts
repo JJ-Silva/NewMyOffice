@@ -231,7 +231,7 @@ export async function contarPublicacoesNovas(
 // O valor gravado em `status` é 'descartada' (constraint da migration).
 export async function arquivarPublicacao(
   supabase: SupabaseClient,
-  args: { id: string; membroId: string; motivo: string | null },
+  args: { id: string; escritorioId: string; membroId: string; motivo: string | null },
 ): Promise<void> {
   const { error } = await supabase
     .from("publicacao")
@@ -251,12 +251,13 @@ export async function arquivarPublicacao(
   if (!motivo) return;
   const { data: pub } = await supabase
     .from("publicacao")
-    .select("escritorio_id, processo_id")
+    .select("processo_id")
     .eq("id", args.id)
+    .eq("escritorio_id", args.escritorioId)
     .maybeSingle();
   if (!pub?.processo_id) return;
   await registrarAndamentoSeguro(supabase, {
-    escritorioId: pub.escritorio_id as string,
+    escritorioId: args.escritorioId,
     processoId: pub.processo_id as string,
     autorMembroId: args.membroId,
     origem: "manual",
@@ -281,6 +282,7 @@ export async function vincularProcessoNaPublicacao(
   supabase: SupabaseClient,
   id: string,
   processoId: string,
+  escritorioId: string,
 ): Promise<void> {
   // Lê o estado ANTES do update: se a publicação já tinha processo, o andamento
   // da tramitação já saiu (na captura por auto-match, ou num vínculo anterior).
@@ -289,9 +291,10 @@ export async function vincularProcessoNaPublicacao(
   const { data: pub } = await supabase
     .from("publicacao")
     .select(
-      "processo_id, escritorio_id, tipo_comunicacao, nome_classe, sigla_tribunal, nome_orgao, data_disponibilizacao, texto",
+      "processo_id, tipo_comunicacao, nome_classe, sigla_tribunal, nome_orgao, data_disponibilizacao, texto",
     )
     .eq("id", id)
+    .eq("escritorio_id", escritorioId)
     .maybeSingle();
 
   const { error } = await supabase
@@ -304,7 +307,7 @@ export async function vincularProcessoNaPublicacao(
   if (!pub || pub.processo_id) return;
 
   await registrarAndamentoSeguro(supabase, {
-    escritorioId: pub.escritorio_id as string,
+    escritorioId,
     processoId,
     autorMembroId: null,
     origem: "publicacao_djen",

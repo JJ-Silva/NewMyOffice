@@ -2,7 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { exigirSessao, exigirPermissao } from "@/lib/supabase/sessao";
+import {
+  exigirSessao,
+  exigirPermissao,
+  type Sessao,
+} from "@/lib/supabase/sessao";
 import { hojeNoBrasil } from "@/lib/hoje";
 import {
   criarPrazo,
@@ -20,6 +24,28 @@ import {
   type Termino,
 } from "@/lib/domain/recorrencia";
 import { lerCampos, calcular } from "./calculo";
+
+// Tramitação: a "Justificativa/observação" preenchida ao criar uma atividade
+// vira o 1º andamento no fio do processo. `atividadeId` fica de fora quando é
+// uma série recorrente (não há uma atividade única). Best-effort (não derruba
+// o cadastro da atividade se o andamento falhar).
+async function registrarJustificativaInicial(
+  supabase: Awaited<ReturnType<typeof criarClienteServidor>>,
+  sessao: Sessao,
+  processoId: string,
+  descricao: string | null,
+  atividadeId?: string,
+): Promise<void> {
+  if (!descricao) return;
+  await registrarAndamentoSeguro(supabase, {
+    escritorioId: sessao.escritorioId,
+    processoId,
+    autorMembroId: sessao.membro.id,
+    origem: "criacao_atividade",
+    texto: descricao,
+    atividadeId,
+  });
+}
 
 // Salva o prazo. RECALCULA tudo do zero — não confia nas datas do formulário.
 export async function salvarPrazo(formData: FormData) {
@@ -91,17 +117,13 @@ export async function salvarPrazo(formData: FormData) {
     redirect(`/atividades/nova?${paramsBase.toString()}`);
   }
 
-  // Tramitação: a justificativa preenchida ao criar vira o 1º andamento.
-  if (descricao) {
-    await registrarAndamentoSeguro(supabase, {
-      escritorioId: sessao.escritorioId,
-      processoId,
-      autorMembroId: sessao.membro.id,
-      origem: "criacao_atividade",
-      texto: descricao,
-      atividadeId,
-    });
-  }
+  await registrarJustificativaInicial(
+    supabase,
+    sessao,
+    processoId,
+    descricao,
+    atividadeId,
+  );
 
   // Veio de uma publicação do DJEN (Etapa 5) → fecha a triagem.
   if (campos.publicacaoId) {
@@ -265,15 +287,7 @@ export async function salvarCompromisso(formData: FormData) {
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
     }
-    if (descricao) {
-      await registrarAndamentoSeguro(supabase, {
-        escritorioId: sessao.escritorioId,
-        processoId,
-        autorMembroId: sessao.membro.id,
-        origem: "criacao_atividade",
-        texto: descricao,
-      });
-    }
+    await registrarJustificativaInicial(supabase, sessao, processoId, descricao);
     redirect("/recorrencias?criada=1");
   }
 
@@ -298,16 +312,13 @@ export async function salvarCompromisso(formData: FormData) {
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
   }
-  if (descricao) {
-    await registrarAndamentoSeguro(supabase, {
-      escritorioId: sessao.escritorioId,
-      processoId,
-      autorMembroId: sessao.membro.id,
-      origem: "criacao_atividade",
-      texto: descricao,
-      atividadeId,
-    });
-  }
+  await registrarJustificativaInicial(
+    supabase,
+    sessao,
+    processoId,
+    descricao,
+    atividadeId,
+  );
   redirect("/agenda?lancado=1");
 }
 
@@ -381,15 +392,7 @@ export async function salvarMonitoramento(formData: FormData) {
         e instanceof Error ? e.message : "Falha ao salvar a recorrência.",
       );
     }
-    if (descricao) {
-      await registrarAndamentoSeguro(supabase, {
-        escritorioId: sessao.escritorioId,
-        processoId,
-        autorMembroId: sessao.membro.id,
-        origem: "criacao_atividade",
-        texto: descricao,
-      });
-    }
+    await registrarJustificativaInicial(supabase, sessao, processoId, descricao);
     redirect("/recorrencias?criada=1");
   }
 
@@ -412,15 +415,12 @@ export async function salvarMonitoramento(formData: FormData) {
       e instanceof Error ? e.message : "Falha ao salvar.",
     );
   }
-  if (descricao) {
-    await registrarAndamentoSeguro(supabase, {
-      escritorioId: sessao.escritorioId,
-      processoId,
-      autorMembroId: sessao.membro.id,
-      origem: "criacao_atividade",
-      texto: descricao,
-      atividadeId,
-    });
-  }
+  await registrarJustificativaInicial(
+    supabase,
+    sessao,
+    processoId,
+    descricao,
+    atividadeId,
+  );
   redirect("/agenda?lancado=1");
 }

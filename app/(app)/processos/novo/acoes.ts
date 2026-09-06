@@ -90,7 +90,12 @@ export async function salvarProcessoJudicial(formData: FormData) {
 
   // Veio da triagem de uma publicação do DJEN (Etapa 5): já vincula.
   if (campos.publicacao) {
-    await vincularProcessoNaPublicacao(supabase, campos.publicacao, processoId);
+    await vincularProcessoNaPublicacao(
+      supabase,
+      campos.publicacao,
+      processoId,
+      sessao.escritorioId,
+    );
   }
 
   // Encadeamento de cadastros → volta pro passo anterior com o processo pronto.

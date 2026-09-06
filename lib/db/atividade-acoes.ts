@@ -2,30 +2,47 @@
 // ajustar datas do prazo). §4 Bloco C.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { registrarAndamentoSeguro } from "@/lib/db/andamentos";
+import {
+  registrarAndamentoSeguro,
+  type OrigemAndamento,
+} from "@/lib/db/andamentos";
 
-// A tramitação (feature Tramitação) precisa saber a qual processo/escritório a
-// atividade pertence pra registrar o andamento. Um select barato por id.
-async function contextoDaAtividade(
+// Tramitação: uma ação sobre uma atividade (concluir com observação, anotar,
+// ajustar prazo) vira um andamento no fio do processo. Descobre o processo pela
+// atividade (1 select barato) e nunca derruba a ação principal.
+async function registrarAndamentoDaAtividade(
   supabase: SupabaseClient,
-  atividadeId: string,
-): Promise<{ escritorioId: string; processoId: string } | null> {
+  args: {
+    atividadeId: string;
+    escritorioId: string;
+    autorMembroId: string;
+    origem: OrigemAndamento;
+    texto: string;
+  },
+): Promise<void> {
+  if (!args.texto.trim()) return;
   const { data } = await supabase
     .from("atividade")
-    .select("escritorio_id, processo_id")
-    .eq("id", atividadeId)
+    .select("processo_id")
+    .eq("id", args.atividadeId)
+    .eq("escritorio_id", args.escritorioId)
     .maybeSingle();
-  if (!data) return null;
-  return {
-    escritorioId: data.escritorio_id as string,
+  if (!data) return;
+  await registrarAndamentoSeguro(supabase, {
+    escritorioId: args.escritorioId,
     processoId: data.processo_id as string,
-  };
+    autorMembroId: args.autorMembroId,
+    origem: args.origem,
+    texto: args.texto,
+    atividadeId: args.atividadeId,
+  });
 }
 
 export async function concluirAtividade(
   supabase: SupabaseClient,
   args: {
     atividadeId: string;
+    escritorioId: string;
     membroId: string;
     dataConclusao: string;
     observacaoConclusao: string | null;
@@ -43,18 +60,14 @@ export async function concluirAtividade(
   if (error) throw new Error(`Falha ao concluir: ${error.message}`);
 
   // Tramitação: a informação de conclusão vira um andamento (§ gatilhos).
-  if (args.observacaoConclusao && args.observacaoConclusao.trim()) {
-    const ctx = await contextoDaAtividade(supabase, args.atividadeId);
-    if (ctx) {
-      await registrarAndamentoSeguro(supabase, {
-        escritorioId: ctx.escritorioId,
-        processoId: ctx.processoId,
-        autorMembroId: args.membroId,
-        origem: "conclusao_atividade",
-        texto: args.observacaoConclusao,
-        atividadeId: args.atividadeId,
-      });
-    }
+  if (args.observacaoConclusao) {
+    await registrarAndamentoDaAtividade(supabase, {
+      atividadeId: args.atividadeId,
+      escritorioId: args.escritorioId,
+      autorMembroId: args.membroId,
+      origem: "conclusao_atividade",
+      texto: args.observacaoConclusao,
+    });
   }
 }
 
@@ -112,17 +125,13 @@ export async function adicionarObservacao(
   // Tramitação: toda anotação (livre, cancelamento, verificação com mudança)
   // entra no fio. Cobre de graça cancelarAtividade / registrarVerificacao /
   // a ação "anotar" — todas passam por aqui.
-  const ctx = await contextoDaAtividade(supabase, args.atividadeId);
-  if (ctx) {
-    await registrarAndamentoSeguro(supabase, {
-      escritorioId: args.escritorioId,
-      processoId: ctx.processoId,
-      autorMembroId: args.autorId,
-      origem: "observacao_atividade",
-      texto: args.texto,
-      atividadeId: args.atividadeId,
-    });
-  }
+  await registrarAndamentoDaAtividade(supabase, {
+    atividadeId: args.atividadeId,
+    escritorioId: args.escritorioId,
+    autorMembroId: args.autorId,
+    origem: "observacao_atividade",
+    texto: args.texto,
+  });
 }
 
 // Registrar verificação de um monitoramento (§4 C.4):
@@ -174,6 +183,7 @@ export async function registrarVerificacao(
   // Sem mudança e sem recorrência (Etapa 1) → conclui.
   await concluirAtividade(supabase, {
     atividadeId: args.atividadeId,
+    escritorioId: args.escritorioId,
     membroId: args.membroId,
     dataConclusao: args.dataHoje,
     observacaoConclusao: args.resultado,
@@ -263,15 +273,11 @@ export async function ajustarDatasDoPrazo(
   // a trigger atividade_prazo_sincroniza_data cuida de atividade.data = prazo_fatal
 
   // Tramitação: o motivo do ajuste manual (obrigatório) vira um andamento.
-  const ctx = await contextoDaAtividade(supabase, args.atividadeId);
-  if (ctx) {
-    await registrarAndamentoSeguro(supabase, {
-      escritorioId: args.escritorioId,
-      processoId: ctx.processoId,
-      autorMembroId: args.membroId,
-      origem: "ajuste_prazo",
-      texto: args.motivo,
-      atividadeId: args.atividadeId,
-    });
-  }
+  await registrarAndamentoDaAtividade(supabase, {
+    atividadeId: args.atividadeId,
+    escritorioId: args.escritorioId,
+    autorMembroId: args.membroId,
+    origem: "ajuste_prazo",
+    texto: args.motivo,
+  });
 }

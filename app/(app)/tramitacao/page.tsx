@@ -13,6 +13,7 @@ import {
   buscarProcessoGeralDaPasta,
   buscarProcessoParaSelecao,
   listarProcessos,
+  type ProcessoLista,
 } from "@/lib/db/processos";
 import { linhasDoProcesso } from "@/lib/domain/rotulo-processo";
 import {
@@ -56,12 +57,9 @@ export default async function PaginaTramitacao({
   }
 
   const temPasta = Boolean(processo.pastaId);
-  const vistaParam =
-    sp.vista === "processo" || sp.vista === "caso" ? sp.vista : null;
-  const vista: "caso" | "processo" =
-    !temPasta || vistaParam === "processo"
-      ? "processo"
-      : (vistaParam ?? "caso");
+  const vista = resolverVista(sp.vista, temPasta);
+  // Na vista "caso" o fio soma todos os processos da pasta; senão, só este.
+  const pastaAgregada = vista === "caso" ? processo.pastaId : null;
 
   const rotulo = linhasDoProcesso({
     tipo: processo.tipo,
@@ -72,15 +70,15 @@ export default async function PaginaTramitacao({
   });
 
   const [andamentos, geralDaPasta, outrosProcessos] = await Promise.all([
-    vista === "caso" && processo.pastaId
-      ? listarAndamentosDaPasta(supabase, sessao.escritorioId, processo.pastaId)
+    pastaAgregada
+      ? listarAndamentosDaPasta(supabase, sessao.escritorioId, pastaAgregada)
       : listarAndamentosDoProcesso(supabase, sessao.escritorioId, processoId),
-    vista === "caso" && processo.pastaId
-      ? buscarProcessoGeralDaPasta(supabase, sessao.escritorioId, processo.pastaId)
+    pastaAgregada
+      ? buscarProcessoGeralDaPasta(supabase, sessao.escritorioId, pastaAgregada)
       : Promise.resolve(null),
-    vista === "caso" && processo.pastaId
-      ? listarProcessos(supabase, sessao.escritorioId, { pastaId: processo.pastaId })
-      : Promise.resolve([]),
+    pastaAgregada
+      ? listarProcessos(supabase, sessao.escritorioId, { pastaId: pastaAgregada })
+      : Promise.resolve<ProcessoLista[]>([]),
   ]);
 
   const dias = montarFio(andamentos, {
@@ -90,8 +88,9 @@ export default async function PaginaTramitacao({
   });
 
   // Post: na vista "caso" grava no "geral" da pasta; senão no processo exibido.
-  const processoDoPost =
-    vista === "caso" ? (geralDaPasta ?? processoId) : processoId;
+  const processoDoPost = pastaAgregada
+    ? (geralDaPasta ?? processoId)
+    : processoId;
 
   // Rótulo inicial do seletor (SSR), pro botão não piscar "Escolher…".
   const inicialSeletor = await buscarProcessoParaSelecao(
@@ -148,10 +147,19 @@ export default async function PaginaTramitacao({
         dias={dias}
         podePostar={podePostar}
         acaoPostar={postarAndamento.bind(null, processoDoPost)}
-        semNada={andamentos.length === 0}
       />
     </Moldura>
   );
+}
+
+// caso: fio agregado da pasta (default quando há pasta). processo: só este
+// número (único modo possível quando o processo não tem pasta).
+function resolverVista(
+  param: string | string[] | undefined,
+  temPasta: boolean,
+): "caso" | "processo" {
+  if (!temPasta || param === "processo") return "processo";
+  return "caso";
 }
 
 function Moldura({

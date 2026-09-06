@@ -42,6 +42,7 @@ export async function concluir(formData: FormData) {
   if (!id) return;
   await concluirAtividade(supabase, {
     atividadeId: id,
+    escritorioId: sessao.escritorioId,
     membroId: sessao.membro.id,
     dataConclusao: hojeNoBrasil(),
     observacaoConclusao: texto(formData, "observacao") || null,
