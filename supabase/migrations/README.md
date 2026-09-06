@@ -30,6 +30,7 @@ Para reaplicar/sincronizar: `npx supabase db push --db-url "<connection string d
 | `..._convite.sql` | **Etapa 6 (Passo D)** — `convite` (email + rótulo + token + validade 14 dias) · RPCs `ver_convite(token)` (público) e `aceitar_convite(token)` (`security definer` — cria o `membro`) · RLS: gerir só com `membros.gerenciar`. |
 | `..._tribunal_codigo_cnj.sql` | `tribunal.codigo_cnj` (= segmento*100+tribunal do CNJ) + índice único · backfill: liga os processos judiciais existentes ao tribunal identificado pelo número. Fonte viva: `lib/domain/tribunais-cnj.ts`. |
 | `..._processo_sem_pasta.sql` | `processo.pasta_id` vira nullable — cadastrar processo não exige mais uma pasta (advogado que só quer gerir prazos). Vínculo tardio via `lib/db/processos.ts` → `vincularPastaAoProcesso`. RLS/trigger `geral`/índice `processo_geral_unico` intocados (nenhum passa pela pasta). |
+| `..._andamento.sql` | **Tramitação** — `andamento` (fio cronológico read-only por processo; `origem` + FKs opcionais `atividade_id`/`publicacao_id`; `autor_membro_id` null só p/ `publicacao_djen`) · índice `andamento_por_processo` · RLS no padrão pós-Etapa 6 (`escritorios_do_usuario` + `tem_permissao(..., 'tramitacao.ver')`) · grupo de permissões `tramitacao` semeado em `semear_rotulos_padrao()` + backfill dos rótulos que já têm a permissão irmã de `atividades`. |
 
 ## Regras
 - Uma migration por mudança. Nunca editar uma já aplicada em produção — criar outra.

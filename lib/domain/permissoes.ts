@@ -33,6 +33,8 @@ export type Permissao =
   | "atividades.ajustar_prazo"
   | "atividades.excluir"
   | "recorrencias.gerenciar"
+  | "tramitacao.ver"
+  | "tramitacao.criar"
   | "publicacoes.ver"
   | "publicacoes.triar"
   | "publicacoes.arquivar"
@@ -179,6 +181,24 @@ export const GRUPOS_PERMISSAO: GrupoPermissao[] = [
     ],
   },
   {
+    chave: "tramitacao",
+    titulo: "Tramitação",
+    verChave: "tramitacao.ver",
+    itens: [
+      {
+        chave: "tramitacao.ver",
+        titulo: "Ver a tramitação",
+        descricao:
+          "Abrir o fio cronológico de andamentos de um processo ou pasta.",
+      },
+      {
+        chave: "tramitacao.criar",
+        titulo: "Postar andamento",
+        descricao: "Escrever uma anotação manual no fio da tramitação.",
+      },
+    ],
+  },
+  {
     chave: "publicacoes",
     titulo: "Publicações (DJEN)",
     verChave: "publicacoes.ver",
@@ -311,6 +331,8 @@ export const PRESET_ADVOGADO: Permissao[] = garantirDependencias([
   "atividades.ajustar_prazo",
   "atividades.excluir",
   "recorrencias.gerenciar",
+  "tramitacao.ver",
+  "tramitacao.criar",
   "publicacoes.triar",
   "publicacoes.arquivar",
   "oab.gerenciar",
@@ -328,6 +350,8 @@ export const PRESET_SECRETARIA: Permissao[] = garantirDependencias([
   "atividades.criar",
   "atividades.concluir",
   "recorrencias.gerenciar",
+  "tramitacao.ver",
+  "tramitacao.criar",
   "publicacoes.triar",
   "publicacoes.arquivar",
 ]);
@@ -339,5 +363,7 @@ export const PRESET_ESTAGIARIO: Permissao[] = garantirDependencias([
   "processos.ver",
   "atividades.criar",
   "atividades.concluir",
+  "tramitacao.ver",
+  "tramitacao.criar",
   "publicacoes.ver",
 ]);
