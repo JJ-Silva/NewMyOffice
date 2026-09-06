@@ -13,6 +13,7 @@ import { buscarPublicacao } from "@/lib/db/publicacoes";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { voltarPara } from "@/lib/navegacao";
 import { arquivar, reabrir, vincularProcessoJudicial } from "../acoes";
 
 export default async function PaginaTriagem({
@@ -22,6 +23,10 @@ export default async function PaginaTriagem({
   const { id } = await params;
   const sp = await searchParams;
   const erro = typeof sp.erro === "string" ? sp.erro : null;
+  const voltar = voltarPara(sp.retorno, {
+    href: "/publicacoes",
+    label: "← Voltar para publicações",
+  });
 
   const sessao = await exigirSessao();
   exigirPermissao(sessao, "publicacoes.ver");
@@ -80,8 +85,8 @@ export default async function PaginaTriagem({
   return (
     <div className="flex max-w-[820px] flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <Link href="/publicacoes" className="link-acao self-start">
-          ← Voltar para publicações
+        <Link href={voltar.href as Route} className="link-acao self-start">
+          {voltar.label}
         </Link>
         <span className="text-xs text-texto-secundario">
           {p.siglaTribunal ?? "—"} · {p.nomeOrgao ?? "órgão não informado"} ·{" "}

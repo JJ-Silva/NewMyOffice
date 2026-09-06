@@ -144,6 +144,17 @@ describe("montarFio — chip e etiqueta de processo", () => {
     expect(d.mensagens[0].chip).toBeNull();
   });
 
+  it("com retorno → o chip carrega ?retorno= (pra tela de destino voltar pro fio)", () => {
+    const url = "/tramitacao?processo=p1&vista=caso";
+    const [d] = montarFio([and({ publicacaoId: "pub1" })], {
+      ...OPTS,
+      retorno: url,
+    });
+    expect(d.mensagens[0].chip?.href).toBe(
+      `/publicacoes/pub1?retorno=${encodeURIComponent(url)}`,
+    );
+  });
+
   it("processoNumero só aparece quando mostrarProcesso", () => {
     const semEtiqueta = montarFio([and()], { ...OPTS, mostrarProcesso: false });
     const comEtiqueta = montarFio([and()], { ...OPTS, mostrarProcesso: true });

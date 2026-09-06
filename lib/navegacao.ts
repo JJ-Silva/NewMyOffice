@@ -45,3 +45,28 @@ export function anexarId(retorno: string, chave: string, id: string): string {
   const sep = retorno.includes("?") ? "&" : "?";
   return `${retorno}${sep}${chave}=${encodeURIComponent(id)}`;
 }
+
+// ── "Voltar" que respeita ?retorno= ────────────────────────────────────────
+// Quando uma tela é aberta a partir de outra (ex.: a Tramitação linka pra uma
+// publicação), ela carrega `?retorno=<url de origem>`. O link "← Voltar" volta
+// pra lá; sem `retorno`, usa o padrão da própria tela.
+
+function rotuloDoDestino(url: string): string {
+  const path = url.split("?")[0];
+  if (path === "/tramitacao") return "a tramitação";
+  if (path === "/agenda" || path.startsWith("/agenda/")) return "a agenda";
+  if (path.startsWith("/pastas/")) return "a pasta";
+  if (path.startsWith("/processos/")) return "o processo";
+  if (path === "/publicacoes" || path.startsWith("/publicacoes/"))
+    return "as publicações";
+  return "a tela anterior";
+}
+
+export function voltarPara(
+  retornoParam: ValorParam,
+  padrao: { href: string; label: string },
+): { href: string; label: string } {
+  const r = lerRetorno(retornoParam);
+  if (!r) return padrao;
+  return { href: r, label: `← Voltar para ${rotuloDoDestino(r)}` };
+}

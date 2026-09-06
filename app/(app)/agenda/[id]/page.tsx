@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { notFound } from "next/navigation";
 import {
   exigirSessao,
@@ -11,6 +12,7 @@ import { formatarDataBR } from "@/lib/domain/datas";
 import { estadoNaAgenda } from "@/lib/domain/atividade";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import { carregarDetalheAtividade } from "@/lib/db/atividade-detalhe";
+import { voltarPara } from "@/lib/navegacao";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import {
   concluir,
@@ -51,6 +53,10 @@ export default async function PaginaDetalheAtividade({
   const { id } = await params;
   const sp = await searchParams;
   const erro = typeof sp.erro === "string" ? sp.erro : null;
+  const voltar = voltarPara(sp.retorno, {
+    href: "/agenda",
+    label: "← Voltar para a agenda",
+  });
 
   const sessao = await exigirSessao();
   exigirPermissao(sessao, "atividades.ver");
@@ -83,8 +89,8 @@ export default async function PaginaDetalheAtividade({
   return (
     <div className="flex max-w-[820px] flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <Link href="/agenda" className="link-acao self-start">
-          ← Voltar para a agenda
+        <Link href={voltar.href as Route} className="link-acao self-start">
+          {voltar.label}
         </Link>
         <span className="text-sm font-semibold text-texto">
           {d.pastaNome ?? d.pastaCodigo ?? "Processo avulso"}

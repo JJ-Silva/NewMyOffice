@@ -53,15 +53,17 @@ const CHIP_TIPO: Record<string, string> = {
   monitoramento: "⏳ ver monitoramento",
 };
 
-function chipDe(a: AndamentoItem): MensagemFio["chip"] {
+function chipDe(a: AndamentoItem, retorno: string | undefined): MensagemFio["chip"] {
+  // leva ?retorno= pra tela de destino ter um "← Voltar" que traz de volta pro fio
+  const q = retorno ? `?retorno=${encodeURIComponent(retorno)}` : "";
   if (a.atividadeId) {
     return {
-      href: `/agenda/${a.atividadeId}`,
+      href: `/agenda/${a.atividadeId}${q}`,
       texto: CHIP_TIPO[a.atividadeTipo ?? ""] ?? "⏳ ver atividade",
     };
   }
   if (a.publicacaoId) {
-    return { href: `/publicacoes/${a.publicacaoId}`, texto: "📄 ver publicação" };
+    return { href: `/publicacoes/${a.publicacaoId}${q}`, texto: "📄 ver publicação" };
   }
   return null;
 }
@@ -75,7 +77,13 @@ function rotuloDoDia(dia: string, hoje: string): string {
 
 export function montarFio(
   andamentos: AndamentoItem[],
-  opts: { meuMembroId: string; hoje: string; mostrarProcesso: boolean },
+  opts: {
+    meuMembroId: string;
+    hoje: string;
+    mostrarProcesso: boolean;
+    // url da própria tela, pra tela de destino do chip poder voltar pra cá
+    retorno?: string;
+  },
 ): DiaFio[] {
   const dias: DiaFio[] = [];
   for (const a of andamentos) {
@@ -96,7 +104,7 @@ export function montarFio(
       ehMeu: a.autorMembroId !== null && a.autorMembroId === opts.meuMembroId,
       hora,
       processoNumero: opts.mostrarProcesso ? a.processoNumero : null,
-      chip: chipDe(a),
+      chip: chipDe(a, opts.retorno),
     });
   }
   return dias;

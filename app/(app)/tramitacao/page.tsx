@@ -109,10 +109,13 @@ export default async function PaginaTramitacao({
       : Promise.resolve<ProcessoLista[]>([]),
   ]);
 
+  const urlAtual = `/tramitacao?processo=${encodeURIComponent(processoId)}&vista=${vista}`;
+
   const dias = montarFio(andamentos, {
     meuMembroId: sessao.membro.id,
     hoje: hojeNoBrasil(),
     mostrarProcesso: vista === "caso",
+    retorno: urlAtual,
   });
 
   // Post: na vista "caso" grava no "geral" da pasta; senão no processo exibido.
