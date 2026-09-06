@@ -1,7 +1,11 @@
 # Plano — Tramitação (fio cronológico de andamentos, por processo e por pasta)
 
-> Branch: `feat/tramitacao` (a partir da `master` atualizada).
-> **Migration nova e aditiva** — 1 tabela nova (`andamento`), sem alterar nenhuma tabela existente.
+> **Estado (2026-09-06): concluído, mergeado na `master` e deployado.**
+> Migrations aplicadas: `20260906120000_andamento` (tabela + permissões) e
+> `20260906130000_tramitacao_backfill` (histórico pré-feature, INSERT-only).
+> Tela `/tramitacao` no menu lateral, fio estilo chat (ver "Revisão de design"
+> na seção UI). As seções "Fatia vertical mínima" e "Checklist" abaixo são
+> históricas.
 
 ---
 

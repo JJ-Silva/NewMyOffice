@@ -69,6 +69,20 @@ export default async function PaginaTramitacao({
     clienteNome: processo.clienteNome,
   });
 
+  // Cabeçalho: na vista "caso" lidera pela pasta; na "processo", pelo número.
+  const cabecalho =
+    vista === "caso"
+      ? {
+          titulo: processo.pastaNome ?? processo.pastaCodigo ?? "Caso",
+          sub: [processo.pastaCodigo, processo.clienteNome]
+            .filter(Boolean)
+            .join(" · "),
+        }
+      : {
+          titulo: rotulo.primario,
+          sub: rotulo.secundario || "processo sem pasta",
+        };
+
   const [andamentos, geralDaPasta, outrosProcessos] = await Promise.all([
     pastaAgregada
       ? listarAndamentosDaPasta(supabase, sessao.escritorioId, pastaAgregada)
@@ -115,12 +129,13 @@ export default async function PaginaTramitacao({
     >
       <div className="flex flex-col gap-3 rounded-xl border border-tint-2 bg-white p-4">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[15px] font-semibold">{rotulo.primario}</span>
+          <span className="text-[15px] font-semibold">{cabecalho.titulo}</span>
           <span className="text-[12.5px] text-texto-secundario">
-            {rotulo.secundario || "processo sem pasta"}
+            {cabecalho.sub}
           </span>
           {vista === "caso" && outrosProcessos.length > 0 && (
             <span className="text-xs tabular-nums text-texto-secundario">
+              Processos:{" "}
               {outrosProcessos
                 .map((p) => p.numero ?? "sem número")
                 .join("  ·  ")}
