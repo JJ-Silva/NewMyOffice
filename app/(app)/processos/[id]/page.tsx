@@ -26,6 +26,7 @@ export default async function PaginaEditarProcesso({
   exigirPermissao(sessao, "processos.ver");
   const podeEditar = sessaoPode(sessao, "processos.editar");
   const podeExcluir = sessaoPode(sessao, "processos.excluir");
+  const podeVerTramitacao = sessaoPode(sessao, "tramitacao.ver");
   const supabase = await criarClienteServidor();
   const processo = await buscarProcesso(supabase, sessao.escritorioId, id);
   if (!processo) notFound();
@@ -54,6 +55,14 @@ export default async function PaginaEditarProcesso({
         <h1 className="titulo-pagina">
           {processo.numero ?? "Editar processo"}
         </h1>
+        {podeVerTramitacao && (
+          <Link
+            href={`/processos/${processo.id}/tramitacao`}
+            className="link-acao self-start"
+          >
+            Ver tramitação deste processo →
+          </Link>
+        )}
       </div>
 
       {erro && (

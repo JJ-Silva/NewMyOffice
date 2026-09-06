@@ -44,6 +44,7 @@ export default async function PaginaPasta({
   const podeMexerProcesso = sessaoPode(sessao, "processos.editar");
   const podeCriarProcesso = sessaoPode(sessao, "processos.criar");
   const podeLancarAtividade = sessaoPode(sessao, "atividades.criar");
+  const podeVerTramitacao = sessaoPode(sessao, "tramitacao.ver");
   const supabase = await criarClienteServidor();
   const pasta = await buscarPasta(supabase, sessao.escritorioId, id);
   if (!pasta) {
@@ -109,6 +110,11 @@ export default async function PaginaPasta({
         <Link href={`/agenda?pasta=${pasta.id}&tudo=1`} className="botao-secundario">
           Ver agenda desta pasta
         </Link>
+        {podeVerTramitacao && (
+          <Link href={`/pastas/${pasta.id}/tramitacao`} className="botao-secundario">
+            Tramitação
+          </Link>
+        )}
       </div>
 
       {/* Editar */}
