@@ -48,13 +48,27 @@ export default async function PaginaTramitacao({
   // Nada escolhido e ninguém tem andamento ainda.
   if (!processo) {
     return (
-      <Moldura seletor={<SeletorProcessoTramitacao />}>
+      <Moldura
+        voltar={{ href: "/agenda", label: "← Voltar para a agenda" }}
+        seletor={<SeletorProcessoTramitacao />}
+      >
         <div className="painel-vazio">
           Escolha um processo ou pasta acima para ver a tramitação.
         </div>
       </Moldura>
     );
   }
+
+  // "Voltar" contextual: a pasta é o hub do caso; processo avulso volta pra si.
+  const voltar = processo.pastaId
+    ? {
+        href: `/pastas/${processo.pastaId}` as Route,
+        label: "← Voltar para a pasta",
+      }
+    : {
+        href: `/processos/${processoId}` as Route,
+        label: "← Voltar para o processo",
+      };
 
   const temPasta = Boolean(processo.pastaId);
   const vista = resolverVista(sp.vista, temPasta);
@@ -120,6 +134,7 @@ export default async function PaginaTramitacao({
 
   return (
     <Moldura
+      voltar={voltar}
       seletor={
         <SeletorProcessoTramitacao
           processoAtual={processoId}
@@ -178,15 +193,20 @@ function resolverVista(
 }
 
 function Moldura({
+  voltar,
   seletor,
   children,
 }: {
+  voltar: { href: Route; label: string };
   seletor: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className="flex max-w-[900px] flex-col gap-4">
       <div className="flex flex-col gap-1.5">
+        <Link href={voltar.href} className="link-acao self-start">
+          {voltar.label}
+        </Link>
         <h1 className="titulo-pagina">Tramitação</h1>
         <p className="subtitulo-pagina">
           O fio de cada caso — o que o sistema capturou e o que a equipe anotou,
