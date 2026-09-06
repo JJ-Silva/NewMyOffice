@@ -48,6 +48,7 @@ export function Sidebar({
       { href: "/clientes", label: "Clientes", exige: "clientes.ver" },
       { href: "/pastas", label: "Pastas", exige: "pastas.ver" },
       { href: "/processos", label: "Processos", exige: "processos.ver" },
+      { href: "/tramitacao", label: "Tramitação", exige: "tramitacao.ver" },
     ] satisfies ItemNav[]
   ).filter((item) => pode(item.exige));
 

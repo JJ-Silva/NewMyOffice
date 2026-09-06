@@ -29,7 +29,9 @@ export type AndamentoItem = {
   texto: string;
   origem: OrigemAndamento;
   // null → exibir como "Sistema" (só acontece em origem='publicacao_djen')
+  autorMembroId: string | null;
   autorNome: string | null;
+  autorPapel: string | null; // rótulo do autor (ex.: "Advogado"), pra linha do balão
   criadoEm: string;
   // a qual processo este andamento pertence (útil na visão por pasta)
   processoId: string;
@@ -42,15 +44,15 @@ export type AndamentoItem = {
 
 // Visão por processo: junta o processo pra trazer o número.
 const SELECT_POR_PROCESSO = `
-  id, texto, origem, criado_em, processo_id, atividade_id, publicacao_id,
-  autor:autor_membro_id ( usuario:usuario_id ( nome ) ),
+  id, texto, origem, criado_em, processo_id, atividade_id, publicacao_id, autor_membro_id,
+  autor:autor_membro_id ( usuario:usuario_id ( nome ), rotulo:rotulo_id ( nome ) ),
   atividade:atividade_id ( tipo ),
   processo:processo_id ( numero, pasta_id )`;
 
 // Visão por pasta: `!inner` pra poder filtrar por processo.pasta_id.
 const SELECT_POR_PASTA = `
-  id, texto, origem, criado_em, processo_id, atividade_id, publicacao_id,
-  autor:autor_membro_id ( usuario:usuario_id ( nome ) ),
+  id, texto, origem, criado_em, processo_id, atividade_id, publicacao_id, autor_membro_id,
+  autor:autor_membro_id ( usuario:usuario_id ( nome ), rotulo:rotulo_id ( nome ) ),
   atividade:atividade_id ( tipo ),
   processo:processo_id!inner ( numero, pasta_id )`;
 
@@ -94,6 +96,23 @@ export async function listarAndamentosDaPasta(
     throw new Error(`Falha ao listar a tramitação da pasta: ${error.message}`);
   }
   return (data ?? []).map(mapear);
+}
+
+// Qual processo mostrar quando a tela abre sem `?processo=` — o do andamento
+// mais recente do escritório. Null = ninguém tem andamento ainda.
+export async function processoComAndamentoMaisRecente(
+  supabase: SupabaseClient,
+  escritorioId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("andamento")
+    .select("processo_id")
+    .eq("escritorio_id", escritorioId)
+    .is("deletado_em", null)
+    .order("criado_em", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data?.processo_id as string | null) ?? null;
 }
 
 // Anotação manual escrita direto na tela da Tramitação (sem vínculo).
@@ -202,8 +221,12 @@ function mapear(linha: Record<string, unknown>): AndamentoItem {
     id: linha.id as string,
     texto: linha.texto as string,
     origem: linha.origem as OrigemAndamento,
+    autorMembroId: (linha.autor_membro_id as string | null) ?? null,
     autorNome:
       um<{ nome: string }>(um<{ usuario: unknown }>(linha.autor)?.usuario)
+        ?.nome ?? null,
+    autorPapel:
+      um<{ nome: string }>(um<{ rotulo: unknown }>(linha.autor)?.rotulo)
         ?.nome ?? null,
     criadoEm: linha.criado_em as string,
     processoId: linha.processo_id as string,

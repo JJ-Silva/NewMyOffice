@@ -35,6 +35,7 @@ export function BuscaSeletor({
   tituloModal,
   placeholder,
   required = false,
+  aoEscolher,
 }: {
   name: string;
   endpoint: string;
@@ -44,6 +45,9 @@ export function BuscaSeletor({
   tituloModal: string;
   placeholder: string;
   required?: boolean;
+  // quando presente, é chamado além de atualizar o campo escondido — usado pela
+  // Tramitação pra navegar assim que se escolhe um processo (sem botão "enviar")
+  aoEscolher?: (id: string, rotulo: string) => void;
 }) {
   const [escolha, setEscolha] = useState<{ id: string; rotulo: string } | null>(
     valorInicial && rotuloInicial
@@ -64,6 +68,7 @@ export function BuscaSeletor({
     setEscolha({ id: item.id, rotulo: item.primario });
     setAberto(false);
     dispararRef.current?.focus();
+    aoEscolher?.(item.id, item.primario);
   }
 
   return (

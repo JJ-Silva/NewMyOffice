@@ -1,130 +1,129 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { formatarDataHoraBrasil } from "@/lib/hoje";
-import type { AndamentoItem } from "@/lib/db/andamentos";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import type { DiaFio } from "@/lib/tramitacao-fio";
 
-// O fio cronológico da Tramitação: lista os andamentos do mais antigo pro mais
-// recente (o novo fica embaixo, como o protótipo) e, no rodapé, um textarea pra
-// postar uma anotação manual. Sem filtro, sem anexo (fora do escopo da fatia).
-
-const ROTULO_ORIGEM: Record<AndamentoItem["origem"], string> = {
-  manual: "Anotação",
-  criacao_atividade: "Atividade criada",
-  conclusao_atividade: "Conclusão",
-  observacao_atividade: "Anotação",
-  ajuste_prazo: "Ajuste de prazo",
-  publicacao_djen: "Publicação (DJEN)",
-};
-
-function linkDoItem(a: AndamentoItem): { href: Route; texto: string } | null {
-  if (a.atividadeId) {
-    const nome =
-      a.atividadeTipo === "prazo"
-        ? "prazo"
-        : a.atividadeTipo === "compromisso"
-          ? "compromisso"
-          : a.atividadeTipo === "monitoramento"
-            ? "monitoramento"
-            : "atividade";
-    return { href: `/agenda/${a.atividadeId}` as Route, texto: `ver ${nome}` };
-  }
-  if (a.publicacaoId) {
-    return {
-      href: `/publicacoes/${a.publicacaoId}` as Route,
-      texto: "ver publicação",
-    };
-  }
-  return null;
-}
+// O fio da Tramitação como um grupo de mensagens: agrupado por dia, balões de
+// chat (o autor logado à direita), avatar colorido, hora, chip pro prazo/
+// publicação. Rodapé com o compositor. Rola pro fim ao abrir e ao chegar msg.
+// Sem filtro, sem anexo (Storage/Etapa 4).
 
 export function FioTramitacao({
-  andamentos,
+  dias,
   podePostar,
   acaoPostar,
-  processos,
-  mostrarProcesso = false,
+  semNada,
 }: {
-  andamentos: AndamentoItem[];
+  dias: DiaFio[];
   podePostar: boolean;
   acaoPostar: (formData: FormData) => void | Promise<void>;
-  // quando presente (visão por pasta), o rodapé mostra um seletor de processo —
-  // o 1º da lista é o default (a página passa o "geral" da pasta primeiro)
-  processos?: { id: string; rotulo: string }[];
-  // mostra o número do processo em cada item (visão por pasta)
-  mostrarProcesso?: boolean;
+  semNada: boolean;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const total = dias.reduce((n, d) => n + d.mensagens.length, 0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [total]);
+
   return (
-    <div className="flex flex-col gap-4">
-      {andamentos.length === 0 ? (
-        <p className="painel-vazio">Nada registrado na tramitação ainda.</p>
-      ) : (
-        <ol className="flex flex-col gap-3">
-          {andamentos.map((a) => {
-            const link = linkDoItem(a);
-            return (
-              <li key={a.id} className="card flex flex-col gap-1.5 p-4">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-texto-secundario">
-                  <span className="rounded bg-fundo px-1.5 py-0.5 text-teal">
-                    {ROTULO_ORIGEM[a.origem]}
+    <div className="flex flex-col overflow-hidden rounded-xl border border-tint-2 bg-white">
+      <div
+        ref={scrollRef}
+        className="flex flex-col gap-3.5 overflow-y-auto bg-[#f5fafa] p-4"
+        style={{ maxHeight: "62vh", minHeight: "260px" }}
+      >
+        {semNada ? (
+          <div className="py-12 text-center">
+            <p className="text-sm font-medium">Nenhum andamento aqui ainda</p>
+            <p className="mt-1 text-[13px] text-texto-secundario">
+              Escreva o primeiro no campo abaixo — as publicações do diário
+              entram sozinhas.
+            </p>
+          </div>
+        ) : (
+          dias.map((dia) => (
+            <div key={dia.chave} className="flex flex-col gap-3">
+              <span className="self-center rounded-full border border-tint-2 bg-white px-3 py-1 text-[11.5px] font-semibold text-texto-secundario">
+                {dia.rotulo}
+              </span>
+              {dia.mensagens.map((m) => (
+                <div
+                  key={m.id}
+                  className={`flex items-end gap-2.5 ${m.ehMeu ? "flex-row-reverse" : ""}`}
+                >
+                  <span
+                    className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-[11px] font-bold text-white"
+                    style={{ background: m.cor }}
+                    title={m.autorNome}
+                  >
+                    {m.iniciais}
                   </span>
-                  <span>{a.autorNome ?? "Sistema"}</span>
-                  <span>·</span>
-                  <span>{formatarDataHoraBrasil(a.criadoEm)}</span>
-                  {mostrarProcesso && a.processoNumero && (
-                    <>
-                      <span>·</span>
-                      <span className="tabular-nums">{a.processoNumero}</span>
-                    </>
-                  )}
-                  {link && (
-                    <Link
-                      href={link.href}
-                      className="font-medium text-teal hover:underline"
-                    >
-                      {link.texto}
-                    </Link>
-                  )}
+                  <div
+                    className={`flex max-w-[80%] flex-col gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
+                      m.ehMeu
+                        ? "border-[#d2e4c6] bg-[#eaf3e4]"
+                        : "border-tint-2 bg-white"
+                    }`}
+                  >
+                    <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: m.cor }}
+                      >
+                        {m.autorNome}
+                      </span>
+                      {m.autorPapel && (
+                        <span className="text-[11px] text-texto-secundario">
+                          {m.autorPapel}
+                        </span>
+                      )}
+                      {m.processoNumero && (
+                        <span className="text-[11px] tabular-nums text-texto-secundario">
+                          ⚖ {m.processoNumero}
+                        </span>
+                      )}
+                    </span>
+                    <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">
+                      {m.texto}
+                    </p>
+                    {m.chip && (
+                      <Link
+                        href={m.chip.href as Route}
+                        className="self-start rounded-lg border border-tint-3 bg-white px-2.5 py-1 text-xs font-semibold text-teal hover:no-underline"
+                      >
+                        {m.chip.texto}
+                      </Link>
+                    )}
+                    <span className="self-end text-[10.5px] text-texto-secundario">
+                      {m.hora}
+                    </span>
+                  </div>
                 </div>
-                <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">
-                  {a.texto}
-                </p>
-              </li>
-            );
-          })}
-        </ol>
-      )}
+              ))}
+            </div>
+          ))
+        )}
+      </div>
 
       {podePostar && (
-        <form action={acaoPostar} className="card flex flex-col gap-3 p-4">
-          {processos && processos.length > 0 && (
-            <label className="flex flex-col gap-1.5">
-              <span className="rotulo">Processo</span>
-              <select
-                name="processo_id"
-                className="campo"
-                defaultValue={processos[0].id}
-              >
-                {processos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.rotulo}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <label className="flex flex-col gap-1.5">
-            <span className="rotulo">Nova anotação</span>
-            <textarea
-              name="texto"
-              required
-              rows={3}
-              placeholder="O que aconteceu no caso…"
-              className="campo"
-            />
-          </label>
-          <BotaoEnviar className="botao-primario h-[38px] self-start">
-            Registrar
+        <form
+          action={acaoPostar}
+          className="flex items-end gap-2.5 border-t border-tint-2 bg-white p-3"
+        >
+          <textarea
+            name="texto"
+            required
+            rows={2}
+            placeholder="Escrever um andamento…"
+            className="campo min-h-[52px] flex-1 resize-y"
+          />
+          <BotaoEnviar className="botao-primario h-[38px] px-4">
+            Enviar
           </BotaoEnviar>
         </form>
       )}
