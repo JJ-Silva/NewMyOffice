@@ -1,6 +1,13 @@
 "use client";
 
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { filtrarOpcoes, type OpcaoComboBox } from "@/lib/combobox-filtro";
 
 export type { OpcaoComboBox };
@@ -55,7 +62,17 @@ export function ComboBox(props: Props) {
   const [realce, setRealce] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const listaRef = useRef<HTMLUListElement>(null);
   const listaId = useId();
+
+  // Mantém a opção em realce visível enquanto navega pelas setas.
+  useEffect(() => {
+    if (!aberto) return;
+    const alvo = listaRef.current?.querySelector<HTMLElement>(
+      `[data-indice="${realce}"]`,
+    );
+    alvo?.scrollIntoView({ block: "nearest" });
+  }, [realce, aberto]);
 
   const rotuloAtual = rotuloDe(valor);
   const exibido = foco ? rascunho : rotuloAtual;
@@ -147,6 +164,7 @@ export function ComboBox(props: Props) {
 
       {aberto && !disabled && (
         <ul
+          ref={listaRef}
           id={listaId}
           role="listbox"
           className="absolute left-0 right-0 z-30 mt-1 max-h-64 overflow-auto rounded-lg border border-tint-2 bg-white py-1 shadow-lg"
@@ -162,6 +180,7 @@ export function ComboBox(props: Props) {
                   type="button"
                   role="option"
                   aria-selected={o.value === valor}
+                  data-indice={i}
                   data-realce={i === realce || undefined}
                   onMouseEnter={() => setRealce(i)}
                   onMouseDown={(e) => {
