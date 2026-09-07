@@ -205,7 +205,7 @@ function Moldura({
   children: ReactNode;
 }) {
   return (
-    <div className="flex max-w-[900px] flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <Link href={voltar.href} className="link-acao self-start">
           {voltar.label}

@@ -62,7 +62,7 @@ export function FioTramitacao({
                     {m.iniciais}
                   </span>
                   <div
-                    className={`flex max-w-[80%] flex-col gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
+                    className={`flex max-w-[min(80%,720px)] flex-col gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
                       m.ehMeu
                         ? "border-fio-meu-borda bg-fio-meu"
                         : "border-tint-2 bg-white"
