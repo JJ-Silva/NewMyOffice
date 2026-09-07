@@ -1,21 +1,15 @@
 // Filtro puro do ComboBox — separado do componente pra ser testável.
 
-export type OpcaoComboBox = { value: string; label: string; sub?: string };
+import { normalizarTexto } from "./texto";
 
-function normaliza(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "") // tira acentos
-    .toLowerCase()
-    .trim();
-}
+export type OpcaoComboBox = { value: string; label: string; sub?: string };
 
 // Acento-insensível, casa em qualquer parte do label. Texto vazio → tudo.
 export function filtrarOpcoes(
   opcoes: OpcaoComboBox[],
   texto: string,
 ): OpcaoComboBox[] {
-  const q = normaliza(texto);
+  const q = normalizarTexto(texto);
   if (!q) return opcoes;
-  return opcoes.filter((o) => normaliza(o.label).includes(q));
+  return opcoes.filter((o) => normalizarTexto(o.label).includes(q));
 }

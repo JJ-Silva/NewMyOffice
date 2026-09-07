@@ -7,12 +7,18 @@ import {
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { listarClientes } from "@/lib/db/clientes";
 import { formatarCpfCnpj } from "@/lib/domain/documento";
+import { filtrarClientes } from "@/lib/domain/busca-cliente";
 
-export default async function PaginaClientes() {
+export default async function PaginaClientes({
+  searchParams,
+}: PageProps<"/clientes">) {
   const sessao = await exigirSessao();
   exigirPermissao(sessao, "clientes.ver");
   const supabase = await criarClienteServidor();
-  const clientes = await listarClientes(supabase, sessao.escritorioId);
+  const params = await searchParams;
+  const busca = typeof params.q === "string" ? params.q.trim() : "";
+  const todos = await listarClientes(supabase, sessao.escritorioId);
+  const clientes = filtrarClientes(todos, busca);
   const podeCriarCliente = sessaoPode(sessao, "clientes.criar");
   const podeCriarPasta = sessaoPode(sessao, "pastas.criar");
   const podeEditarCliente = sessaoPode(sessao, "clientes.editar");
@@ -23,8 +29,9 @@ export default async function PaginaClientes() {
         <div className="flex flex-col gap-1.5">
           <h1 className="titulo-pagina">Clientes</h1>
           <p className="subtitulo-pagina">
-            {clientes.length} cliente{clientes.length === 1 ? "" : "s"}{" "}
-            cadastrado{clientes.length === 1 ? "" : "s"}
+            {busca
+              ? `${clientes.length} de ${todos.length} cliente${todos.length === 1 ? "" : "s"}`
+              : `${todos.length} cliente${todos.length === 1 ? "" : "s"} cadastrado${todos.length === 1 ? "" : "s"}`}
           </p>
         </div>
         {podeCriarCliente && (
@@ -34,11 +41,42 @@ export default async function PaginaClientes() {
         )}
       </div>
 
-      {clientes.length === 0 ? (
+      {todos.length > 0 && (
+        <form
+          method="get"
+          action="/clientes"
+          className="card flex flex-wrap items-end gap-3 p-4"
+        >
+          <label className="flex min-w-[240px] flex-1 flex-col gap-1.5">
+            <span className="rotulo">Buscar</span>
+            <input
+              type="search"
+              name="q"
+              defaultValue={busca}
+              placeholder="Nome, e-mail ou CPF/CNPJ"
+              className="campo"
+            />
+          </label>
+          <button type="submit" className="botao-primario h-[38px]">
+            Buscar
+          </button>
+          {busca && (
+            <Link href="/clientes" className="link-acao pb-2.5">
+              Limpar
+            </Link>
+          )}
+        </form>
+      )}
+
+      {todos.length === 0 ? (
         <div className="painel-vazio">
           {podeCriarCliente
             ? "Nenhum cliente cadastrado. Comece por “+ Novo cliente” — o fluxo leva à criação da pasta."
             : "Nenhum cliente cadastrado."}
+        </div>
+      ) : clientes.length === 0 ? (
+        <div className="painel-vazio">
+          Nenhum cliente para “{busca}”.
         </div>
       ) : (
         <div className="flex flex-col gap-2 overflow-x-auto pb-1">
