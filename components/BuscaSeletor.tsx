@@ -205,6 +205,14 @@ function ModalBusca({
     return () => clearTimeout(t);
   }, [q, buscar]);
 
+  // Mantém a linha em realce visível ao navegar pelas setas.
+  useEffect(() => {
+    const alvo = listaRef.current?.querySelector<HTMLElement>(
+      `[data-indice="${realce}"]`,
+    );
+    alvo?.scrollIntoView({ block: "nearest" });
+  }, [realce]);
+
   // Scroll infinito: observa a sentinela dentro da própria lista (root).
   useEffect(() => {
     const alvo = sentinelaRef.current;
@@ -303,6 +311,7 @@ function ModalBusca({
                     type="button"
                     onClick={() => aoEscolher(item)}
                     onMouseEnter={() => setRealce(i)}
+                    data-indice={i}
                     data-realce={i === realce ? "" : undefined}
                     className="busca-linha"
                   >
