@@ -4,6 +4,7 @@ import { somarDias, formatarDataBR } from "@/lib/domain/datas";
 import { REGRAS_TIPO } from "@/lib/domain/atividade";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { SeletorProcesso } from "@/components/SeletorProcesso";
 import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarCompromisso } from "./acoes";
@@ -57,16 +58,12 @@ export function FormularioCompromisso({
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Tipo de compromisso</span>
-          <select name="tipo" required className="campo" defaultValue="">
-            <option value="" disabled>
-              Selecione o tipo…
-            </option>
-            {tipos.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.nome}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="tipo"
+            required
+            placeholder="Selecione o tipo…"
+            opcoes={tipos.map((t) => ({ value: t.id, label: t.nome }))}
+          />
         </label>
 
         <div className="grid gap-4 [grid-template-columns:1fr_120px_120px]">

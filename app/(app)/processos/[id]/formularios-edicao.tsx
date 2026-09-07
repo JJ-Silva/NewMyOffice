@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { analisarCnj } from "@/lib/domain/cnj";
 import {
   identificarTribunal,
@@ -165,21 +166,16 @@ export function FormularioJudicial({
         </Campo>
 
         <Campo rotulo={ehCnj ? "Tribunal (pelo número)" : "Tribunal"}>
-          <select
-            key={tribunalDefault}
+          <ComboBox
+            key={String(tribunalDefault ?? "")}
             name="tribunal_codigo"
-            defaultValue={tribunalDefault}
-            className="campo"
-          >
-            <option value="" disabled>
-              Selecione o tribunal…
-            </option>
-            {TRIBUNAIS_CONHECIDOS.map((t) => (
-              <option key={t.codigo} value={t.codigo}>
-                {t.sigla} — {t.nome}
-              </option>
-            ))}
-          </select>
+            valorInicial={String(tribunalDefault ?? "")}
+            placeholder="Selecione o tribunal…"
+            opcoes={TRIBUNAIS_CONHECIDOS.map((t) => ({
+              value: String(t.codigo),
+              label: `${t.sigla} — ${t.nome}`,
+            }))}
+          />
         </Campo>
 
         <Campo rotulo="Instância">

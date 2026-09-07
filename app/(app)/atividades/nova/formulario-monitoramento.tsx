@@ -3,6 +3,7 @@ import type { Route } from "next";
 import { formatarDataBR } from "@/lib/domain/datas";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { SeletorProcesso } from "@/components/SeletorProcesso";
 import { CamposRecorrencia } from "@/components/CamposRecorrencia";
 import { salvarMonitoramento } from "./acoes";
@@ -57,16 +58,12 @@ export function FormularioMonitoramento({
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Tipo de monitoramento</span>
-          <select name="tipo" required className="campo" defaultValue="">
-            <option value="" disabled>
-              Selecione o tipo…
-            </option>
-            {tipos.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.nome}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="tipo"
+            required
+            placeholder="Selecione o tipo…"
+            opcoes={tipos.map((t) => ({ value: t.id, label: t.nome }))}
+          />
         </label>
 
         <label className="flex flex-col gap-1.5">

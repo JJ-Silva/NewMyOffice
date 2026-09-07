@@ -13,6 +13,7 @@ import { buscarPublicacao } from "@/lib/db/publicacoes";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarTiposDeAtividade } from "@/lib/db/tipos-atividade";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { voltarPara } from "@/lib/navegacao";
 import { arquivar, reabrir, vincularProcessoJudicial } from "../acoes";
 
@@ -224,23 +225,22 @@ export default async function PaginaTriagem({
                         <span className="rotulo">
                           Vincular a um processo judicial já cadastrado
                         </span>
-                        <select
+                        <ComboBox
                           name="processo_id"
                           required
-                          defaultValue=""
-                          className="campo w-[360px]"
-                        >
-                          <option value="" disabled>
-                            Selecione o processo…
-                          </option>
-                          {judiciais.map((x) => (
-                            <option key={x.id} value={x.id}>
-                              {(x.numero ?? "sem número") +
-                                ` · ${x.pastaNome ?? x.pastaCodigo ?? "sem pasta"}` +
-                                (x.clienteNome ? ` · ${x.clienteNome}` : "")}
-                            </option>
-                          ))}
-                        </select>
+                          className="w-[360px]"
+                          placeholder="Selecione o processo…"
+                          opcoes={judiciais.map((x) => ({
+                            value: x.id,
+                            label: x.numero ?? "sem número",
+                            sub: [
+                              x.pastaNome ?? x.pastaCodigo ?? "sem pasta",
+                              x.clienteNome,
+                            ]
+                              .filter(Boolean)
+                              .join(" · "),
+                          }))}
+                        />
                       </label>
                       <BotaoEnviar
                         className="botao-secundario h-[38px]"

@@ -4,6 +4,7 @@ import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import type { TipoAtividadeCatalogo } from "@/lib/db/tipos-atividade";
 import type { Tribunal } from "@/lib/db/tribunais";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { SeletorProcesso } from "@/components/SeletorProcesso";
 import {
   EVENTOS,
@@ -84,38 +85,32 @@ export function FormularioPrazo({
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Tribunal (calendário de feriados)</span>
-          <select
+          <ComboBox
             name="tribunal"
-            defaultValue={campos.tribunalId ?? ""}
-            className="campo"
-          >
-            <option value="">Sem tribunal (só sábados e domingos)</option>
-            {tribunais.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.sigla} — {t.nome}
-              </option>
-            ))}
-          </select>
+            valorInicial={campos.tribunalId ?? ""}
+            placeholder="Digite a sigla ou o nome…"
+            opcoes={[
+              { value: "", label: "Sem tribunal (só sábados e domingos)" },
+              ...tribunais.map((t) => ({
+                value: t.id,
+                label: `${t.sigla} — ${t.nome}`,
+              })),
+            ]}
+          />
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Tipo de prazo</span>
-          <select
+          <ComboBox
             name="tipo"
             required
-            defaultValue={campos.tipoAtividadeId}
-            className="campo"
-          >
-            <option value="" disabled>
-              Selecione o tipo…
-            </option>
-            {tipos.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.nome}
-                {t.natureza === "interna" ? " (interna)" : ""}
-              </option>
-            ))}
-          </select>
+            valorInicial={campos.tipoAtividadeId}
+            placeholder="Selecione o tipo…"
+            opcoes={tipos.map((t) => ({
+              value: t.id,
+              label: t.nome + (t.natureza === "interna" ? " (interna)" : ""),
+            }))}
+          />
         </label>
 
         <div className="grid gap-4 [grid-template-columns:1fr_1fr]">

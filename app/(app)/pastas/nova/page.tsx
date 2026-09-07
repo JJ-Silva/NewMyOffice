@@ -7,6 +7,7 @@ import { listarClientes } from "@/lib/db/clientes";
 import { formatarCpfCnpj } from "@/lib/domain/documento";
 import { listarAreas } from "@/lib/db/areas";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { lerRetorno, urlDaTela, comRetorno } from "@/lib/navegacao";
 import { criarPastaAction } from "./acoes";
 
@@ -96,14 +97,14 @@ export default async function PaginaNovaPasta({
 
         <label className="flex flex-col gap-1.5">
           <span className="rotulo">Área</span>
-          <select name="area_id" className="campo" defaultValue="">
-            <option value="">— sem área —</option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nome}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="area_id"
+            placeholder="Digite para filtrar…"
+            opcoes={[
+              { value: "", label: "— sem área —" },
+              ...areas.map((a) => ({ value: a.id, label: a.nome })),
+            ]}
+          />
         </label>
 
         <label className="flex flex-col gap-1.5">

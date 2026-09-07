@@ -10,6 +10,7 @@ import {
 } from "@/lib/domain/tribunais-cnj";
 import type { CamposSugeridosDatajud } from "@/lib/domain/processo-datajud";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import type { PastaResumo } from "@/lib/db/pastas";
 import { salvarProcessoJudicial } from "./acoes";
 
@@ -176,22 +177,17 @@ export function FormularioJudicial({
               Tribunal
               {ehCnj ? " (pelo número — mude se estiver errado)" : ""}
             </span>
-            <select
+            <ComboBox
               name="tribunal_codigo"
               required
               value={f.tribunal_codigo}
-              onChange={(e) => set("tribunal_codigo", e.target.value)}
-              className="campo"
-            >
-              <option value="" disabled>
-                Selecione o tribunal…
-              </option>
-              {TRIBUNAIS_CONHECIDOS.map((t) => (
-                <option key={t.codigo} value={t.codigo}>
-                  {t.sigla} — {t.nome}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => set("tribunal_codigo", v)}
+              placeholder="Selecione o tribunal…"
+              opcoes={TRIBUNAIS_CONHECIDOS.map((t) => ({
+                value: String(t.codigo),
+                label: `${t.sigla} — ${t.nome}`,
+              }))}
+            />
           </label>
 
           <div className="grid gap-4 [grid-template-columns:1fr_1fr]">

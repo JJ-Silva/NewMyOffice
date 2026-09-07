@@ -14,6 +14,7 @@ import { listarClientes } from "@/lib/db/clientes";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarPartesDoProcesso, TIPOS_PARTE } from "@/lib/db/partes";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import {
   salvarPasta,
   excluirPastaAction,
@@ -132,14 +133,15 @@ export default async function PaginaPasta({
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="rotulo">Área</span>
-              <select name="area_id" defaultValue={pasta.area_id ?? ""} className="campo">
-                <option value="">— sem área —</option>
-                {areas.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nome}
-                  </option>
-                ))}
-              </select>
+              <ComboBox
+                name="area_id"
+                valorInicial={pasta.area_id ?? ""}
+                placeholder="Digite para filtrar…"
+                opcoes={[
+                  { value: "", label: "— sem área —" },
+                  ...areas.map((a) => ({ value: a.id, label: a.nome })),
+                ]}
+              />
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="rotulo">Status</span>
