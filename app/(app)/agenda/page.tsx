@@ -22,6 +22,7 @@ import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
 import { listarPastas } from "@/lib/db/pastas";
 import { materializarRecorrenciasDoEscritorio } from "@/lib/db/recorrencias";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { concluir } from "./acoes";
 
 const COR_ESTADO: Record<EstadoAgenda, string> = {
@@ -198,14 +199,15 @@ export default async function PaginaAgenda({
       >
         <label className="flex min-w-[200px] flex-1 flex-col gap-1.5">
           <span className="rotulo">Pasta</span>
-          <select name="pasta" defaultValue={fPasta} className="campo">
-            <option value="">Todas as pastas</option>
-            {pastas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome ?? p.codigo}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="pasta"
+            valorInicial={fPasta}
+            placeholder="Todas as pastas"
+            opcoes={[
+              { value: "", label: "Todas as pastas" },
+              ...pastas.map((p) => ({ value: p.id, label: p.nome ?? p.codigo })),
+            ]}
+          />
         </label>
         <label className="flex min-w-[150px] flex-col gap-1.5">
           <span className="rotulo">Tipo</span>

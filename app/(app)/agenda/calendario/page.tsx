@@ -21,6 +21,7 @@ import {
 import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
 import { listarPastas } from "@/lib/db/pastas";
 import { materializarRecorrenciasDoEscritorio } from "@/lib/db/recorrencias";
+import { ComboBox } from "@/components/ComboBox";
 
 const COR_TIPO: Record<ItemAgenda["tipo"], string> = {
   prazo: "#00727E",
@@ -197,14 +198,15 @@ export default async function PaginaCalendario({
         <input type="hidden" name="dia" value={diaRef} />
         <label className="flex min-w-[200px] flex-1 flex-col gap-1.5">
           <span className="rotulo">Pasta</span>
-          <select name="pasta" defaultValue={fPasta} className="campo">
-            <option value="">Todas as pastas</option>
-            {pastas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome ?? p.codigo}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="pasta"
+            valorInicial={fPasta}
+            placeholder="Todas as pastas"
+            opcoes={[
+              { value: "", label: "Todas as pastas" },
+              ...pastas.map((p) => ({ value: p.id, label: p.nome ?? p.codigo })),
+            ]}
+          />
         </label>
         <label className="flex min-w-[150px] flex-col gap-1.5">
           <span className="rotulo">Tipo</span>

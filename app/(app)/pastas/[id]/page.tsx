@@ -199,16 +199,16 @@ export default async function PaginaPasta({
         {podeEditar && clientesDisponiveis.length > 0 && (
           <form action={adicionarCliente} className="flex gap-2">
             <input type="hidden" name="id" value={pasta.id} />
-            <select name="cliente_id" required className="campo flex-1" defaultValue="">
-              <option value="" disabled>
-                Adicionar cliente…
-              </option>
-              {clientesDisponiveis.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nome} — {formatarCpfCnpj(c.cpf_cnpj)}
-                </option>
-              ))}
-            </select>
+            <ComboBox
+              name="cliente_id"
+              required
+              className="flex-1"
+              placeholder="Adicionar cliente…"
+              opcoes={clientesDisponiveis.map((c) => ({
+                value: c.id,
+                label: `${c.nome} — ${formatarCpfCnpj(c.cpf_cnpj)}`,
+              }))}
+            />
             <BotaoEnviar className="botao-primario h-[38px]" rotuloOcupado="…">
               Vincular
             </BotaoEnviar>

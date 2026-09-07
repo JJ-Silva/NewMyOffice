@@ -69,21 +69,16 @@ export default async function PaginaNovaPasta({
               + cadastrar cliente
             </Link>
           </span>
-          <select
+          <ComboBox
             name="cliente_id"
             required
-            defaultValue={clientePreSelecionado}
-            className="campo"
-          >
-            <option value="" disabled>
-              Selecione o cliente…
-            </option>
-            {clientes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome} — {formatarCpfCnpj(c.cpf_cnpj)}
-              </option>
-            ))}
-          </select>
+            valorInicial={clientePreSelecionado}
+            placeholder="Selecione o cliente…"
+            opcoes={clientes.map((c) => ({
+              value: c.id,
+              label: `${c.nome} — ${formatarCpfCnpj(c.cpf_cnpj)}`,
+            }))}
+          />
         </label>
 
         <label className="flex flex-col gap-1.5">

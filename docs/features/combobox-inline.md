@@ -37,9 +37,13 @@ digita no próprio campo, a lista cai embaixo filtrada, escolhe.
 | Área | `pastas/nova/page.tsx` · `pastas/[id]/page.tsx` | não-controlado |
 | Tribunal | `processos/novo/formulario-judicial.tsx` · `processos/[id]/formularios-edicao.tsx` | **controlado** (o número CNJ pré-seleciona) |
 | Processo judicial (vincular publicação) | `publicacoes/[id]/page.tsx` | não-controlado |
+| Pasta (filtro) | `processos/page.tsx` · `agenda/page.tsx` · `agenda/calendario/page.tsx` | não-controlado (form GET) |
+| Pasta | `processos/novo/formulario-administrativo.tsx` · `processos/[id]/formularios-edicao.tsx` (BlocoPasta) | não-controlado |
+| Pasta | `processos/novo/formulario-judicial.tsx` | controlado |
+| Cliente | `pastas/nova/page.tsx` · `pastas/[id]/page.tsx` (vincular) | não-controlado |
 
 **Fora**: `<select>` de 2–5 opções (status, polo, esfera, tipo de pessoa,
-evento, filtros da agenda) — não vale.
+evento, tipo/status dos filtros da agenda) — não vale.
 
 ## Checklist
 

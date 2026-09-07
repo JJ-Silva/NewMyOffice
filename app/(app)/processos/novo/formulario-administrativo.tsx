@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { PastaResumo } from "@/lib/db/pastas";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
+import { ComboBox } from "@/components/ComboBox";
 import { salvarProcessoAdministrativo } from "./acoes";
 
 const POLOS = [
@@ -48,19 +49,20 @@ export function FormularioAdministrativo({
             + criar pasta
           </Link>
         </span>
-        <select
+        <ComboBox
           name="pasta"
-          defaultValue={valores.pasta ?? ""}
-          className="campo"
-        >
-          <option value="">Sem pasta — organizo depois</option>
-          {pastas.map((p) => (
-            <option key={p.id} value={p.id}>
-              {(p.nome ?? p.codigo) +
-                (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
-            </option>
-          ))}
-        </select>
+          valorInicial={valores.pasta ?? ""}
+          placeholder="Sem pasta — organizo depois"
+          opcoes={[
+            { value: "", label: "Sem pasta — organizo depois" },
+            ...pastas.map((p) => ({
+              value: p.id,
+              label:
+                (p.nome ?? p.codigo) +
+                (p.clientes[0] ? ` · ${p.clientes[0].nome}` : ""),
+            })),
+          ]}
+        />
       </label>
 
       <label className="flex flex-col gap-1.5">

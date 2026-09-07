@@ -68,20 +68,21 @@ export function BlocoPasta({
         <span className="rotulo">
           {temPasta ? "Pasta" : "Organizar em uma pasta"}
         </span>
-        <select
+        <ComboBox
           name="pasta"
-          defaultValue={processo.pastaId ?? ""}
+          valorInicial={processo.pastaId ?? ""}
           disabled={!podeEditar}
-          className="campo"
-        >
-          <option value="">Sem pasta</option>
-          {pastas.map((p) => (
-            <option key={p.id} value={p.id}>
-              {(p.nome ?? p.codigo) +
-                (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
-            </option>
-          ))}
-        </select>
+          placeholder="Sem pasta"
+          opcoes={[
+            { value: "", label: "Sem pasta" },
+            ...pastas.map((p) => ({
+              value: p.id,
+              label:
+                (p.nome ?? p.codigo) +
+                (p.clientes[0] ? ` · ${p.clientes[0].nome}` : ""),
+            })),
+          ]}
+        />
       </label>
       {podeEditar && (
         <BotaoEnviar className="botao-secundario h-[38px]" rotuloOcupado="…">

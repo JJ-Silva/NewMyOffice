@@ -133,20 +133,21 @@ export function FormularioJudicial({
                 + criar pasta
               </Link>
             </span>
-            <select
+            <ComboBox
               name="pasta"
               value={f.pasta}
-              onChange={(e) => set("pasta", e.target.value)}
-              className="campo"
-            >
-              <option value="">Sem pasta — organizo depois</option>
-              {pastas.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {(p.nome ?? p.codigo) +
-                    (p.clientes[0] ? ` · ${p.clientes[0].nome}` : "")}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => set("pasta", v)}
+              placeholder="Sem pasta — organizo depois"
+              opcoes={[
+                { value: "", label: "Sem pasta — organizo depois" },
+                ...pastas.map((p) => ({
+                  value: p.id,
+                  label:
+                    (p.nome ?? p.codigo) +
+                    (p.clientes[0] ? ` · ${p.clientes[0].nome}` : ""),
+                })),
+              ]}
+            />
           </label>
 
           <label className="flex flex-col gap-1.5">

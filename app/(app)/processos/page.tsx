@@ -8,6 +8,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { formatarDataBR } from "@/lib/domain/datas";
 import { listarProcessos } from "@/lib/db/processos";
 import { listarPastas } from "@/lib/db/pastas";
+import { ComboBox } from "@/components/ComboBox";
 
 function moeda(v: number | null): string {
   if (v === null) return "—";
@@ -66,14 +67,15 @@ export default async function PaginaProcessos({
       >
         <label className="flex min-w-[240px] flex-1 flex-col gap-1.5">
           <span className="rotulo">Pasta</span>
-          <select name="pasta" defaultValue={fPasta} className="campo">
-            <option value="">Todas as pastas</option>
-            {pastas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome ?? p.codigo}
-              </option>
-            ))}
-          </select>
+          <ComboBox
+            name="pasta"
+            valorInicial={fPasta}
+            placeholder="Todas as pastas"
+            opcoes={[
+              { value: "", label: "Todas as pastas" },
+              ...pastas.map((p) => ({ value: p.id, label: p.nome ?? p.codigo })),
+            ]}
+          />
         </label>
         <button type="submit" className="botao-primario h-[38px]">
           Filtrar
