@@ -14,6 +14,7 @@ import {
   type PublicacaoLista,
   type StatusPublicacao,
 } from "@/lib/db/publicacoes";
+import { ordenarParaTriagem } from "@/lib/domain/publicacao";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { buscarNoDjen, arquivar, reabrir } from "./acoes";
 
@@ -65,7 +66,7 @@ export default async function PaginaPublicacoes({
         <h1 className="titulo-pagina">Publicações do DJEN</h1>
         <p className="subtitulo-pagina">
           Intimações do Diário de Justiça Nacional das OABs do escritório.
-          Trie cada uma: vira prazo ou é arquivada.
+          Avalie cada uma: vira prazo ou é arquivada.
         </p>
       </div>
 
@@ -160,7 +161,10 @@ export default async function PaginaPublicacoes({
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {publicacoes.map((p) => (
+          {(aba === "nova"
+            ? ordenarParaTriagem(publicacoes)
+            : publicacoes
+          ).map((p) => (
             <Cartao
               key={p.id}
               p={p}
@@ -198,10 +202,15 @@ function Cartao({
         </div>
         <span
           className="rounded-md px-2 py-1 text-xs font-medium"
-          style={{
-            background: p.processoId ? "var(--tint-1)" : "var(--fundo)",
-            color: p.processoId ? "var(--teal)" : "var(--texto-secundario)",
-          }}
+          style={
+            p.processoId
+              ? { background: "var(--tint-1)", color: "var(--teal)" }
+              : {
+                  background: "var(--aviso-fundo)",
+                  color: "var(--aviso)",
+                  border: "1px solid var(--aviso-borda)",
+                }
+          }
         >
           {p.processoId
             ? `${p.pastaNome ?? p.pastaCodigo ?? "processo avulso"} · ${p.clienteNome ?? "sem cliente"}`
