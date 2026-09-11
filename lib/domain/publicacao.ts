@@ -196,6 +196,19 @@ export function resumoDaPublicacaoDjen(pub: PublicacaoParaResumo): string {
   return `DJEN — ${cabecalho} (${quando}).` + (corpo ? `\n${corpo}` : "");
 }
 
+// ── Ordenação da fila de triagem ────────────────────────────────────────────
+// Na aba "Novas", publicações sem processo vinculado sobem para o topo — são
+// as que o sistema não conseguiu casar sozinho, então exigem mais atenção
+// manual. Dentro de cada grupo (sem/com processo), mantém a ordem que veio
+// (sort estável — mais recente primeiro, já que vem do banco assim).
+export function ordenarParaTriagem<T extends { processoId: string | null }>(
+  publicacoes: T[],
+): T[] {
+  return [...publicacoes].sort(
+    (a, b) => Number(a.processoId !== null) - Number(b.processoId !== null),
+  );
+}
+
 // Heurística grosseira: a publicação parece só informativa (sem prazo)?
 // Usada para dar um aviso leve na triagem — nunca decide sozinha.
 export function pareceSemPrazo(texto: string): boolean {

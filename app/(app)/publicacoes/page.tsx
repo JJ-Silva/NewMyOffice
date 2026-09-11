@@ -14,6 +14,7 @@ import {
   type PublicacaoLista,
   type StatusPublicacao,
 } from "@/lib/db/publicacoes";
+import { ordenarParaTriagem } from "@/lib/domain/publicacao";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { buscarNoDjen, arquivar, reabrir } from "./acoes";
 
@@ -58,6 +59,10 @@ export default async function PaginaPublicacoes({
     ),
   ]);
   const oabsAtivas = oabs.filter((o) => o.ativo);
+  const emTriagem = aba === "nova";
+  const listaExibida = emTriagem
+    ? ordenarParaTriagem(publicacoes)
+    : publicacoes;
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,7 +70,7 @@ export default async function PaginaPublicacoes({
         <h1 className="titulo-pagina">Publicações do DJEN</h1>
         <p className="subtitulo-pagina">
           Intimações do Diário de Justiça Nacional das OABs do escritório.
-          Trie cada uma: vira prazo ou é arquivada.
+          Avalie cada uma: vira prazo ou é arquivada.
         </p>
       </div>
 
@@ -160,12 +165,13 @@ export default async function PaginaPublicacoes({
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {publicacoes.map((p) => (
+          {listaExibida.map((p) => (
             <Cartao
               key={p.id}
               p={p}
               podeTriar={podeTriar}
               podeArquivar={podeArquivar}
+              destacarSemProcesso={emTriagem}
             />
           ))}
         </div>
@@ -178,11 +184,17 @@ function Cartao({
   p,
   podeTriar,
   podeArquivar,
+  destacarSemProcesso,
 }: {
   p: PublicacaoLista;
   podeTriar: boolean;
   podeArquivar: boolean;
+  // Só true na aba "Novas": é ali que "sem processo" exige atenção — nas
+  // demais abas a publicação já foi triada, então o card fica neutro (não
+  // é uma pendência de novo).
+  destacarSemProcesso: boolean;
 }) {
+  const semProcessoDestacado = !p.processoId && destacarSemProcesso;
   return (
     <div className="card flex flex-col gap-2.5 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -197,11 +209,14 @@ function Cartao({
           </span>
         </div>
         <span
-          className="rounded-md px-2 py-1 text-xs font-medium"
-          style={{
-            background: p.processoId ? "var(--tint-1)" : "var(--fundo)",
-            color: p.processoId ? "var(--teal)" : "var(--texto-secundario)",
-          }}
+          className={
+            "rounded-md px-2 py-1 text-xs font-medium " +
+            (p.processoId
+              ? "bg-tint-1 text-teal"
+              : semProcessoDestacado
+                ? "border border-aviso bg-[var(--aviso-fundo)] text-aviso"
+                : "bg-fundo text-texto-secundario")
+          }
         >
           {p.processoId
             ? `${p.pastaNome ?? p.pastaCodigo ?? "processo avulso"} · ${p.clienteNome ?? "sem cliente"}`

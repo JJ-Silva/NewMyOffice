@@ -23,6 +23,8 @@
   --hora-de-fazer: #d97706;
   --cumprido: #16a34a;
   --aviso: #d97706;
+  --aviso-fundo: #fffbeb;
+  --aviso-borda: #fde68a; /* mesma borda já usada em MemoriaCalculo.tsx */
   --sombra-card: 0 1px 2px rgba(16, 24, 40, 0.05);
   /* Tramitação — fio estilo chat (protótipo MyOffice — Tramitação) */
   --fio-fundo: #f5fafa; /* painel do fio */

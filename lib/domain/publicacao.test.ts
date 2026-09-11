@@ -6,6 +6,7 @@ import {
   sugerirPrazo,
   pareceSemPrazo,
   resumoDaPublicacaoDjen,
+  ordenarParaTriagem,
 } from "./publicacao";
 
 describe("limparTexto", () => {
@@ -158,5 +159,39 @@ describe("resumoDaPublicacaoDjen", () => {
     });
     expect(r).toContain("Intime-se a parte.");
     expect(r).not.toContain("<p>");
+  });
+});
+
+describe("ordenarParaTriagem", () => {
+  it("sobe as sem processo para o topo, mantendo a ordem dentro de cada grupo", () => {
+    const lista = [
+      { id: "a", processoId: "p1" },
+      { id: "b", processoId: null },
+      { id: "c", processoId: "p2" },
+      { id: "d", processoId: null },
+    ];
+    expect(ordenarParaTriagem(lista).map((p) => p.id)).toEqual([
+      "b",
+      "d",
+      "a",
+      "c",
+    ]);
+  });
+
+  it("todas com processo: ordem não muda", () => {
+    const lista = [
+      { id: "a", processoId: "p1" },
+      { id: "b", processoId: "p2" },
+    ];
+    expect(ordenarParaTriagem(lista).map((p) => p.id)).toEqual(["a", "b"]);
+  });
+
+  it("não muta a lista original", () => {
+    const lista = [
+      { id: "a", processoId: "p1" },
+      { id: "b", processoId: null },
+    ];
+    ordenarParaTriagem(lista);
+    expect(lista.map((p) => p.id)).toEqual(["a", "b"]);
   });
 });
