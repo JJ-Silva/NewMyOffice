@@ -16,7 +16,7 @@ import {
   estadoNaAgenda,
   prioridadeEfetiva,
   atividadeVisivelEm,
-  type EstadoAgenda,
+  COR_ESTADO,
 } from "@/lib/domain/atividade";
 import { listarAgenda, type ItemAgenda } from "@/lib/db/agenda";
 import { listarPastas } from "@/lib/db/pastas";
@@ -24,15 +24,6 @@ import { materializarRecorrenciasDoEscritorio } from "@/lib/db/recorrencias";
 import { BotaoEnviar } from "@/components/BotaoEnviar";
 import { ComboBox } from "@/components/ComboBox";
 import { concluir } from "./acoes";
-
-const COR_ESTADO: Record<EstadoAgenda, string> = {
-  atrasada: "#DC2626",
-  vence_hoje: "#F5C400",
-  hora_de_fazer: "#D97706",
-  futura: "#B9D4D3",
-  concluida: "#16A34A",
-  cancelada: "#9AA0A6",
-};
 
 const TIPO_LABEL: Record<ItemAgenda["tipo"], string> = {
   prazo: "Prazo",
@@ -319,12 +310,20 @@ export default async function PaginaAgenda({
                   <span
                     className="text-sm font-semibold tabular-nums"
                     style={{
-                      color: r.cor === "#B9D4D3" ? "var(--texto)" : r.cor,
+                      color: r.estado === "futura" ? "var(--texto)" : r.cor,
                     }}
                   >
                     {formatarDataBR(item.data)}
                   </span>
-                  <span className="text-[11.5px] text-texto-secundario">
+                  <span
+                    className="text-[11.5px] font-semibold"
+                    style={{
+                      color:
+                        r.estado === "futura"
+                          ? "var(--texto-secundario)"
+                          : r.cor,
+                    }}
+                  >
                     {r.sub}
                     {item.prazoApertado ? " · apertado" : ""}
                     {(prioridade === "urgente" || prioridade === "alta") &&
@@ -345,7 +344,15 @@ export default async function PaginaAgenda({
                   ) : (
                     <form action={concluir}>
                       <input type="hidden" name="id" value={item.id} />
-                      <BotaoEnviar className="botao-concluir" rotuloOcupado="…">
+                      <BotaoEnviar
+                        className="botao-concluir"
+                        rotuloOcupado="…"
+                        style={
+                          r.estado === "atrasada" || r.estado === "vence_hoje"
+                            ? { borderColor: r.cor }
+                            : undefined
+                        }
+                      >
                         ✓ Concluir
                       </BotaoEnviar>
                     </form>
