@@ -310,7 +310,7 @@ export default async function PaginaAgenda({
                   <span
                     className="text-sm font-semibold tabular-nums"
                     style={{
-                      color: r.cor === "#B9D4D3" ? "var(--texto)" : r.cor,
+                      color: r.estado === "futura" ? "var(--texto)" : r.cor,
                     }}
                   >
                     {formatarDataBR(item.data)}
@@ -319,7 +319,9 @@ export default async function PaginaAgenda({
                     className="text-[11.5px] font-semibold"
                     style={{
                       color:
-                        r.cor === "#B9D4D3" ? "var(--texto-secundario)" : r.cor,
+                        r.estado === "futura"
+                          ? "var(--texto-secundario)"
+                          : r.cor,
                     }}
                   >
                     {r.sub}
