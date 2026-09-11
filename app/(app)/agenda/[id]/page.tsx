@@ -9,7 +9,7 @@ import {
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeNoBrasil } from "@/lib/hoje";
 import { formatarDataBR } from "@/lib/domain/datas";
-import { estadoNaAgenda } from "@/lib/domain/atividade";
+import { estadoNaAgenda, COR_ESTADO } from "@/lib/domain/atividade";
 import { MemoriaCalculoPainel } from "@/components/MemoriaCalculo";
 import { carregarDetalheAtividade } from "@/lib/db/atividade-detalhe";
 import { voltarPara } from "@/lib/navegacao";
@@ -177,7 +177,10 @@ export default async function PaginaDetalheAtividade({
         </div>
         <div className="card flex flex-col gap-1 p-3.5">
           <span className="rotulo">Situação</span>
-          <span className="text-base font-semibold">
+          <span
+            className="text-base font-semibold"
+            style={{ color: estado === "futura" ? undefined : COR_ESTADO[estado] }}
+          >
             {ESTADO_LABEL[estado] ?? estado}
           </span>
           {prazo?.prazoApertado && (

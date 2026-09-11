@@ -115,6 +115,18 @@ export type EstadoAgenda =
   | "concluida"
   | "cancelada";
 
+// Cor por estado (plano §4 Bloco C.3 / TELAS.md) — usada na lista e no
+// detalhe da agenda. Fica aqui (não em cada página) para as duas telas
+// nunca divergirem.
+export const COR_ESTADO: Record<EstadoAgenda, string> = {
+  atrasada: "#DC2626",
+  vence_hoje: "#F5C400",
+  hora_de_fazer: "#D97706",
+  futura: "#B9D4D3",
+  concluida: "#16A34A",
+  cancelada: "#9AA0A6",
+};
+
 export type AtividadeParaEstado = {
   status: StatusAtividade;
   data: string; // 'AAAA-MM-DD' (= prazo fatal, para prazo)
